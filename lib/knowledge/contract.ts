@@ -140,13 +140,50 @@ export function normalizeKnowledgeSource(source: KnowledgeSource): KnowledgeDocu
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 
 function contentPieces(title: string, text: string) {
+  const malformed = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/u;
+  if (malformed.test(title) || malformed.test(text)) {
+    throw new Error("A source contains invalid Unicode");
+  }
   const limit = 3000 - Buffer.byteLength(title + "\n");
+  const words = text.split(/\s+/u);
+  const normalized = words.join(" ");
+  // A fixed locale avoids host locale changing segmentation or chunk IDs.
+  const graphemes = new Intl.Segmenter("en", { granularity: "grapheme" });
+  const oversized = words.some(word => Buffer.byteLength(word) > limit);
+  let hasCombinedWhitespace = false;
+  if (!oversized && Buffer.byteLength(normalized) > limit) for (const {segment} of graphemes.segment(normalized)) {
+    if (/\s/u.test(segment) && /\S/u.test(segment)) { hasCombinedWhitespace = true; break; }
+  }
+  // Preserve the existing word-boundary and whitespace behavior for inputs
+  // that already fit. Oversized tokens require language-aware segmentation.
+  if (hasCombinedWhitespace || oversized) {
+    const wordSegments = new Intl.Segmenter("en", { granularity: "word" });
+    const output: string[] = [];
+    let current = "";
+    let bytes = 0;
+    const append = (piece: string) => {
+      const size = Buffer.byteLength(piece);
+      if (size > limit) throw new Error("A source contains a grapheme longer than the evidence limit");
+      if (bytes + size > limit) { output.push(title + "\n" + current); current = ""; bytes = 0; }
+      current += piece;
+      bytes += size;
+    };
+    let separator = "";
+    for (const { segment } of wordSegments.segment(normalized)) {
+      if (/^\s+$/u.test(segment)) { separator += segment; continue; }
+      const piece = separator + segment;
+      separator = "";
+      if (Buffer.byteLength(piece) <= limit) append(piece);
+      else for (const { segment: grapheme } of graphemes.segment(piece)) append(grapheme);
+    }
+    if (current) output.push(title + "\n" + current);
+    return output;
+  }
   const output: string[] = [];
   let current = "";
   let bytes = 0;
-  for (const word of text.split(/\s+/u)) {
+  for (const word of words) {
     const size = Buffer.byteLength(word);
-    if (size > limit) throw new Error("A source contains a word longer than the evidence limit");
     if (bytes && bytes + 1 + size > limit) {
       output.push(title + "\n" + current);
       current = "";
