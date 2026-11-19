@@ -1,0 +1,8 @@
+node_modules/
+.next/
+.portfolio-knowledge/
+.vercel/
+.env*
+!.env.example
+coverage/
+*.tsbuildinfo

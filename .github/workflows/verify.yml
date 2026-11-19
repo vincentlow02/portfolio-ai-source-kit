@@ -1,0 +1,30 @@
+name: Verify source kit
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: "true"
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: node scripts/audit-distribution.mjs
+      - name: Inspect source archive
+        run: |
+          git archive --format=zip --output="$RUNNER_TEMP/source.zip" HEAD
+          unzip -Z1 "$RUNNER_TEMP/source.zip" | grep -v '/$' | sort > "$RUNNER_TEMP/archive.txt"
+          git ls-files | sort > "$RUNNER_TEMP/tracked.txt"
+          diff -u "$RUNNER_TEMP/tracked.txt" "$RUNNER_TEMP/archive.txt"
+      - run: npm run test:offline
+      - run: npm run test:integration

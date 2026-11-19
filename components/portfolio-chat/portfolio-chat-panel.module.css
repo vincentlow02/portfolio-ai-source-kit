@@ -1,0 +1,116 @@
+.shell { min-height: 100vh; }
+.thinking button { color: inherit; background: transparent; border: 0; text-decoration: underline; cursor: pointer; }
+.portfolio { min-width: 0; }
+.open { display: grid; position: fixed; z-index: 300; top: 29px; right: clamp(20px, 2.5vw, 36px); width: 54px; height: 36px; place-items: center; border: 0; border-radius: 9999px; background: transparent; color: #252a28; cursor: pointer; }
+.panel { display: flex; flex-direction: column; position: fixed; z-index: 400; inset: 0; width: 100%; height: 100dvh; background: #fafaf9; color: #252a28; }
+@media (prefers-reduced-motion: no-preference) {
+  .panel { animation: panelEnter 220ms ease-out both; }
+  @keyframes panelEnter {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+.selectionAction { display: none; }
+@media (min-width: 1024px) {
+  .selectionAction { display: inline-flex; position: fixed; z-index: 500; align-items: center; gap: 7px; padding: 8px 10px; border: 0; border-radius: 2px; background: #252a28; color: #fff; font: inherit; font-size: 12px; cursor: pointer; }
+  .selectionAction:focus-visible { outline: 2px solid #252a28; outline-offset: 3px; }
+  .shell[data-portfolio-chat-open="true"] .portfolio { width: calc(100% - 350px); overflow-x: clip; }
+  .panel { inset: 0 0 0 auto; width: 350px; border-left: 1px solid var(--portfolio-chat-border, var(--border, #deded9)); }
+}
+.openIcon { position: relative; z-index: 1; }
+  .header { height: 72px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; flex: none; font-size: 13px; font-weight: 600; }
+  .actions { display: flex; gap: 8px; }
+  .actions button, .composer button { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 0; background: transparent; color: #626a65; cursor: pointer; }
+  .content { display: flex; flex: 1; min-height: 0; overflow-y: auto; padding: 0 20px; background: #fafaf9; overscroll-behavior: contain; }
+  .welcome { margin-top: auto; width: 100%; padding-bottom: 25px; }
+  .welcome h2 { margin: 0 0 20px; font-family: Georgia, serif; font-size: 21px; font-weight: 400; letter-spacing: -.025em; }
+  .suggestions { display: grid; gap: 3px; }
+  .suggestions button { display: flex; align-items: flex-start; gap: 9px; border: 0; padding: 7px 0; text-align: left; color: #626a65; background: none; font: inherit; font-size: 13px; line-height: 1.45; cursor: pointer; }
+  .suggestions button:hover { color: #252a28; }
+  .suggestions svg { margin-top: 2px; flex: none; }
+  .composer { display: flex; align-items: center; box-sizing: border-box; width: auto; min-height: 48px; height: auto; flex: none; gap: 8px; margin: 0 20px 16px; padding: 11px 12px; border: 1px solid var(--portfolio-chat-border, var(--border, #deded9)); border-radius: 2px; background: var(--portfolio-chat-surface, var(--background, #fafaf9)); }
+  .composerArea { flex: none; min-width: 0; }
+  .quotePreview, .messageQuote { display: flex; align-items: flex-start; gap: 8px; color: #626a65; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+  .quotePreview { margin: 0 20px 8px; padding: 9px 10px; border-left: 2px solid var(--portfolio-chat-border, var(--border, #deded9)); background: var(--portfolio-chat-surface, var(--background, #fafaf9)); }
+  .quotePreview svg, .messageQuote svg { flex: none; margin-top: 1px; }
+  .quotePreview span { flex: 1; min-width: 0; }
+  .quotePreview button { display: grid; flex: none; place-items: center; padding: 0; border: 0; background: transparent; color: #626a65; cursor: pointer; }
+  .messageQuote { margin-bottom: 10px; }
+  .composer textarea { display: block; flex: 1; box-sizing: border-box; min-width: 0; min-height: 20px; max-height: 120px; margin: 0; padding: 0; resize: none; overflow-y: hidden; border: 0; border-radius: 0; outline: none; box-shadow: none; background: transparent; color: #252a28; font: inherit; font-size: 13px; line-height: 20px; }
+  .composer textarea::placeholder { color: #626a65; opacity: 1; }
+  .composer button { width: 24px; height: 24px; flex: none; padding: 0; }
+  .composer button:disabled { color: #626a65; cursor: default; }
+  .composer:has(textarea:focus-visible) { outline: 2px solid #626a65; outline-offset: 2px; }
+  .messages { width: 100%; padding: 18px 0 26px; }
+  .user, .assistant { min-width: 0; overflow-wrap: anywhere; color: #252a28; font-size: 15px; line-height: 1.55; }
+  .user { box-sizing: border-box; width: 100%; margin: 0 0 32px; padding: 16px 18px; border-radius: 2px; background: var(--portfolio-chat-surface, var(--background, #fafaf9)); font-weight: 500; }
+  .assistant { margin: 0 0 30px; padding: 0; background: transparent; font-weight: 400; }
+  .user p, .assistant p { margin: 0; white-space: pre-wrap; }
+  .followups { display: grid; gap: 7px; margin-top: 22px; padding-top: 19px; border-top: 1px solid var(--portfolio-chat-border, var(--border, #deded9)); }
+  .followups button { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; padding: 3px 0; background: transparent; color: #626a65; text-align: left; font: inherit; font-size: 14px; line-height: 1.45; cursor: pointer; transition: color 140ms ease; }
+  .followups button:hover { color: #252a28; }
+  .followups svg { flex: none; }
+  .sources { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 14px; font-size: 12px; color: #626a65; }
+  .sources a { text-decoration: underline; text-underline-offset: 3px; }
+  .sources summary { cursor: pointer; }
+  .sources details a { display: block; margin-top: 6px; }
+  .thinking { margin: 0 0 22px; color: #626a65; font-size: 14px; line-height: 1.55; }
+  .shell button:focus-visible, .shell a:focus-visible { outline: 2px solid #626a65; outline-offset: 3px; }
+@media (max-width: 1023px) {
+  .header { height: 64px; border-bottom: 1px solid var(--portfolio-chat-border, var(--border, #deded9)); font-size: 15px; }
+  .actions button { width: 40px; height: 40px; }
+  .welcome h2 { font-size: 26px; }
+  .suggestions button { min-height: 44px; align-items: center; font-size: 15px; }
+  .suggestions svg { margin-top: 0; }
+  .composer { margin-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+  .composer textarea { font-size: 16px; }
+}
+@media (max-width: 560px) {
+  .open { top: 20px; right: 20px; }
+}
+
+/* Editorial chat presentation; the panel and scrolling mechanics remain unchanged. */
+.panel { background: #fafaf9; color: #252a28; }
+.header { border-bottom: 1px solid var(--portfolio-chat-border, var(--border, #deded9)); letter-spacing: .01em; }
+.content { background: #fafaf9; }
+.messages { align-self: flex-start; padding: 24px 0 42px; }
+.user { width: fit-content; max-width: 88%; margin: 0 0 28px auto; padding: 10px 13px; background: #f0f0ed; color: #252a28; font-size: 13px; font-weight: 400; line-height: 1.5; }
+.assistant { color: #252a28; font-size: 15px; line-height: 1.65; }
+.assistant .answer p { margin: 0 0 1em; white-space: pre-wrap; }
+.assistant .answer > :last-child { margin-bottom: 0; }
+.answer h1, .answer h2, .answer h3 { margin: 1.2em 0 .5em; font-family: Georgia, serif; font-weight: 400; line-height: 1.3; }
+.answer ul, .answer ol { margin: .7em 0; padding-left: 1.4em; }
+.answer li + li { margin-top: .35em; }
+.answer pre { max-width: 100%; overflow-x: auto; padding: 12px; background: #f0f0ed; font-size: 12px; }
+.answer code { font-size: .9em; }
+.answer table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+.answer th, .answer td { padding: 6px 8px; border-bottom: 1px solid var(--portfolio-chat-border, var(--border, #deded9)); text-align: left; }
+.projectList { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--portfolio-chat-border, var(--border, #deded9)); }
+.projectList li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--portfolio-chat-border, var(--border, #deded9)); font-size: 13px; line-height: 1.55; }
+.projectList li > span:first-child { color: #626a65; font-size: 10px; letter-spacing: .04em; }
+.projectList .projectListNested { padding-left: 16px; color: #626a65; }
+.otherProjects summary { display: flex; align-items: center; gap: 7px; width: fit-content; padding: 10px 0; color: #626a65; cursor: pointer; font-size: 12px; list-style: none; }
+.otherProjects summary::-webkit-details-marker { display: none; }
+.otherProjects summary::before { content: "+"; font-size: 15px; line-height: 1; }
+.otherProjects[open] summary::before { content: "−"; }
+.otherProjects summary span { color: #626a65; font-size: 10px; }
+.metadata { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-top: 12px; }
+.sources { display: block; margin: 0; color: #626a65; font-size: 12px; }
+.sources[open] { flex-basis: 100%; }
+.sources summary { display: flex; align-items: center; gap: 7px; width: fit-content; cursor: pointer; list-style: none; }
+.sources summary::-webkit-details-marker { display: none; }
+.sources summary::before { content: "+"; font-size: 15px; line-height: 1; }
+.sources[open] summary::before { content: "−"; }
+.sources summary span { color: #626a65; font-size: 10px; }
+.sources div { display: flex; flex-wrap: wrap; gap: 5px 14px; margin-top: 8px; padding-left: 17px; }
+.sources div a { margin: 0; width: fit-content; }
+.projectLink { color: inherit; text-decoration: underline; text-decoration-color: #626a65; text-underline-offset: 3px; }
+.projectLink:hover { color: #252a28; text-decoration-color: currentColor; }
+.followups { min-width: 0; gap: 2px; margin-top: 9px; padding: 0; border: 0; }
+.followups button { box-sizing: border-box; min-width: 0; max-width: 100%; align-items: flex-start; gap: 8px; color: #626a65; font-size: 12px; line-height: 1.5; }
+.followups svg { margin-top: 2px; }
+.followups button span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.followups button:focus-visible span { overflow: visible; white-space: normal; }
+.composer { border-color: var(--portfolio-chat-border, var(--border, #deded9)); background: var(--portfolio-chat-surface, var(--background, #fafaf9)); }
+.composerArea { padding-top: 8px; border-top: 1px solid var(--portfolio-chat-border, var(--border, #deded9)); }
+.thinking { color: #626a65; font-size: 13px; }
