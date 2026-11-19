@@ -3,6 +3,7 @@ import test from "node:test";
 import { buildKnowledgeCorpus, type KnowledgeSource } from "../../lib/knowledge/contract";
 import { b2PublicCorpus, buildB2Pack, parsePageContext, validateB2 } from "../../lib/portfolio-chat/b2";
 import { attachSelectedQuotation, verifySelection } from "../../lib/portfolio-chat/selection";
+import { configureModel } from "../../lib/portfolio-chat/provider";
 import type { PortfolioChatConfig } from "../../lib/portfolio-chat/engine-config";
 
 const config: PortfolioChatConfig = { ownerName:"Morgan Reed", ownerAliases:["Morgan"], projectAliases:{lantern:["Lantern"]}, protectedSourcePrefixes:["/work/undisclosed"] };
@@ -43,4 +44,14 @@ test("verified selections are separately attributed and private selections fail"
   assert.deepEqual(result.claims[1].evidenceKeys,[team.key]);
   assert.throws(() => verifySelection({pagePath:"/work/undisclosed",text:"private data",sectionId:null},corpus,page));
   assert.throws(() => parsePageContext({pathname:"/work/undisclosed"},corpus,config));
+});
+
+test("Qwen configuration accepts a compatible HTTPS endpoint and rejects unsafe settings without network calls", () => {
+  const env = { PORTFOLIO_AI_PROVIDER:"qwen", QWEN_API_KEY:"fixture-key", QWEN_BASE_URL:"https://qwen.fixture.invalid/v1", QWEN_MODEL:"qwen3.7-flash", QWEN_JSON_MODE:"schema" };
+  assert.equal(configureModel(env)?.modelId,"qwen3.7-flash");
+  assert.equal(configureModel({...env,QWEN_JSON_MODE:"object"})?.provider,"qwen");
+  assert.equal(configureModel({...env,QWEN_BASE_URL:"http://qwen.fixture.invalid/v1"}),null);
+  assert.equal(configureModel({...env,QWEN_BASE_URL:"https://qwen.fixture.invalid/v1/chat/completions"}),null);
+  assert.equal(configureModel({...env,QWEN_JSON_MODE:"invalid"}),null);
+  assert.equal(configureModel({...env,QWEN_API_KEY:""}),null);
 });
