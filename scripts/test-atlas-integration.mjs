@@ -89,6 +89,8 @@ try {
     const [status] = await once(child, "exit");
     assert.equal(status, 0, "independent npm ci");
     await cli(["node_modules/tsx/dist/cli.mjs", "scripts/portfolio-knowledge/publish.mts"]);
+    await cli(["node_modules/next/dist/bin/next", "typegen"]);
+    await cli(["node_modules/typescript/bin/tsc", "--noEmit"]);
   }
   const corpus = JSON.parse(await readFile(join(host, ".portfolio-knowledge", "corpus.json"), "utf8"));
   assert.equal(corpus.pages.length, 4);
@@ -123,6 +125,16 @@ try {
     assert.equal(declined.sources.length, 0);
     console.log("Independent production route passed authorization, privacy, highlight validation, two-project citations and insufficient-evidence checks.");
   } finally { await stop(production.app); }
+
+  const concurrency = await start("start");
+  try {
+    const pending = [call(concurrency.origin, "Cancellation fixture one", {}), call(concurrency.origin, "Cancellation fixture two", {})];
+    await new Promise(resolve => setTimeout(resolve, 500));
+    assert.equal((await call(concurrency.origin, "A third simultaneous request", {})).status, 429);
+    assert.deepEqual((await Promise.all(pending)).map(response => response.status), [200,200]);
+    assert.equal((await call(concurrency.origin, "Tell me about Lantern", {})).status, 200);
+    console.log("Concurrent request limit and recovery passed with the fake provider.");
+  } finally { await stop(concurrency.app); }
 
   const development = await start("dev");
   let browser;

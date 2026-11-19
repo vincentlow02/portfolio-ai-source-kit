@@ -47,4 +47,4 @@ Keep API and database secrets on the server. Configure an exact allowed HTTPS or
 
 ## License and dependencies
 
-The kit and fictional example are covered by the accompanying MIT license. Dependencies are installed separately; preserve their applicable licenses and notices. The example lockfile identifies exact dependency versions. Major direct dependencies include the Apache-2.0 licensed AI SDK, Orama and Puppeteer, MIT licensed Next.js, React, unified, remark and Zod, and ISC licensed Lucide. Check transitive notices for your actual distribution. No original portfolio assets are included.
+The kit and fictional example are covered by the accompanying [MIT license](LICENSE). Dependencies are installed separately; preserve their applicable licenses and notices. See [third-party notices](THIRD_PARTY_NOTICES.md) and the example lockfile. No original portfolio assets are included.

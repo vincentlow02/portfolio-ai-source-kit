@@ -10,6 +10,7 @@ const sources: KnowledgeSource[] = [
   { access:"public", format:"json", page:{url:"/work/lantern",title:"Lantern",language:"en",kind:"case-study",projectId:"lantern"}, data:{sections:[
     {title:"Concept",anchor:"concept",text:"I imagined a navigation concept for public libraries."},
     {title:"Team work",anchor:"team",text:"Art direction and visual explorations for Lantern."},
+    {title:"Contribution",anchor:"contribution",text:"I provided art direction for Lantern."},
   ]} },
   { access:"protected", url:"/work/undisclosed" },
 ];
@@ -20,13 +21,16 @@ const messages = [{role:"user" as const, content:"What was Morgan responsible fo
 const pack = await buildB2Pack(corpus,messages,page,"en",undefined,undefined,config);
 const personal = pack.entries.find(entry => entry.chunk.content.includes("I imagined"));
 const team = pack.entries.find(entry => entry.chunk.content.includes("Art direction"));
-assert.ok(personal && team);
+const direct = pack.entries.find(entry => entry.chunk.content.includes("I provided"));
+assert.ok(personal && team && direct);
 
 test("first-person concept can be attributed but team art direction cannot", () => {
   const validate = (text:string,key:string) => validateB2({language:"en",insufficient:false,claims:[{text,evidenceKeys:[key]}],recommendedProjectIds:[]},corpus,pack);
   assert.equal(validate("Morgan imagined a navigation concept for public libraries.",personal.key).insufficient,false);
   assert.equal(validate("Morgan imagined a navigation concept for public libraries.",team.key).insufficient,true);
   assert.equal(validate("Morgan provided the art direction and visual explorations for Lantern.",team.key).insufficient,true);
+  assert.equal(validate("Morgan provided the art direction and visual explorations for Lantern.",personal.key).insufficient,true);
+  assert.equal(validate("Morgan provided art direction for Lantern.",direct.key).insufficient,false);
   assert.equal(validate("An invented fact.","E999").insufficient,true);
 });
 
