@@ -28,3 +28,11 @@ jobs:
           diff -u "$RUNNER_TEMP/tracked.txt" "$RUNNER_TEMP/archive.txt"
       - run: npm run test:offline
       - run: npm run test:integration
+      - name: Test a clean source archive
+        run: |
+          mkdir "$RUNNER_TEMP/archive-check"
+          unzip -q "$RUNNER_TEMP/source.zip" -d "$RUNNER_TEMP/archive-check"
+          cd "$RUNNER_TEMP/archive-check"
+          npm ci --no-audit --no-fund
+          npm run test:offline
+          npm run test:integration
