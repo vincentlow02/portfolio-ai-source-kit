@@ -22,6 +22,10 @@ Each public entry specifies `access`, `format`, and a `page` with same-origin UR
 
 The anonymous verifier requires a successful exact URL, matching HTML language, visible content and valid unique anchors. `X-Robots-Tag`, robots metadata, hidden elements, private markers and protected paths are respected. Rebuild after content or routing changes. See [architecture](architecture.md).
 
+Sections are limited to 3,000 UTF-8 bytes per evidence chunk, including the section title and newline. Whitespace is normalized to single spaces. Ordinary text retains the existing word-boundary behavior; when a token exceeds the available budget or whitespace is combined with another character in a grapheme, native Unicode word and grapheme segmentation is used. This permits long Chinese and Japanese text without inserting spaces or splitting emoji and combining sequences. A grapheme larger than the available budget and malformed Unicode fail explicitly. Source URLs, anchors and section metadata are retained for every chunk; chunk IDs are deterministic for unchanged input.
+
+For reconstruction of normalized section text, join ordinary word-boundary chunks with a single space. For the Unicode fallback (an oversized token or combined-whitespace grapheme), concatenate chunk bodies without adding a separator; any spaces at boundaries are preserved in those bodies. This distinction preserves compatibility with the original chunk format.
+
 ## Example and tests
 
 To try Atlas, copy `examples/atlas-portfolio` into a new directory, run the installer into that directory, then `npm ci`, `npm run build` and `npm run typecheck` there. Configure its own `.env.local` and run `npm run dev` to use a real provider. From this repository root, `npm ci`, `npm run test:offline`, and `npm run test:integration` run offline and fresh Atlas checks with fake model and database services; these tests do not incur model charges.

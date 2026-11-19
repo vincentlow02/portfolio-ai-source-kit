@@ -2,6 +2,14 @@
 
 Run `npm ci`, `npm run test:offline` and `npm run test:integration` from the source kit. The integration test copies the fictional Atlas host and the source kit into a separate temporary directory, performs its own lockfile installation and build, and exercises the production API and browser interactions using fake Qwen and Supabase services. It checks authorization, protected content exclusion, verified selection, comparisons, citations, follow-ups, cancellation and recovery. These tests make no paid model calls.
 
+To audit a release archive, use Python 3.11 or newer and a Git checkout containing the released commit:
+
+```sh
+python3 scripts/audit-release-zip.py /path/to/source.zip --commit <commit-or-tag> --sha256 <published-sha256>
+```
+
+The audit reads the ZIP without extracting it. It checks the digest, every file and byte against the selected Git tree, paths, duplicates, symbolic links, disallowed media and local files, candidate secrets and portfolio references, required notices, and local links in the README and integration guide. CI also tests malformed archives and performs a fresh installation from the inspected ZIP. `--allow-legacy-crlf` exists solely to audit the historical V1.0.0 asset, whose files differ from its Git blobs only by CRLF line endings; do not use it for new releases.
+
 Before a real-model test, obtain explicit authorization for the call count and spend, confirm your provider's actual regional pricing and billing controls, use a dedicated staging database, and disable automatic retries. Record outcomes, token usage, latency, source URLs and a manual assessment of each claim against its cited public passage. A successful response or valid citation URL does not prove factual grounding. Test unsupported facts, private paths, prompt injection, personal-role attribution and multilingual questions relevant to your own content. Do not log private text or credentials.
 
 | Symptom | Check |

@@ -52,6 +52,8 @@ jobs:
           unzip -Z1 "$RUNNER_TEMP/source.zip" | grep -v '/$' | sort > "$RUNNER_TEMP/archive.txt"
           git ls-files | sort > "$RUNNER_TEMP/tracked.txt"
           diff -u "$RUNNER_TEMP/tracked.txt" "$RUNNER_TEMP/archive.txt"
+          python3 scripts/audit-release-zip.py "$RUNNER_TEMP/source.zip" --commit HEAD
+          python3 scripts/test-audit-release-zip.py "$RUNNER_TEMP/source.zip" HEAD
       - run: npm run test:offline
       - run: npm run test:integration
       - name: Test a clean source archive
