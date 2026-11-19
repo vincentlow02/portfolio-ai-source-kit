@@ -5,12 +5,22 @@ globalThis.fetch = async (input, init) => {
   const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
   if (url.hostname === "fixture.supabase.co") {
     assert.equal(init.headers.apikey, "sb_secret_atlas_fixture");
-    if (url.pathname.endsWith("/rpc/vincent_ai_reserve_quota")) return Response.json(true);
+    if (url.pathname.endsWith("/rpc/vincent_ai_reserve_quota")) {
+      const quota = JSON.parse(init.body);
+      assert.equal(quota.p_minute_limit, 10);
+      assert.equal(quota.p_daily_limit, 20);
+      assert.equal(quota.p_daily_budget_usd, 2);
+      assert.equal(quota.p_request_reservation_usd, 0.1007);
+      if (process.env.TEST_ATLAS_QUOTA_MODE === "exhausted") return Response.json(false);
+      if (process.env.TEST_ATLAS_QUOTA_MODE === "unavailable") return new Response(null, {status:503});
+      return Response.json(true);
+    }
     const event = JSON.parse(init.body);
     assert.ok(!("messages" in event) && !("answer" in event));
     return new Response(null, { status: 201 });
   }
   if (url.hostname !== "atlas-model.invalid") return delegate(input, init);
+  assert.ok(!process.env.TEST_ATLAS_QUOTA_MODE, "model must not be called when shared quota fails");
   const request = JSON.parse(init.body);
   const prompt = request.messages.find(message => message.role === "system").content;
   const query = request.messages.filter(message => message.role === "user").at(-1).content;

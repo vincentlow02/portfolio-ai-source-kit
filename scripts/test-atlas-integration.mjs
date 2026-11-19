@@ -22,6 +22,7 @@ const env = {
   PORTFOLIO_AI_PROVIDER: "qwen", QWEN_MODEL: "qwen3.7-flash", QWEN_JSON_MODE: "schema",
   QWEN_BASE_URL: "https://atlas-model.invalid/v1", QWEN_API_KEY: "fixture-only",
   SUPABASE_URL: "https://fixture.supabase.co", SUPABASE_SECRET_KEY: "sb_secret_atlas_fixture",
+  TEST_ATLAS_QUOTA_MODE: undefined,
   PORTFOLIO_AI_QUOTA_PER_MINUTE: "10", PORTFOLIO_AI_QUOTA_PER_DAY: "20",
   PORTFOLIO_AI_DAILY_BUDGET_USD: "2", PORTFOLIO_AI_INPUT_USD_PER_MILLION: "1", PORTFOLIO_AI_OUTPUT_USD_PER_MILLION: "1",
   NODE_OPTIONS: '--require="' + mockPath + '"',
@@ -30,9 +31,9 @@ const env = {
 const host = process.argv[2] ?? await mkdtemp(join(tmpdir(), "portfolio-ai-atlas-"));
 const fresh = !process.argv[2];
 
-async function start(mode) {
+async function start(mode, overrides = {}) {
   const app = spawn(process.execPath, ["node_modules/next/dist/bin/next", mode, "--hostname", "127.0.0.1", "--port", "0"],
-    { cwd: host, env, stdio: ["ignore", "pipe", "inherit"], windowsHide: true });
+    { cwd: host, env: {...env, ...overrides}, stdio: ["ignore", "pipe", "inherit"], windowsHide: true });
   try {
     const origin = await new Promise((resolve, reject) => {
       const fail = error => { clearTimeout(timer); reject(error); };
@@ -125,6 +126,14 @@ try {
     assert.equal(declined.sources.length, 0);
     console.log("Independent production route passed authorization, privacy, highlight validation, two-project citations and insufficient-evidence checks.");
   } finally { await stop(production.app); }
+
+  for (const [quotaMode, expectedStatus] of [["exhausted",429],["unavailable",503]]) {
+    const quota = await start("start", {TEST_ATLAS_QUOTA_MODE:quotaMode});
+    try {
+      assert.equal((await call(quota.origin,"Tell me about Lantern",{})).status,expectedStatus);
+    } finally { await stop(quota.app); }
+  }
+  console.log("Shared quota exhaustion and service errors fail closed without a model call.");
 
   const concurrency = await start("start");
   try {
