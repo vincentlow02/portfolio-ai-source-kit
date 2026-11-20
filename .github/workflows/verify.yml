@@ -8,7 +8,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     services:
       postgres:
         image: postgres:16
@@ -56,6 +56,10 @@ jobs:
           python3 scripts/test-audit-release-zip.py "$RUNNER_TEMP/source.zip" HEAD
       - run: npm run test:offline
       - run: npm run test:integration
+      - name: Install GitHub registry item into two portfolios
+        env:
+          PORTFOLIO_AI_REGISTRY_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/test-registry-install.mjs
       - name: Test a clean source archive
         run: |
           mkdir "$RUNNER_TEMP/archive-check"
