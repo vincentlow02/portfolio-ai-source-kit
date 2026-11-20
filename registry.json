@@ -179,12 +179,7 @@
           "target": "~/.portfolio-ai/SETUP.md"
         },
         {
-          "path": "docs/integration.md",
-          "type": "registry:file",
-          "target": "~/.portfolio-ai/integration.md"
-        },
-        {
-          "path": "docs/security.md",
+          "path": "docs/registry-security.md",
           "type": "registry:file",
           "target": "~/.portfolio-ai/security.md"
         },

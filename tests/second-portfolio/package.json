@@ -1,0 +1,11 @@
+{
+  "name": "second-independent-portfolio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsx scripts/portfolio-knowledge/publish.mts",
+    "typecheck": "next typegen && tsc --noEmit"
+  },
+  "dependencies": { "next": "16.4.6", "react": "19.2.4", "react-dom": "19.2.4" },
+  "devDependencies": { "typescript": "^5", "@types/node": "^20", "@types/react": "^19", "@types/react-dom": "^19" }
+}
