@@ -1,0 +1,229 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "portfolio-ai-source-kit",
+  "homepage": "https://github.com/vincentlow02/portfolio-ai-source-kit",
+  "items": [
+    {
+      "name": "portfolio-ai",
+      "type": "registry:item",
+      "title": "Portfolio AI",
+      "description": "Citation-aware portfolio assistant source and integration templates.",
+      "dependencies": [
+        "@ai-sdk/openai@4.0.111",
+        "@ai-sdk/openai-compatible@3.0.87",
+        "@orama/orama@3.1.18",
+        "@orama/tokenizers@3.1.18",
+        "ai@7.0.166",
+        "lucide-react@1.61.0",
+        "react-markdown@10.1.0",
+        "remark-gfm@4.0.1",
+        "remark-parse@11.0.0",
+        "remark-mdx@3.1.1",
+        "unified@11.0.5",
+        "zod@4.6.7"
+      ],
+      "devDependencies": [
+        "@sparticuz/chromium@153.0.0",
+        "puppeteer@25.18.1",
+        "tsx@4.23.15"
+      ],
+      "files": [
+        {
+          "path": "PORTFOLIO_AI_LICENSE",
+          "type": "registry:file",
+          "target": "~/PORTFOLIO_AI_LICENSE"
+        },
+        {
+          "path": "components/portfolio-chat/chat-adapter.ts",
+          "type": "registry:file",
+          "target": "~/components/portfolio-chat/chat-adapter.ts"
+        },
+        {
+          "path": "components/portfolio-chat/labels.ts",
+          "type": "registry:file",
+          "target": "~/components/portfolio-chat/labels.ts"
+        },
+        {
+          "path": "components/portfolio-chat/portfolio-chat-panel.module.css",
+          "type": "registry:file",
+          "target": "~/components/portfolio-chat/portfolio-chat-panel.module.css"
+        },
+        {
+          "path": "components/portfolio-chat/portfolio-chat-panel.tsx",
+          "type": "registry:file",
+          "target": "~/components/portfolio-chat/portfolio-chat-panel.tsx"
+        },
+        {
+          "path": "lib/knowledge/contract.ts",
+          "type": "registry:file",
+          "target": "~/lib/knowledge/contract.ts"
+        },
+        {
+          "path": "lib/knowledge/rendered.ts",
+          "type": "registry:file",
+          "target": "~/lib/knowledge/rendered.ts"
+        },
+        {
+          "path": "lib/portfolio-knowledge.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-knowledge.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/b2.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/b2.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/click-handler.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/click-handler.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/core.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/core.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/engine-config.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/engine-config.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/followups.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/followups.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/guardian.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/guardian.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/handler.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/handler.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/language.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/language.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/local-access.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/local-access.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/origin.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/origin.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/provider.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/provider.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/request-body.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/request-body.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/retrieval.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/retrieval.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/selection.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/selection.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/session.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/session.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/supabase.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/supabase.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/timing.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/timing.ts"
+        },
+        {
+          "path": "scripts/portfolio-chat/dev-server.mjs",
+          "type": "registry:file",
+          "target": "~/scripts/portfolio-chat/dev-server.mjs"
+        },
+        {
+          "path": "scripts/portfolio-knowledge/anonymous-browser.mjs",
+          "type": "registry:file",
+          "target": "~/scripts/portfolio-knowledge/anonymous-browser.mjs"
+        },
+        {
+          "path": "scripts/portfolio-knowledge/publish.mts",
+          "type": "registry:file",
+          "target": "~/scripts/portfolio-knowledge/publish.mts"
+        },
+        {
+          "path": "supabase/migrations/202611100001_vincent_ai_analytics.sql",
+          "type": "registry:file",
+          "target": "~/supabase/migrations/202611100001_vincent_ai_analytics.sql"
+        },
+        {
+          "path": "docs/registry-agent-setup.md",
+          "type": "registry:file",
+          "target": "~/.portfolio-ai/SETUP.md"
+        },
+        {
+          "path": "docs/integration.md",
+          "type": "registry:file",
+          "target": "~/.portfolio-ai/integration.md"
+        },
+        {
+          "path": "docs/security.md",
+          "type": "registry:file",
+          "target": "~/.portfolio-ai/security.md"
+        },
+        {
+          "path": "examples/atlas-portfolio/portfolio-knowledge.config.ts",
+          "type": "registry:file",
+          "target": "~/.portfolio-ai/templates/portfolio-knowledge.config.ts"
+        },
+        {
+          "path": "examples/atlas-portfolio/portfolio-assistant.server.ts",
+          "type": "registry:file",
+          "target": "~/.portfolio-ai/templates/portfolio-assistant.server.ts"
+        },
+        {
+          "path": "examples/atlas-portfolio/app/layout.tsx",
+          "type": "registry:file",
+          "target": "~/.portfolio-ai/templates/layout.tsx"
+        },
+        {
+          "path": "examples/atlas-portfolio/app/api/studio-assistant/route.ts",
+          "type": "registry:file",
+          "target": "~/.portfolio-ai/templates/chat-route.ts"
+        },
+        {
+          "path": "examples/atlas-portfolio/app/api/studio-assistant/click/route.ts",
+          "type": "registry:file",
+          "target": "~/.portfolio-ai/templates/click-route.ts"
+        },
+        {
+          "path": "examples/atlas-portfolio/next.config.ts",
+          "type": "registry:file",
+          "target": "~/.portfolio-ai/templates/next.config.ts"
+        },
+        {
+          "path": "examples/atlas-portfolio/.env.example",
+          "type": "registry:file",
+          "target": "~/.portfolio-ai/templates/.env.example"
+        }
+      ]
+    }
+  ]
+}
