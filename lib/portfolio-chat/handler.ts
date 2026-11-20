@@ -83,7 +83,12 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig, adapters
   if (guardianReply) return Response.json({ answer: guardianReply.answer, language: guardianReply.language, sources: [], recommendations: [], claims: [], insufficient: true, followUpQuestions: [] }, { headers });
   let configured;
   try { configured = services.modelProvider.configure(process.env); } catch { configured = null; }
-  if (!configured || ((process.env.PORTFOLIO_AI_PUBLIC_ENABLED === "1" || process.env.PORTFOLIO_AI_PROTECTED_PREVIEW === "1") && (configured.provider !== "qwen" || !/^qwen3\.7-flash(?:-\d{4}-\d{2}-\d{2})?$/u.test(configured.modelId)))) {
+  const publicMode = process.env.PORTFOLIO_AI_PUBLIC_ENABLED === "1" || process.env.PORTFOLIO_AI_PROTECTED_PREVIEW === "1";
+  let publicApproved = false;
+  if (configured && publicMode) {
+    try { publicApproved = services.modelProvider.allowsPublic?.(configured) === true; } catch { /* fail closed */ }
+  }
+  if (!configured || (publicMode && !publicApproved)) {
     console.warn("Portfolio AI provider configuration is missing or invalid.");
     return Response.json({ error: "AI service is not configured" }, { status: 503, headers });
   }

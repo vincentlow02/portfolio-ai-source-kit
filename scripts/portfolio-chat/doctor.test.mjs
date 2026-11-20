@@ -26,7 +26,8 @@ test("doctor reports readiness without using or exposing credentials", async () 
     const output = await promisify(execFile)(process.execPath, [fileURLToPath(new URL("./doctor.mjs", import.meta.url))], {cwd:root, env:{...process.env,...env}});
     assert.ok(!(`${output.stdout}${output.stderr}`).includes(canary));
     assert.match(output.stdout, /No network requests were made/u);
-    assert.equal((await diagnose(root, {...env,PORTFOLIO_AI_PROVIDER:"openai",OPENAI_API_KEY:canary,PORTFOLIO_AI_PUBLIC_ENABLED:"1"}))[2].status, "missing-or-unsupported");
+    assert.equal((await diagnose(root, {...env,PORTFOLIO_AI_PROVIDER:"openai",OPENAI_API_KEY:canary,PORTFOLIO_AI_PUBLIC_ENABLED:"1"}))[2].status, "configured-locally");
+    assert.equal((await diagnose(root, {...env,PORTFOLIO_AI_PROVIDER:"openai",OPENAI_API_KEY:canary,PORTFOLIO_AI_MODEL:"unverified-model",PORTFOLIO_AI_PUBLIC_ENABLED:"1"}))[2].status, "missing-or-unsupported");
     assert.equal((await diagnose(root, {...env,PORTFOLIO_AI_DAILY_BUDGET_USD:"0.001"}))[3].status, "missing-or-invalid");
     await writeFile(join(root, ".next/BUILD_ID"), "other-build");
     assert.equal((await diagnose(root, env))[1].status, "missing-or-stale");

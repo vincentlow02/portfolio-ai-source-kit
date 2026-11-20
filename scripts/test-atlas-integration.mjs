@@ -148,6 +148,18 @@ try {
     const app = await start("start", {...openaiEnv,...extra});
     try { assert.equal((await call(app.origin,"Tell me about Lantern",{})).status,status); } finally { await stop(app.app); }
   }
+  for (const mode of ["PORTFOLIO_AI_PUBLIC_ENABLED", "PORTFOLIO_AI_PROTECTED_PREVIEW"]) {
+    const eligible = await start("start", {...openaiEnv,[mode]:"1"});
+    try {
+      const response = await call(eligible.origin,"How did Lantern test tactile signs?",{pageContext:{pathname:"/work/lantern",lang:"en"}});
+      assert.equal(response.status,200);
+      assert.ok((await response.json()).sources.some(source => source.url === "/work/lantern#research"));
+    } finally { await stop(eligible.app); }
+    const unverified = await start("start", {...openaiEnv,[mode]:"1",PORTFOLIO_AI_MODEL:"unverified-model"});
+    try { assert.equal((await call(unverified.origin,"Tell me about Lantern",{})).status,503); } finally { await stop(unverified.app); }
+    const quotaFailure = await start("start", {...openaiEnv,[mode]:"1",TEST_ATLAS_QUOTA_MODE:"unavailable"});
+    try { assert.equal((await call(quotaFailure.origin,"Tell me about Lantern",{})).status,503); } finally { await stop(quotaFailure.app); }
+  }
   console.log("OpenAI mock passed protected evaluation, citations, invalid output and quota failure checks.");
 
   const concurrency = await start("start");

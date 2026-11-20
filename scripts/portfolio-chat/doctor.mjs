@@ -53,7 +53,8 @@ export async function diagnose(root, processEnv = process.env) {
   else if (provider === "openai") providerReady = set(env, "OPENAI_API_KEY");
   else if (provider === "gateway") providerReady = set(env, "AI_GATEWAY_API_KEY");
   const publicMode = env.PORTFOLIO_AI_PUBLIC_ENABLED === "1" || env.PORTFOLIO_AI_PROTECTED_PREVIEW === "1";
-  if (publicMode && (provider !== "qwen" || !/^qwen3\.7-flash(?:-\d{4}-\d{2}-\d{2})?$/u.test(env.QWEN_MODEL?.trim() || "qwen3.7-flash"))) providerReady = false;
+  if (publicMode && !((provider === "qwen" && /^qwen3\.7-flash(?:-\d{4}-\d{2}-\d{2})?$/u.test(env.QWEN_MODEL?.trim() || "qwen3.7-flash")) ||
+      (provider === "openai" && (env.PORTFOLIO_AI_MODEL?.trim() || "gpt-4o-mini") === "gpt-4o-mini"))) providerReady = false;
   report("provider", providerReady ? "configured-locally" : "missing-or-unsupported", "Static configuration only; credentials, model support and connectivity were not tested.");
   const minute = Number(env.PORTFOLIO_AI_QUOTA_PER_MINUTE), day = Number(env.PORTFOLIO_AI_QUOTA_PER_DAY);
   const budget = Number(env.PORTFOLIO_AI_DAILY_BUDGET_USD), input = Number(env.PORTFOLIO_AI_INPUT_USD_PER_MILLION), output = Number(env.PORTFOLIO_AI_OUTPUT_USD_PER_MILLION);

@@ -63,6 +63,10 @@ if (process.env.TEST_COLD_ADAPTERS === "1") {
   for (const mode of ["PORTFOLIO_AI_PUBLIC_ENABLED", "PORTFOLIO_AI_PROTECTED_PREVIEW"]) {
     const restricted = await start("start", { [mode]: "1", TEST_COLD_PROVIDER_REJECT: "1" });
     try { assert.equal((await call(restricted.origin)).status, 503); } finally { await stop(restricted.app); }
+    const allowed = await start("start", { [mode]: "1", TEST_COLD_PROVIDER_REJECT: "1", TEST_COLD_PUBLIC_POLICY: "allow" });
+    try { assert.equal((await call(allowed.origin)).status, 200); } finally { await stop(allowed.app); }
+    const failingPolicy = await start("start", { [mode]: "1", TEST_COLD_PROVIDER_REJECT: "1", TEST_COLD_PUBLIC_POLICY: "throw" });
+    try { assert.equal((await call(failingPolicy.origin)).status, 503); } finally { await stop(failingPolicy.app); }
   }
   console.log("Custom model and quota adapters fail closed; analytics failure does not block chat.");
 }

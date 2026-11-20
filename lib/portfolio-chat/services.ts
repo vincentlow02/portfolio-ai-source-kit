@@ -11,9 +11,10 @@ export type ConfiguredModel = {
   providerOptions?: Parameters<typeof generateText>[0]["providerOptions"];
 };
 
-/** Trusted server-side adapter; public provider/model policy still applies. */
+/** Trusted server-side adapter. Public access requires an explicit model policy. */
 export interface ModelProvider {
   configure(env: ServiceEnvironment): ConfiguredModel | null;
+  allowsPublic?(model: ConfiguredModel): boolean;
 }
 
 /** Must atomically reserve a shared request and cost budget before returning true. */
@@ -33,7 +34,11 @@ export type PortfolioServices = {
 };
 
 export const defaultPortfolioServices: PortfolioServices = {
-  modelProvider: { configure: configureModel },
+  modelProvider: {
+    configure: configureModel,
+    allowsPublic: model => (model.provider === "qwen" && /^qwen3\.7-flash(?:-\d{4}-\d{2}-\d{2})?$/u.test(model.modelId)) ||
+      (model.provider === "openai" && model.modelId === "gpt-4o-mini"),
+  },
   quota: { reserve: reserveQuota },
   analytics: { record: recordEvent },
 };
