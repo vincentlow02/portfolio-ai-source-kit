@@ -1,4 +1,4 @@
-import { openai } from "@ai-sdk/openai";
+import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
 type Environment = Record<string, string | undefined>;
@@ -8,6 +8,7 @@ export function configureModel(env: Environment, customFetch?: typeof fetch) {
   if (provider === "openai") {
     if (!env.OPENAI_API_KEY?.trim()) return null;
     const modelId = env.PORTFOLIO_AI_MODEL?.trim() || "gpt-4o-mini";
+    const openai = createOpenAI({ apiKey: env.OPENAI_API_KEY.trim(), fetch: customFetch });
     return { provider, modelId, model: openai(modelId), providerOptions: { openai: { store: false } } };
   }
   if (provider === "gateway") {

@@ -56,3 +56,28 @@ test("invalid structured output and provider timeout fail without retries", asyn
   await assert.rejects(generateText({model:slow.model,prompt:"Hello",maxRetries:0,abortSignal:AbortSignal.timeout(50)}));
   assert.equal(attempts,1);
 });
+
+test("OpenAI protected evaluation uses structured output and disables response storage", async () => {
+  let count = 0;
+  let sent: Record<string, any> = {};
+  const stub: typeof fetch = async (url, init) => {
+    count++;
+    assert.equal(String(url), "https://api.openai.com/v1/responses");
+    sent = JSON.parse(String(init?.body));
+    return Response.json({ id: "fixture", created_at: 1, model: "gpt-4o-mini", output: [{ type: "message", role: "assistant", id: "message-fixture", content: [{ type: "output_text", text: JSON.stringify({answer:"A fictional map."}), annotations: [] }] }] });
+  };
+  const configured = configureModel({PORTFOLIO_AI_PROVIDER:"openai", OPENAI_API_KEY:"fixture-only"}, stub)!;
+  const result = await generateText({model:configured.model, prompt:"What is Lantern?", output:Output.object({schema}),
+    providerOptions:configured.providerOptions, maxOutputTokens:700, maxRetries:0});
+  assert.equal(count, 1);
+  assert.equal(sent.store, false);
+  assert.equal(sent.text.format.type, "json_schema");
+  assert.equal(result.output.answer, "A fictional map.");
+  let invalidCount = 0;
+  const invalid = configureModel({PORTFOLIO_AI_PROVIDER:"openai", OPENAI_API_KEY:"fixture-only"}, async () => {
+    invalidCount++;
+    return Response.json({ output: [{ type:"message", role:"assistant", id:"invalid", content:[{type:"output_text", text:'{"answer":42}', annotations:[]}] }] });
+  })!;
+  await assert.rejects(generateText({model:invalid.model, prompt:"Answer in JSON", output:Output.object({schema}), providerOptions:invalid.providerOptions, maxRetries:0}));
+  assert.equal(invalidCount, 1);
+});
