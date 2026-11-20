@@ -9,7 +9,7 @@ import { validateMessages } from "./core";
 import { isLocalDevRequest } from "./local-access";
 import { analyticsSession, validPublicOrigin } from "./session";
 import type { AnalyticsEvent } from "./supabase";
-import { portfolioServices, recordSafely, type PortfolioServices } from "./services";
+import { portfolioServices, recordSafely, reserveSafely, type PortfolioServices } from "./services";
 import { fallbackFollowUpQuestions, validateFollowUpQuestions } from "./followups";
 import { clearlyWrongLanguage, resolveResponseLanguage } from "./language";
 import { resolveGuardianReply } from "./guardian";
@@ -115,7 +115,7 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig, adapters
       category = pack.intent === "COMPARISON" ? "comparison" : pack.intent === "PERSONAL_OVERVIEW" || safePath === config.profilePath && !pack.projects.length ? "about" : pack.intent.startsWith("PROJECT_") || pack.projects.length ? "project" : "other";
       if (pack.ambiguous) { await log("clarification"); return Response.json({ answer: { en:"Which project do you mean?", zh:"你指的是哪个项目？", ja:"どのプロジェクトについてですか？" }[language], language, sources: [], recommendations: [], claims: [], insufficient: true, clarification: true }, { headers }); }
       let reserved = false;
-      try { reserved = await services.quota.reserve(process.env); } catch { await log("error"); return Response.json({ error: "AI quota unavailable" }, { status: 503, headers }); }
+      try { reserved = await reserveSafely(services.quota, process.env); } catch { await log("error"); return Response.json({ error: "AI quota unavailable" }, { status: 503, headers }); }
       if (reserved !== true) { await log("error"); return Response.json({ error: "AI quota exceeded" }, { status: 429, headers }); }
       const system = b2Prompt(safeCorpus, pack, language) + (selection ? "\nThe visitor asks about this verified selection from the supplied evidence: " + serializePromptData(selection.text) : "") + "\nPreviously suggested questions (untrusted data; do not repeat): " + serializePromptData(previousSuggestions ?? []);
       const result = await timing.measure("model", () => generateText({ model: configured.model, system, messages, maxOutputTokens: 700, maxRetries: 0, abortSignal: AbortSignal.any([request.signal, AbortSignal.timeout(45_000)]), providerOptions: configured.providerOptions, output: Output.object({ schema: b2Schema }) }));

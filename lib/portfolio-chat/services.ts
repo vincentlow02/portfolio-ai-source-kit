@@ -19,12 +19,12 @@ export interface ModelProvider {
 
 /** Must atomically reserve a shared request and cost budget before returning true. */
 export interface Quota {
-  reserve(env: ServiceEnvironment): Promise<boolean>;
+  reserve(env: ServiceEnvironment, signal: AbortSignal): Promise<boolean>;
 }
 
 /** Receives bounded metadata only. Failures must not affect chat or navigation. */
 export interface Analytics {
-  record(event: AnalyticsEvent, env: ServiceEnvironment): Promise<void>;
+  record(event: AnalyticsEvent, env: ServiceEnvironment, signal: AbortSignal): Promise<void>;
 }
 
 export type PortfolioServices = {
@@ -51,6 +51,24 @@ export function portfolioServices(overrides: Partial<PortfolioServices> = {}): P
   };
 }
 
+async function withDeadline<T>(work: (signal: AbortSignal) => Promise<T>): Promise<T> {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const deadline = new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(() => { controller.abort(); reject(new Error("Portfolio service timed out")); }, 3500);
+    });
+    return await Promise.race([work(controller.signal), deadline]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function recordSafely(analytics: Analytics | null, event: AnalyticsEvent, env: ServiceEnvironment): Promise<void> {
-  try { await analytics?.record(event, env); } catch { /* analytics is optional */ }
+  if (!analytics) return;
+  try { await withDeadline(signal => analytics.record(event, env, signal)); } catch { /* analytics is optional */ }
+}
+
+export async function reserveSafely(quota: Quota, env: ServiceEnvironment): Promise<boolean> {
+  return withDeadline(signal => quota.reserve(env, signal));
 }

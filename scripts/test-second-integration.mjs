@@ -60,6 +60,10 @@ if (process.env.TEST_COLD_ADAPTERS === "1") {
   try { assert.equal((await call(failedProvider.origin)).status, 503); } finally { await stop(failedProvider.app); }
   const invalidQuota = await start("start", { TEST_SECOND_QUOTA_MODE: "invalid" });
   try { assert.equal((await call(invalidQuota.origin)).status, 429); } finally { await stop(invalidQuota.app); }
+  const timedOutQuota = await start("start", { TEST_SECOND_QUOTA_MODE: "hang" });
+  try { assert.equal((await call(timedOutQuota.origin)).status, 503); } finally { await stop(timedOutQuota.app); }
+  const slowAnalytics = await start("start", { TEST_COLD_ANALYTICS_HANG: "1" });
+  try { assert.equal((await call(slowAnalytics.origin)).status, 200); } finally { await stop(slowAnalytics.app); }
   for (const mode of ["PORTFOLIO_AI_PUBLIC_ENABLED", "PORTFOLIO_AI_PROTECTED_PREVIEW"]) {
     const restricted = await start("start", { [mode]: "1", TEST_COLD_PROVIDER_REJECT: "1" });
     try { assert.equal((await call(restricted.origin)).status, 503); } finally { await stop(restricted.app); }
