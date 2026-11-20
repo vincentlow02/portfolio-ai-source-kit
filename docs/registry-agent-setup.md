@@ -10,3 +10,5 @@ This item provides source and examples; it does not automatically integrate into
 6. After source approval, build the corpus, run build and type checks, then exercise chat, source links, highlight-to-ask, follow-ups, cancellation, protected paths, authorization and quota failure. Use mocks for testing unless the owner separately authorizes paid calls. Check cited passages manually: structural citation validation cannot prove semantic correctness. Report what passed and any compatibility or privacy issues.
 
 Template paths are examples, not files to copy blindly. The scripts assume the source kit lives at the application root; if the host uses `src/`, adapt imports and app routes consistently. Review the host's dependency manager and do not replace its lockfile.
+
+With shadcn 4.23.0, a conflicting file can prompt for overwrite even with `--yes`. With no interactive input the command can exit successfully after installing dependencies but before creating all kit files. Check the command output and run the doctor; an exit code alone does not prove installation. Do not overwrite a host conflict without the owner's instruction.

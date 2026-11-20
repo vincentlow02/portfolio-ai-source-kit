@@ -6,7 +6,7 @@ Read the [integration guide](docs/integration.md), [RAG architecture](docs/archi
 
 ## Quick start
 
-1. Review `registry.json`, then install the reviewed source into your Next.js App Router project. Pin the ref to a full commit SHA for reproducibility; `main` below tracks the latest source and can change.
+1. Review `registry.json` and destination conflicts, then install the reviewed source into your Next.js App Router project. Pin the ref to a full commit SHA for reproducibility; `main` below tracks the latest source and can change. An unattended overwrite prompt can exit successfully before installation finishes; check the output and run the doctor.
 
    ```sh
    npx -y shadcn@4.23.0 add 'vincentlow02/portfolio-ai-source-kit/portfolio-ai#main'

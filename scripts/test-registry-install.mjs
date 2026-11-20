@@ -91,6 +91,33 @@ try {
     }
     await run(process.execPath, [join(host, test), host], host, name === "cold" ? { TEST_COLD_ADAPTERS: "1" } : {});
   }
+  const conflict = join(fixture, "conflict");
+  await cp(join(root, "tests/cold-start"), conflict, { recursive: true });
+  await mkdir(join(conflict, "components/portfolio-chat"), { recursive: true });
+  await mkdir(join(conflict, ".agents/skills/portfolio-ai-install"), { recursive: true });
+  const existingFile = join(conflict, "components/portfolio-chat/chat-adapter.ts");
+  const existingSkill = join(conflict, ".agents/skills/portfolio-ai-install/SKILL.md");
+  await writeFile(existingFile, "// existing host file\n");
+  await writeFile(existingSkill, "existing owner skill\n");
+  const address = `vincentlow02/portfolio-ai-source-kit/portfolio-ai#${ref}`;
+  const windows = process.platform === "win32";
+  const command = windows ? "cmd.exe" : "npx";
+  const args = windows ? ["/d", "/s", "/c", `npx -y shadcn@4.23.0 add ${address} --yes`] : ["-y", "shadcn@4.23.0", "add", address, "--yes"];
+  const child = spawn(command, args, { cwd: conflict, env, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
+  let transcript = "";
+  child.stdout.on("data", chunk => { transcript += chunk; });
+  child.stderr.on("data", chunk => { transcript += chunk; });
+  const timer = setTimeout(() => child.kill(), 180_000);
+  const [status] = await once(child, "exit");
+  clearTimeout(timer);
+  assert.equal(status, 0);
+  assert.match(transcript, /already exists.*overwrite/iu);
+  assert.equal(await readFile(existingFile, "utf8"), "// existing host file\n");
+  assert.equal(await readFile(existingSkill, "utf8"), "existing owner skill\n");
+  await assert.rejects(lstat(join(conflict, "lib/portfolio-chat/handler.ts")), { code: "ENOENT" });
+  const conflictPackage = JSON.parse(await readFile(join(conflict, "package.json"), "utf8"));
+  assert.ok(conflictPackage.dependencies?.["@orama/orama"], "dependency installation should be recorded before the prompt");
+  console.log("Noninteractive conflict reproduced: existing files preserved; exit status alone did not establish installation.");
   console.log("All three hosts passed GitHub registry installation and mock integration tests.");
 } finally {
   const target = resolve(fixture);
