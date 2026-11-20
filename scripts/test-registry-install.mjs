@@ -33,7 +33,7 @@ async function integrateColdStart(host) {
   await copyFile(join(host, ".portfolio-ai/templates/click-route.ts"), join(host, "app/api/studio-assistant/click/route.ts"), 1);
   const route = join(host, "app/api/studio-assistant/route.ts");
   const routeText = await readFile(route, "utf8");
-  const adapterFixture = `import { configureModel } from "../../../lib/portfolio-chat/provider";\nimport type { PortfolioServices } from "../../../lib/portfolio-chat/services";\nconst adapters: Partial<PortfolioServices> = process.env.TEST_COLD_ADAPTERS === "1" ? {\n  modelProvider: { configure: env => { if (process.env.TEST_COLD_PROVIDER_FAILURE === "1") throw new Error("fixture failure"); return configureModel(env); } },\n  quota: { reserve: async () => { if (process.env.TEST_SECOND_QUOTA_MODE === "unavailable") throw new Error("fixture failure"); return process.env.TEST_SECOND_QUOTA_MODE !== "exhausted"; } },\n  analytics: { record: async () => { throw new Error("fixture failure"); } },\n} : {};\n`;
+  const adapterFixture = `import { configureModel } from "../../../lib/portfolio-chat/provider";\nimport type { PortfolioServices } from "../../../lib/portfolio-chat/services";\nconst adapters: Partial<PortfolioServices> = process.env.TEST_COLD_ADAPTERS === "1" ? {\n  modelProvider: { configure: env => { if (process.env.TEST_COLD_PROVIDER_FAILURE === "1") throw new Error("fixture failure"); const config = configureModel(env); return config && process.env.TEST_COLD_PROVIDER_REJECT === "1" ? { ...config, provider: "openai" } : config; } },\n  quota: { reserve: async () => { if (process.env.TEST_SECOND_QUOTA_MODE === "unavailable") throw new Error("fixture failure"); if (process.env.TEST_SECOND_QUOTA_MODE === "invalid") return null as unknown as boolean; return process.env.TEST_SECOND_QUOTA_MODE !== "exhausted"; } },\n  analytics: { record: async () => { throw new Error("fixture failure"); } },\n} : {};\n`;
   assert.ok(routeText.includes("createPortfolioChatHandler(assistantConfig)"));
   await writeFile(route, adapterFixture + routeText.replace("createPortfolioChatHandler(assistantConfig)", "createPortfolioChatHandler(assistantConfig, adapters)"));
   const layoutPath = join(host, "app/layout.tsx");
@@ -67,7 +67,7 @@ try {
     } });
     let original;
     if (name === "cold") {
-      const paths = ["AGENTS.md", "app/layout.tsx", "next.config.ts"];
+      const paths = ["AGENTS.md", "app/layout.tsx", "next.config.ts", ".agents/skills/host-existing/SKILL.md"];
       original = await Promise.all(paths.map(path => readFile(join(host, path), "utf8")));
       for (const path of ["portfolio-knowledge.config.ts", "portfolio-assistant.server.ts", "app/api/studio-assistant/route.ts", "components/portfolio-chat/portfolio-chat-panel.tsx"]) {
         await assert.rejects(lstat(join(host, path)), { code: "ENOENT" });
@@ -75,9 +75,10 @@ try {
     }
     await run("npx", ["-y", "shadcn@4.23.0", "add", `vincentlow02/portfolio-ai-source-kit/portfolio-ai#${ref}`, "--yes"], host);
     if (name === "cold") {
-      assert.deepEqual(await Promise.all(["AGENTS.md", "app/layout.tsx", "next.config.ts"].map(path => readFile(join(host, path), "utf8"))), original);
+      assert.deepEqual(await Promise.all(["AGENTS.md", "app/layout.tsx", "next.config.ts", ".agents/skills/host-existing/SKILL.md"].map(path => readFile(join(host, path), "utf8"))), original);
       await integrateColdStart(host);
       assert.equal(await readFile(join(host, "AGENTS.md"), "utf8"), original[0]);
+      assert.equal(await readFile(join(host, ".agents/skills/host-existing/SKILL.md"), "utf8"), original[3]);
       const layout = await readFile(join(host, "app/layout.tsx"), "utf8");
       assert.ok(layout.includes("Cold start host header") && layout.includes("Cold start host footer"));
       assert.match(await readFile(join(host, "next.config.ts"), "utf8"), /poweredByHeader: false/u);
