@@ -4,7 +4,7 @@ import { once } from "node:events";
 import { copyFile, cp, lstat, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const ref = process.env.PORTFOLIO_AI_REGISTRY_REF;
@@ -86,6 +86,14 @@ try {
     }
     await run("npm", ["run", "build"], host);
     await run("npm", ["run", "typecheck"], host);
+    const { diagnose } = await import(pathToFileURL(join(host, "scripts/portfolio-chat/doctor.mjs")).href);
+    const checks = Object.fromEntries((await diagnose(host, {})).map(check => [check.name, check.status]));
+    assert.equal(checks.installation, "present");
+    assert.equal(checks.dependencies, "resolvable");
+    assert.equal(checks.corpus, "build-matched");
+    assert.equal(checks.provider, "missing-or-unsupported");
+    assert.equal(checks.quota, "missing-or-invalid");
+    assert.equal(checks.safety, "public-disabled");
     for (const path of [test, "scripts/copy-portfolio-kit.mjs", "scripts/portfolio-chat/mock-atlas.cjs", "scripts/portfolio-chat/mock-second.cjs"]) {
       await copyFile(join(root, path), join(host, path));
     }

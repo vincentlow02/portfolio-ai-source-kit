@@ -21,16 +21,16 @@ test("doctor reports readiness without using or exposing credentials", async () 
     const env = { QWEN_API_KEY:canary, QWEN_BASE_URL:"https://fixture.invalid/v1", SUPABASE_URL:"https://fixture.supabase.co", SUPABASE_SECRET_KEY:"sb_secret_"+canary,
       PORTFOLIO_AI_QUOTA_PER_MINUTE:"10", PORTFOLIO_AI_QUOTA_PER_DAY:"20", PORTFOLIO_AI_DAILY_BUDGET_USD:"2", PORTFOLIO_AI_INPUT_USD_PER_MILLION:"1", PORTFOLIO_AI_OUTPUT_USD_PER_MILLION:"1" };
     const checks = await diagnose(root, env);
-    assert.deepEqual(checks.map(item => item.status), ["present", "build-matched", "configured-locally", "configured-locally", "public-disabled"]);
+    assert.deepEqual(checks.map(item => item.status), ["present", "missing-or-unresolved", "build-matched", "configured-locally", "configured-locally", "public-disabled"]);
     assert.ok(!JSON.stringify(checks).includes(canary));
     const output = await promisify(execFile)(process.execPath, [fileURLToPath(new URL("./doctor.mjs", import.meta.url))], {cwd:root, env:{...process.env,...env}});
     assert.ok(!(`${output.stdout}${output.stderr}`).includes(canary));
     assert.match(output.stdout, /No network requests were made/u);
-    assert.equal((await diagnose(root, {...env,PORTFOLIO_AI_PROVIDER:"openai",OPENAI_API_KEY:canary,PORTFOLIO_AI_PUBLIC_ENABLED:"1"}))[2].status, "configured-locally");
-    assert.equal((await diagnose(root, {...env,PORTFOLIO_AI_PROVIDER:"openai",OPENAI_API_KEY:canary,PORTFOLIO_AI_MODEL:"unverified-model",PORTFOLIO_AI_PUBLIC_ENABLED:"1"}))[2].status, "missing-or-unsupported");
-    assert.equal((await diagnose(root, {...env,PORTFOLIO_AI_DAILY_BUDGET_USD:"0.001"}))[3].status, "missing-or-invalid");
+    assert.equal((await diagnose(root, {...env,PORTFOLIO_AI_PROVIDER:"openai",OPENAI_API_KEY:canary,PORTFOLIO_AI_PUBLIC_ENABLED:"1"}))[3].status, "configured-locally");
+    assert.equal((await diagnose(root, {...env,PORTFOLIO_AI_PROVIDER:"openai",OPENAI_API_KEY:canary,PORTFOLIO_AI_MODEL:"unverified-model",PORTFOLIO_AI_PUBLIC_ENABLED:"1"}))[3].status, "missing-or-unsupported");
+    assert.equal((await diagnose(root, {...env,PORTFOLIO_AI_DAILY_BUDGET_USD:"0.001"}))[4].status, "missing-or-invalid");
     await writeFile(join(root, ".next/BUILD_ID"), "other-build");
-    assert.equal((await diagnose(root, env))[1].status, "missing-or-stale");
+    assert.equal((await diagnose(root, env))[2].status, "missing-or-stale");
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
@@ -39,7 +39,7 @@ test("doctor does not claim readiness for unresolved variables or unsafe public 
   try {
     await writeFile(join(root, ".env.local"), 'QWEN_API_KEY=$MY_KEY\nQWEN_BASE_URL=https://fixture.invalid/v1\nPORTFOLIO_AI_PUBLIC_ENABLED=1\nPORTFOLIO_AI_PUBLIC_ORIGIN=http://fixture.invalid\n');
     const checks = await diagnose(root, {});
-    assert.equal(checks[2].status, "missing-or-unsupported");
-    assert.equal(checks[4].status, "invalid-public-origin");
+    assert.equal(checks[3].status, "missing-or-unsupported");
+    assert.equal(checks[5].status, "invalid-public-origin");
   } finally { await rm(root, { recursive: true, force: true }); }
 });

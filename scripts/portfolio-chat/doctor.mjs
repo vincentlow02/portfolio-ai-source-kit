@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Static checks only: this command never contacts a model, database or website.
 import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -37,6 +38,13 @@ export async function diagnose(root, processEnv = process.env) {
   const appRoute = await read(join(root, "app/api/studio-assistant/route.ts")) ?? await read(join(root, "src/app/api/studio-assistant/route.ts"));
   report("installation", present.every(x => x !== null) && appRoute !== null ? "present" : "incomplete",
     "Checks standard kit files and the example chat route; custom paths require manual review.");
+  const requireFromHost = createRequire(join(root, "package.json"));
+  const packages = ["next", "react", "react-dom", "ai", "@ai-sdk/openai", "@ai-sdk/openai-compatible", "@orama/orama",
+    "@orama/tokenizers/mandarin", "@orama/tokenizers/japanese", "lucide-react", "react-markdown", "remark-gfm",
+    "remark-parse", "remark-mdx", "unified", "zod", "tsx", "typescript", "puppeteer", "@sparticuz/chromium"];
+  const dependenciesReady = packages.every(name => { try { requireFromHost.resolve(name); return true; } catch { return false; } });
+  report("dependencies", dependenciesReady ? "resolvable" : "missing-or-unresolved",
+    "Checks Node module resolution only; compatibility and custom package-manager resolvers require independent verification.");
   const corpusText = await read(join(root, ".portfolio-knowledge/corpus.json"));
   const buildId = (await read(join(root, ".next/BUILD_ID")))?.trim();
   let corpus;
