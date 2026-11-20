@@ -123,6 +123,7 @@ try {
   assert.equal(await readFile(existingFile, "utf8"), "// existing host file\n");
   assert.equal(await readFile(existingSkill, "utf8"), "existing owner skill\n");
   await assert.rejects(lstat(join(conflict, "lib/portfolio-chat/handler.ts")), { code: "ENOENT" });
+  await assert.rejects(lstat(join(conflict, "scripts/portfolio-chat/doctor.mjs")), { code: "ENOENT" });
   const conflictPackage = JSON.parse(await readFile(join(conflict, "package.json"), "utf8"));
   assert.ok(conflictPackage.dependencies?.["@orama/orama"], "dependency installation should be recorded before the prompt");
   console.log("Noninteractive conflict reproduced: existing files preserved; exit status alone did not establish installation.");

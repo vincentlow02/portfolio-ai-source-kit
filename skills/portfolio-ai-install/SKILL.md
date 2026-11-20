@@ -5,7 +5,7 @@ description: Integrate or verify the Portfolio AI source kit in an existing Next
 
 # Integrate Portfolio AI
 
-Read `.portfolio-ai/SETUP.md` and `.portfolio-ai/security.md` in the host. If the kit is not installed, review the source registry item and destination conflicts before installing the version the owner selected. Do not overwrite existing host files or agent instructions. A shadcn overwrite prompt with closed stdin can exit successfully after changing dependencies but without installing all files; inspect the output and run the doctor. This workflow does not require Figma.
+Read `.portfolio-ai/SETUP.md` and `.portfolio-ai/security.md` in the host. If the kit is not installed, review the source registry item and destination conflicts before installing the version the owner selected. Do not overwrite existing host files or agent instructions. A shadcn overwrite prompt with closed stdin can exit successfully after changing dependencies but without installing all files; inspect the output and run the doctor if it exists. A missing doctor indicates an incomplete install. This workflow does not require Figma.
 
 Inspect the host framework, application root, package manager, build and layout. Identify compatibility and integration conflicts, and report unsupported arrangements instead of guessing. Inspect only material the owner permits. Propose specific public same-origin sources and protected paths; wait for the owner's approval before adding them to the manifest or publishing a corpus. Never place private material in the corpus.
 
