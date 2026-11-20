@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { promisify } from "node:util";
+import { fileURLToPath } from "node:url";
 import { diagnose } from "./doctor.mjs";
 
 test("doctor reports readiness without using or exposing credentials", async () => {
@@ -14,12 +17,15 @@ test("doctor reports readiness without using or exposing credentials", async () 
     await mkdir(join(root, ".next"), { recursive: true });
     await mkdir(join(root, ".portfolio-knowledge"), { recursive: true });
     await writeFile(join(root, ".next/BUILD_ID"), "fixture-build");
-    await writeFile(join(root, ".portfolio-knowledge/corpus.json"), JSON.stringify({schemaVersion:1,siteBuildId:"fixture-build",pages:[],chunks:[]}));
+    await writeFile(join(root, ".portfolio-knowledge/corpus.json"), JSON.stringify({schemaVersion:1,siteBuildId:"fixture-build",contentHash:"fixture-hash",pages:[{}],chunks:[{}]}));
     const env = { QWEN_API_KEY:canary, QWEN_BASE_URL:"https://fixture.invalid/v1", SUPABASE_URL:"https://fixture.supabase.co", SUPABASE_SECRET_KEY:"sb_secret_"+canary,
       PORTFOLIO_AI_QUOTA_PER_MINUTE:"10", PORTFOLIO_AI_QUOTA_PER_DAY:"20", PORTFOLIO_AI_DAILY_BUDGET_USD:"2", PORTFOLIO_AI_INPUT_USD_PER_MILLION:"1", PORTFOLIO_AI_OUTPUT_USD_PER_MILLION:"1" };
     const checks = await diagnose(root, env);
     assert.deepEqual(checks.map(item => item.status), ["present", "build-matched", "configured-locally", "configured-locally", "public-disabled"]);
     assert.ok(!JSON.stringify(checks).includes(canary));
+    const output = await promisify(execFile)(process.execPath, [fileURLToPath(new URL("./doctor.mjs", import.meta.url))], {cwd:root, env:{...process.env,...env}});
+    assert.ok(!(`${output.stdout}${output.stderr}`).includes(canary));
+    assert.match(output.stdout, /No network requests were made/u);
     assert.equal((await diagnose(root, {...env,PORTFOLIO_AI_PROVIDER:"openai",OPENAI_API_KEY:canary,PORTFOLIO_AI_PUBLIC_ENABLED:"1"}))[2].status, "missing-or-unsupported");
     assert.equal((await diagnose(root, {...env,PORTFOLIO_AI_DAILY_BUDGET_USD:"0.001"}))[3].status, "missing-or-invalid");
     await writeFile(join(root, ".next/BUILD_ID"), "other-build");

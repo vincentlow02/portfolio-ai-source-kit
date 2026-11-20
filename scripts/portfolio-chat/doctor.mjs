@@ -41,7 +41,7 @@ export async function diagnose(root, processEnv = process.env) {
   const buildId = (await read(join(root, ".next/BUILD_ID")))?.trim();
   let corpus;
   try { corpus = JSON.parse(corpusText ?? "null"); } catch { /* invalid corpus */ }
-  report("corpus", corpus?.schemaVersion === 1 && buildId && corpus.siteBuildId === buildId && Array.isArray(corpus.pages) && Array.isArray(corpus.chunks) ? "build-matched" : "missing-or-stale",
+  report("corpus", corpus?.schemaVersion === 1 && buildId && corpus.siteBuildId === buildId && typeof corpus.contentHash === "string" && corpus.contentHash.length > 0 && Array.isArray(corpus.pages) && corpus.pages.length > 0 && Array.isArray(corpus.chunks) && corpus.chunks.length > 0 ? "build-matched" : "missing-or-stale",
     "A matching build ID is necessary but does not establish source approval, privacy or citation quality.");
   const provider = env.PORTFOLIO_AI_PROVIDER?.trim() || "qwen";
   let providerReady = false;
