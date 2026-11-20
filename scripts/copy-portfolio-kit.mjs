@@ -18,6 +18,7 @@ export const kitFiles = [
     "local-access", "origin", "provider", "request-body", "retrieval", "selection", "session", "supabase", "timing"]
     .map(file => "lib/portfolio-chat/" + file + ".ts"),
   "scripts/portfolio-chat/dev-server.mjs",
+  "scripts/portfolio-chat/doctor.mjs",
   "scripts/portfolio-knowledge/anonymous-browser.mjs",
   "scripts/portfolio-knowledge/publish.mts",
   "supabase/migrations/202611100001_vincent_ai_analytics.sql",
