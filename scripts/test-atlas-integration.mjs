@@ -135,6 +135,21 @@ try {
   }
   console.log("Shared quota exhaustion and service errors fail closed without a model call.");
 
+  const openaiEnv = { PORTFOLIO_AI_PROVIDER: "openai", OPENAI_API_KEY: "fixture-only", PORTFOLIO_AI_MODEL: "gpt-4o-mini" };
+  const openai = await start("start", openaiEnv);
+  try {
+    const response = await call(openai.origin, "How did Lantern test tactile signs?", { pageContext: { pathname: "/work/lantern", lang: "en" } });
+    assert.equal(response.status, 200);
+    const answer = await response.json();
+    assert.match(answer.answer, /six libraries/u);
+    assert.ok(answer.sources.some(source => source.url === "/work/lantern#research"));
+  } finally { await stop(openai.app); }
+  for (const [extra, status] of [[{TEST_ATLAS_QUOTA_MODE:"unavailable"},503], [{TEST_OPENAI_MODE:"invalid"},502]]) {
+    const app = await start("start", {...openaiEnv,...extra});
+    try { assert.equal((await call(app.origin,"Tell me about Lantern",{})).status,status); } finally { await stop(app.app); }
+  }
+  console.log("OpenAI mock passed protected evaluation, citations, invalid output and quota failure checks.");
+
   const concurrency = await start("start");
   try {
     const pending = [call(concurrency.origin, "Cancellation fixture one", {}), call(concurrency.origin, "Cancellation fixture two", {})];
