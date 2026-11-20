@@ -55,6 +55,11 @@ for (const [mode, status] of [["exhausted", 429], ["unavailable", 503]]) {
   const quota = await start("start", { TEST_SECOND_QUOTA_MODE: mode });
   try { assert.equal((await call(quota.origin)).status, status); } finally { await stop(quota.app); }
 }
+if (process.env.TEST_COLD_ADAPTERS === "1") {
+  const failedProvider = await start("start", { TEST_COLD_PROVIDER_FAILURE: "1" });
+  try { assert.equal((await call(failedProvider.origin)).status, 503); } finally { await stop(failedProvider.app); }
+  console.log("Custom model and quota adapters fail closed; analytics failure does not block chat.");
+}
 const dev = await start("dev");
 let browser;
 try {

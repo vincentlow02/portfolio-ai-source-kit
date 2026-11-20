@@ -31,6 +31,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
       - run: node scripts/audit-distribution.mjs
       - name: Verify PostgreSQL quota, privileges, and concurrent reservations
         env:

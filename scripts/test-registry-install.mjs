@@ -13,11 +13,11 @@ const fixture = await mkdtemp(join(tmpdir(), "portfolio-ai-registry-"));
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
   !/^(?:PORTFOLIO_|QWEN_|SUPABASE_|OPENAI_|AI_GATEWAY_|VERCEL(?:_|$)|NEXT_PUBLIC_|POSTHOG_|NODE_OPTIONS$)/iu.test(key)));
 env.PUPPETEER_SKIP_DOWNLOAD = "true";
-async function run(command, args, cwd) {
+async function run(command, args, cwd, extra = {}) {
   const windows = process.platform === "win32";
   const executable = windows && command !== process.execPath ? "cmd.exe" : command;
   const commandArgs = windows && command !== process.execPath ? ["/d", "/s", "/c", [command, ...args].join(" ")] : args;
-  const child = spawn(executable, commandArgs, { cwd, env, stdio: "inherit", windowsHide: true });
+  const child = spawn(executable, commandArgs, { cwd, env: { ...env, ...extra }, stdio: "inherit", windowsHide: true });
   const [status] = await once(child, "exit");
   assert.equal(status, 0, `${command} ${args.join(" ")} failed`);
 }
@@ -31,6 +31,11 @@ async function integrateColdStart(host) {
   await mkdir(join(host, "app/api/studio-assistant/click"), { recursive: true });
   await copyFile(join(host, ".portfolio-ai/templates/chat-route.ts"), join(host, "app/api/studio-assistant/route.ts"), 1);
   await copyFile(join(host, ".portfolio-ai/templates/click-route.ts"), join(host, "app/api/studio-assistant/click/route.ts"), 1);
+  const route = join(host, "app/api/studio-assistant/route.ts");
+  const routeText = await readFile(route, "utf8");
+  const adapterFixture = `import { configureModel } from "../../../lib/portfolio-chat/provider";\nimport type { PortfolioServices } from "../../../lib/portfolio-chat/services";\nconst adapters: Partial<PortfolioServices> = process.env.TEST_COLD_ADAPTERS === "1" ? {\n  modelProvider: { configure: env => { if (process.env.TEST_COLD_PROVIDER_FAILURE === "1") throw new Error("fixture failure"); return configureModel(env); } },\n  quota: { reserve: async () => { if (process.env.TEST_SECOND_QUOTA_MODE === "unavailable") throw new Error("fixture failure"); return process.env.TEST_SECOND_QUOTA_MODE !== "exhausted"; } },\n  analytics: { record: async () => { throw new Error("fixture failure"); } },\n} : {};\n`;
+  assert.ok(routeText.includes("createPortfolioChatHandler(assistantConfig)"));
+  await writeFile(route, adapterFixture + routeText.replace("createPortfolioChatHandler(assistantConfig)", "createPortfolioChatHandler(assistantConfig, adapters)"));
   const layoutPath = join(host, "app/layout.tsx");
   const layout = await readFile(layoutPath, "utf8");
   const props = `config={{ ownerName: "Avery Park", supportedLanguages: ["en"], endpoint: "/api/studio-assistant", clickEndpoint: "/api/studio-assistant/click", publishedPaths: ["/", "/projects/orbit"], suggestions: { en: ["How was Orbit Garden tested?"] } }}`;
@@ -83,7 +88,7 @@ try {
     for (const path of [test, "scripts/copy-portfolio-kit.mjs", "scripts/portfolio-chat/mock-atlas.cjs", "scripts/portfolio-chat/mock-second.cjs"]) {
       await copyFile(join(root, path), join(host, path));
     }
-    await run(process.execPath, [join(host, test), host], host);
+    await run(process.execPath, [join(host, test), host], host, name === "cold" ? { TEST_COLD_ADAPTERS: "1" } : {});
   }
   console.log("All three hosts passed GitHub registry installation and mock integration tests.");
 } finally {

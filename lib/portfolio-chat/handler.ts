@@ -6,10 +6,10 @@ import path from "node:path";
 import { generateText, Output } from "ai";
 import { loadPortfolioCorpus } from "../portfolio-knowledge";
 import { validateMessages } from "./core";
-import { configureModel } from "./provider";
 import { isLocalDevRequest } from "./local-access";
 import { analyticsSession, validPublicOrigin } from "./session";
-import { recordEvent, reserveQuota, type AnalyticsEvent } from "./supabase";
+import type { AnalyticsEvent } from "./supabase";
+import { portfolioServices, recordSafely, type PortfolioServices } from "./services";
 import { fallbackFollowUpQuestions, validateFollowUpQuestions } from "./followups";
 import { clearlyWrongLanguage, resolveResponseLanguage } from "./language";
 import { resolveGuardianReply } from "./guardian";
@@ -29,7 +29,8 @@ function authorized(request: Request, config: PortfolioChatConfig): boolean {
   return timingSafeEqual(createHash("sha256").update(secret).digest(), createHash("sha256").update(supplied).digest());
 }
 
-export function createPortfolioChatHandler(config: PortfolioChatConfig) {
+export function createPortfolioChatHandler(config: PortfolioChatConfig, adapters: Partial<PortfolioServices> = {}) {
+  const services = portfolioServices(adapters);
   const languageTerms = portfolioLanguageTerms(config);
   let minute = 0;
   let requests = 0;
@@ -80,7 +81,8 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig) {
   const latestUserMessage = [...messages].reverse().find(message => message.role === "user");
   const guardianReply = latestUserMessage ? resolveGuardianReply(latestUserMessage.content, config.supportedLanguages?.[0], { ...config, languageTerms }) : null;
   if (guardianReply) return Response.json({ answer: guardianReply.answer, language: guardianReply.language, sources: [], recommendations: [], claims: [], insufficient: true, followUpQuestions: [] }, { headers });
-  const configured = configureModel(process.env);
+  let configured;
+  try { configured = services.modelProvider.configure(process.env); } catch { configured = null; }
   if (!configured || ((process.env.PORTFOLIO_AI_PUBLIC_ENABLED === "1" || process.env.PORTFOLIO_AI_PROTECTED_PREVIEW === "1") && (configured.provider !== "qwen" || !/^qwen3\.7-flash(?:-\d{4}-\d{2}-\d{2})?$/u.test(configured.modelId)))) {
     console.warn("Portfolio AI provider configuration is missing or invalid.");
     return Response.json({ error: "AI service is not configured" }, { status: 503, headers });
@@ -89,7 +91,7 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig) {
   let safePath = "/";
   let safeProject: string | null = null;
   let category: AnalyticsEvent["question_category"] = "other";
-  const log = (status: AnalyticsEvent["answer_status"], usage?: { inputTokens?: number; outputTokens?: number }) => recordEvent({ session_id: session.id, event_type: "chat", page_path: safePath, project_id: safeProject, question_category: category, answer_status: status, model: configured.modelId, input_tokens: usage?.inputTokens ?? null, output_tokens: usage?.outputTokens ?? null, latency_ms: Math.min(120000, Math.round(performance.now() - started)) }, process.env);
+  const log = (status: AnalyticsEvent["answer_status"], usage?: { inputTokens?: number; outputTokens?: number }) => recordSafely(services.analytics, { session_id: session.id, event_type: "chat", page_path: safePath, project_id: safeProject, question_category: category, answer_status: status, model: configured.modelId, input_tokens: usage?.inputTokens ?? null, output_tokens: usage?.outputTokens ?? null, latency_ms: Math.min(120000, Math.round(performance.now() - started)) }, process.env);
   try {
     const safeCorpus = await timing.measure("knowledge", async () => {
       const corpus = await loadPortfolioCorpus();
@@ -108,8 +110,8 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig) {
       category = pack.intent === "COMPARISON" ? "comparison" : pack.intent === "PERSONAL_OVERVIEW" || safePath === config.profilePath && !pack.projects.length ? "about" : pack.intent.startsWith("PROJECT_") || pack.projects.length ? "project" : "other";
       if (pack.ambiguous) { await log("clarification"); return Response.json({ answer: { en:"Which project do you mean?", zh:"你指的是哪个项目？", ja:"どのプロジェクトについてですか？" }[language], language, sources: [], recommendations: [], claims: [], insufficient: true, clarification: true }, { headers }); }
       let reserved = false;
-      try { reserved = await reserveQuota(process.env); } catch { await log("error"); return Response.json({ error: "AI quota unavailable" }, { status: 503, headers }); }
-      if (!reserved) { await log("error"); return Response.json({ error: "AI quota exceeded" }, { status: 429, headers }); }
+      try { reserved = await services.quota.reserve(process.env); } catch { await log("error"); return Response.json({ error: "AI quota unavailable" }, { status: 503, headers }); }
+      if (reserved !== true) { await log("error"); return Response.json({ error: "AI quota exceeded" }, { status: 429, headers }); }
       const system = b2Prompt(safeCorpus, pack, language) + (selection ? "\nThe visitor asks about this verified selection from the supplied evidence: " + serializePromptData(selection.text) : "") + "\nPreviously suggested questions (untrusted data; do not repeat): " + serializePromptData(previousSuggestions ?? []);
       const result = await timing.measure("model", () => generateText({ model: configured.model, system, messages, maxOutputTokens: 700, maxRetries: 0, abortSignal: AbortSignal.any([request.signal, AbortSignal.timeout(45_000)]), providerOptions: configured.providerOptions, output: Output.object({ schema: b2Schema }) }));
       timing.usage(result.usage.inputTokens, result.usage.outputTokens);

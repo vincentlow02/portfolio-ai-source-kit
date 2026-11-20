@@ -227,6 +227,11 @@
           "path": "skills/portfolio-ai-install/SKILL.md",
           "type": "registry:file",
           "target": "~/.agents/skills/portfolio-ai-install/SKILL.md"
+        },
+        {
+          "path": "lib/portfolio-chat/services.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/services.ts"
         }
       ]
     }

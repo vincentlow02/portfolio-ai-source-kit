@@ -4,6 +4,19 @@ This source kit adds a citation-aware assistant to a Next.js App Router portfoli
 
 Read the [integration guide](docs/integration.md), [RAG architecture](docs/architecture.md), [security and deployment](docs/security.md), and [evaluation and troubleshooting](docs/evaluation.md) for the complete setup.
 
+## Quick start
+
+1. Review `registry.json`, then install the reviewed source into your Next.js App Router project. Pin the ref to a full commit SHA for reproducibility; `main` below tracks the latest source and can change.
+
+   ```sh
+   npx -y shadcn@4.23.0 add 'vincentlow02/portfolio-ai-source-kit/portfolio-ai#main'
+   ```
+
+2. Ask your coding agent to read `.agents/skills/portfolio-ai-install/SKILL.md` and `.portfolio-ai/SETUP.md`, inspect your project, and propose public sources and protected paths. Approve the list before it builds the corpus.
+3. Run `node scripts/portfolio-chat/doctor.mjs`, configure your own services, and test the integration with mocks. Review source citations, privacy, access and quotas before enabling public access. See [getting started](docs/getting-started.md) and [AI services setup](docs/ai-services-setup.md).
+
+The three steps require a source revision that includes the skill and doctor. The stable v1.1.0 tag remains available below and predates those additions.
+
 ## Try the example
 
 Use Node.js 24, npm and a compatible Chromium installation. Copy `examples/atlas-portfolio` to a separate directory, then from the kit directory run:
@@ -42,7 +55,7 @@ You remain responsible for approving public content, supplying your own model an
 5. Configure server-only credentials, regional model pricing and shared quota in your own `.env.local`. Apply the included SQL migration to a dedicated project only after reviewing it. The legacy `vincent_ai` database identifiers are retained for compatibility.
 6. Test citations, protected content, authorization, abuse limits and semantic accuracy against your own material before enabling public access. A valid citation link does not guarantee a model claim is factually supported.
 
-The CI registry test installs the exact GitHub commit into both the Atlas example and an independently structured fictional portfolio; it builds, typechecks and tests interactions with fake model and quota services. It does not make paid model calls.
+The CI registry test installs the exact GitHub commit into Atlas, an independent fictional portfolio and an initially unmodified cold-start host. It builds, typechecks and tests interactions with fake model and quota services. The cold-start test applies explicit simulated integration edits; it does not test a live coding agent. It does not make paid model calls.
 
 ## Sources and deployment
 
@@ -66,3 +79,5 @@ Keep API and database secrets on the server. Configure an exact allowed HTTPS or
 ## License and dependencies
 
 The kit and fictional example are covered by the accompanying [MIT license](LICENSE). Dependencies are installed separately; preserve their applicable licenses and notices. See [third-party notices](THIRD_PARTY_NOTICES.md) and the example lockfile. No original portfolio assets are included.
+
+The [original Figma UI reference](https://www.figma.com/design/DxOQI6Z0YQp5LxZNkufTBX/Portfolio-AI-Chat-UI-Gallery?node-id=7-2) is optional and is not needed to install or run the kit. See the [fictional demo plan](docs/demo-plan.md), [contribution guide](CONTRIBUTING.md), and [vulnerability reporting](SECURITY.md).

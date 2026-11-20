@@ -6,12 +6,13 @@ import { loadPortfolioCorpus } from "../portfolio-knowledge";
 import { b2PublicCorpus, parsePageContext } from "./b2";
 import { isLocalDevRequest } from "./local-access";
 import { analyticsSession, defaultSessionCookie, validPublicOrigin } from "./session";
-import { recordEvent } from "./supabase";
+import { portfolioServices, recordSafely, type PortfolioServices } from "./services";
 import { readPortfolioRequest } from "./request-body";
 
 import type { PortfolioChatConfig } from "./engine-config";
 
-export function createPortfolioClickHandler(config: PortfolioChatConfig) {
+export function createPortfolioClickHandler(config: PortfolioChatConfig, adapters: Partial<PortfolioServices> = {}) {
+  const services = portfolioServices(adapters);
   return async function POST(request: Request) {
   if (!isLocalDevRequest(request, process.env) && !validPublicOrigin(request, process.env, config)) return new Response(null, { status: 401 });
   const cookie = config.sessionCookieName ?? defaultSessionCookie;
@@ -31,7 +32,7 @@ export function createPortfolioClickHandler(config: PortfolioChatConfig) {
     const publicProject = corpus.caseStudies.some(project => project.projectId === body.projectId);
     const validTarget = corpus.caseStudies.some(project => project.projectId === body.projectId && project.url === body.url) || corpus.chunks.some(chunk => chunk.projectId === body.projectId && chunk.sourceUrl === body.url && chunk.sectionId && corpus.pages.some(p => p.url === chunk.sourceUrl.split("#")[0]));
     if (!publicProject || !validTarget) return new Response(null, {status: 400});
-    await recordEvent({ session_id: analyticsSession(request, cookie).id, event_type: "recommendation_click", page_path: page?.path ?? "/", project_id: body.projectId }, process.env);
+    await recordSafely(services.analytics, { session_id: analyticsSession(request, cookie).id, event_type: "recommendation_click", page_path: page?.path ?? "/", project_id: body.projectId }, process.env);
   } catch { /* Analytics must not affect navigation. */ }
   return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
 };
