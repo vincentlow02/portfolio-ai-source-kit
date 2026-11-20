@@ -15,9 +15,10 @@ export const kitFiles = [
   "lib/knowledge/rendered.ts",
   "lib/portfolio-knowledge.ts",
   ...["b2", "click-handler", "core", "engine-config", "followups", "guardian", "handler", "language",
-    "local-access", "origin", "provider", "request-body", "retrieval", "selection", "session", "supabase", "timing"]
+    "local-access", "origin", "provider", "request-body", "retrieval", "selection", "services", "session", "supabase", "timing"]
     .map(file => "lib/portfolio-chat/" + file + ".ts"),
   "scripts/portfolio-chat/dev-server.mjs",
+  "scripts/portfolio-chat/doctor.mjs",
   "scripts/portfolio-knowledge/anonymous-browser.mjs",
   "scripts/portfolio-knowledge/publish.mts",
   "supabase/migrations/202611100001_vincent_ai_analytics.sql",

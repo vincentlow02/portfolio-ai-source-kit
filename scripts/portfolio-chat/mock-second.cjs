@@ -3,6 +3,7 @@ const delegate = globalThis.fetch;
 globalThis.fetch = async (input, init) => {
   const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
   if (url.hostname === "fixture.supabase.co") {
+    if (process.env.TEST_COLD_ADAPTERS === "1") throw new Error("Cold-start fixture must use its custom quota and analytics adapters");
     if (url.pathname.endsWith("/rpc/vincent_ai_reserve_quota")) {
       if (process.env.TEST_SECOND_QUOTA_MODE === "exhausted") return Response.json(false);
       if (process.env.TEST_SECOND_QUOTA_MODE === "unavailable") return new Response(null, { status: 503 });

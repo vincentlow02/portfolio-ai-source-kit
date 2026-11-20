@@ -31,6 +31,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
       - run: node scripts/audit-distribution.mjs
       - name: Verify PostgreSQL quota, privileges, and concurrent reservations
         env:
@@ -55,8 +57,9 @@ jobs:
           python3 scripts/audit-release-zip.py "$RUNNER_TEMP/source.zip" --commit HEAD
           python3 scripts/test-audit-release-zip.py "$RUNNER_TEMP/source.zip" HEAD
       - run: npm run test:offline
+      - run: node --test scripts/portfolio-chat/doctor.test.mjs scripts/test-registry-contract.mjs
       - run: npm run test:integration
-      - name: Install GitHub registry item into two portfolios
+      - name: Install GitHub registry item into three portfolios
         env:
           PORTFOLIO_AI_REGISTRY_REF: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node scripts/test-registry-install.mjs

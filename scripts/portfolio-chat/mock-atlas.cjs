@@ -19,6 +19,24 @@ globalThis.fetch = async (input, init) => {
     assert.ok(!("messages" in event) && !("answer" in event));
     return new Response(null, { status: 201 });
   }
+  if (url.hostname === "api.openai.com") {
+    assert.ok(!process.env.TEST_ATLAS_QUOTA_MODE, "model must not be called when shared quota fails");
+    assert.equal(url.pathname, "/v1/responses");
+    const request = JSON.parse(init.body);
+    assert.equal(request.store, false);
+    assert.equal(request.text.format.type, "json_schema");
+    const prompt = request.input.find(message => message.role === "system").content;
+    assert.ok(!/(?:undisclosed|requires access)/iu.test(prompt));
+    const entries = prompt.split("\n").flatMap(line => {
+      try { const item = JSON.parse(line); return item.key && item.text ? [item] : []; } catch { return []; }
+    });
+    const evidence = entries.find(entry => entry.project === "lantern" && /six libraries/u.test(entry.text));
+    const output = { language:"en", insufficient:!evidence, claims:evidence ? [{text:"The Lantern team tested tactile signs at six libraries.", evidenceKeys:[evidence.key]}] : [], recommendedProjectIds:[], followUpQuestions:[] };
+    const text = process.env.TEST_OPENAI_MODE === "invalid" ? '{"answer":42}' : JSON.stringify(output);
+    return Response.json({ id:"fixture-openai", model:"gpt-4o-mini", created_at:1700000000,
+      output:[{type:"message",role:"assistant",id:"fixture-message",content:[{type:"output_text",text,annotations:[]}]}],
+      usage:{input_tokens:600,output_tokens:70,total_tokens:670} });
+  }
   if (url.hostname !== "atlas-model.invalid") return delegate(input, init);
   assert.ok(!process.env.TEST_ATLAS_QUOTA_MODE, "model must not be called when shared quota fails");
   const request = JSON.parse(init.body);

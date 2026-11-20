@@ -217,6 +217,21 @@
           "path": "examples/atlas-portfolio/.env.example",
           "type": "registry:file",
           "target": "~/.portfolio-ai/templates/.env.example"
+        },
+        {
+          "path": "scripts/portfolio-chat/doctor.mjs",
+          "type": "registry:file",
+          "target": "~/scripts/portfolio-chat/doctor.mjs"
+        },
+        {
+          "path": "skills/portfolio-ai-install/SKILL.md",
+          "type": "registry:file",
+          "target": "~/.agents/skills/portfolio-ai-install/SKILL.md"
+        },
+        {
+          "path": "lib/portfolio-chat/services.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/services.ts"
         }
       ]
     }
