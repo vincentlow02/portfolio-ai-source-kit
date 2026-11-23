@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portfolio AI preview</title>
+  <link rel="stylesheet" href="/preview.css">
+  <script type="module" src="/preview.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Portfolio AI</h1>
+      <p>{{mode}}</p>
+    </header>
+    <section id="output" aria-label="Preview response" aria-live="polite">
+      <p>Ask about the work in this portfolio.</p>
+    </section>
+    <form>
+      <label for="question">Your question</label>
+      <div class="composer">
+        <input id="question" name="question" required maxlength="2000" autocomplete="off">
+        <button type="submit">Ask</button>
+      </div>
+    </form>
+  </main>
+</body>
+</html>

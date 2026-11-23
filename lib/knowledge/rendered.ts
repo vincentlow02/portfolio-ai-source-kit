@@ -1,7 +1,7 @@
 import type { Browser, Page } from "puppeteer";
 import type { z } from "zod";
 import { withAnonymousPortfolioPage } from "../../scripts/portfolio-knowledge/anonymous-browser.mjs";
-import { knowledgePath, type KnowledgeSource, type VerifyPublishedDocument, type pageMetadata } from "./contract";
+import { knowledgeLanguage, knowledgePath, type KnowledgeSource, type VerifyPublishedDocument, type pageMetadata } from "./contract";
 
 function originUrl(origin: string, source: string) {
   const parsed = new URL(origin);
@@ -13,8 +13,8 @@ function originUrl(origin: string, source: string) {
   return origin + source;
 }
 
-async function inspectPublishedPage(page: Page, language: string, title: string, expected?: Parameters<VerifyPublishedDocument>[0]["sections"]) {
-  return page.evaluate(({ language, title, expected }) => {
+async function inspectPublishedPage(page: Page, language: string, title: string, expected?: Parameters<VerifyPublishedDocument>[0]["sections"], localPreview = false) {
+  return page.evaluate(({ language, title, expected, localPreview }) => {
     const robots = Array.from(document.querySelectorAll('meta[name="robots" i],meta[name="googlebot" i]'));
     if (document.documentElement.lang.toLowerCase().split("-")[0] !== language ||
         document.querySelector('[data-portfolio-access="protected"],input[type="password"]') ||
@@ -72,7 +72,8 @@ async function inspectPublishedPage(page: Page, language: string, title: string,
           }
         }
         const normalized = dom.normalize(published);
-        return !normalized.includes(dom.normalize(title)) ||
+        const matchesTitle = normalized.includes(dom.normalize(title)) || (localPreview && !anchor && title === document.title.trim().slice(0, 200));
+        return !matchesTitle ||
           !text.split(/\r?\n/u).filter(line => line.trim()).every(line => normalized.includes(dom.normalize(line)));
       });
       return { missing: missing?.title ?? null, sections: [] };
@@ -95,16 +96,16 @@ async function inspectPublishedPage(page: Page, language: string, title: string,
     }
     if (current.text.trim()) sections.push(current);
     return { missing: null, sections };
-  }, { language, title, expected });
+  }, { language, title, expected, localPreview });
 }
 
-export function verifyInBrowser(browser: Browser, origin: string): VerifyPublishedDocument {
+export function verifyInBrowser(browser: Browser, origin: string, mode: "published" | "local-preview" = "published"): VerifyPublishedDocument {
   return async ({ page: source, sections }) => {
     const url = originUrl(origin, source.url);
     await withAnonymousPortfolioPage(browser, origin, url, async (page: Page) => {
-      const { missing } = await inspectPublishedPage(page, source.language, source.title, sections);
+      const { missing } = await inspectPublishedPage(page, source.language, source.title, sections, mode === "local-preview");
       if (missing) throw new Error("Source text or section anchor is not visible in the published page: " + source.url + " (" + missing + ")");
-    });
+    }, mode);
   };
 }
 
@@ -114,4 +115,19 @@ export async function capturePublishedSource(browser: Browser, origin: string, m
     const { sections } = await inspectPublishedPage(page, metadata.language, metadata.title);
     return { access: "public", format: "rendered", page: metadata, sections };
   });
+}
+
+export async function captureLocalPreviewSource(browser: Browser, origin: string, sourcePath: string): Promise<KnowledgeSource> {
+  const url = originUrl(origin, sourcePath);
+  return withAnonymousPortfolioPage(browser, origin, url, async (page: Page): Promise<KnowledgeSource> => {
+    const language = knowledgeLanguage.parse(await page.evaluate(() => document.documentElement.lang.toLowerCase().split("-")[0]));
+    const title = await page.evaluate(() => {
+      const headings = Array.from(document.querySelectorAll<HTMLElement>("main h1, main h2, main h3, main h4, main h5, main h6"));
+      const heading = headings.find(element => !element.closest('[hidden],[inert],[aria-hidden="true" i]') &&
+        element.checkVisibility({ opacityProperty: true, visibilityProperty: true, contentVisibilityAuto: true }));
+      return (heading?.innerText.trim() || document.title.trim()).slice(0, 200);
+    });
+    const { sections } = await inspectPublishedPage(page, language, title);
+    return { access: "public", format: "rendered", page: { url: sourcePath, title, language, kind: "page" }, sections };
+  }, "local-preview");
 }

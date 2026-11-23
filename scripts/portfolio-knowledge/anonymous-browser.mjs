@@ -24,7 +24,18 @@ export async function launchBrowser() {
   });
 }
 
-export async function withAnonymousPortfolioPage(browser, origin, url, visitPage) {
+export function localPreviewOrigin(value) {
+  let url;
+  try { url = new URL(value); } catch { /* Report the expected input below. */ }
+  if (!url || url.protocol !== "http:" || url.hostname !== "127.0.0.1" || !url.port || url.origin !== value) {
+    throw new Error("Use a local preview origin such as http://127.0.0.1:5173");
+  }
+  return url.origin;
+}
+
+export async function withAnonymousPortfolioPage(browser, origin, url, visitPage, mode = "published") {
+  const localPreview = mode === "local-preview";
+  if (localPreview) localPreviewOrigin(origin);
   const context = await browser.createBrowserContext();
   try {
     const page = await context.newPage();
@@ -34,7 +45,7 @@ export async function withAnonymousPortfolioPage(browser, origin, url, visitPage
       const destination = new URL(request.url());
       const allow = destination.origin === origin && request.method() === "GET" &&
         (request.isNavigationRequest() ? request.url() === url && request.frame() === page.mainFrame()
-          : destination.pathname.startsWith("/_next/static/") && ["script", "stylesheet"].includes(request.resourceType()));
+          : (localPreview || destination.pathname.startsWith("/_next/static/")) && ["script", "stylesheet"].includes(request.resourceType()));
       void (allow ? request.continue() : request.abort());
     });
     const response = await page.goto(url, { waitUntil: "load", timeout: 30_000 });
@@ -42,6 +53,14 @@ export async function withAnonymousPortfolioPage(browser, origin, url, visitPage
 
     if (/\b(?:noindex|none)\b/iu.test(response.headers()["x-robots-tag"] ?? "")) {
       throw new Error("Source is not indexed (X-Robots-Tag)");
+    }
+    if (localPreview) {
+      await page.waitForFunction(() => {
+        const paragraphs = document.querySelectorAll("main :is(p,li,blockquote,pre,figcaption,dt,dd,tr)");
+        return Array.from(paragraphs).some(element => element.innerText.trim() &&
+          !element.closest('nav,footer,form,[hidden],[inert],[aria-hidden="true" i]') &&
+          element.checkVisibility({ opacityProperty: true, visibilityProperty: true, contentVisibilityAuto: true }));
+      }, { timeout: 10_000 });
     }
     return await visitPage(page);
   } finally {

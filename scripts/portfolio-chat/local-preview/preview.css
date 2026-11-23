@@ -1,0 +1,26 @@
+:root {
+  color-scheme: light;
+  background: #fafaf9;
+  color: #252a28;
+  font: 16px/1.5 system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { display: flex; flex-direction: column; max-width: 34rem; height: 100dvh; margin: auto; }
+header, form { flex: none; padding: .85rem 1rem; }
+header { border-bottom: 1px solid #deded9; }
+h1 { margin: 0; font: 1.35rem/1.35 Georgia, serif; }
+p { margin: 0; }
+header p, label { color: #505853; font-size: .8rem; }
+#output { flex: 1; min-height: 0; padding: 1rem; overflow: auto; overflow-wrap: anywhere; }
+#output p { white-space: pre-wrap; }
+#output a { display: inline-block; margin-top: .75rem; color: #285c4b; text-underline-offset: .18em; }
+form { border-top: 1px solid #deded9; }
+label { display: block; margin-bottom: .35rem; }
+.composer { display: flex; gap: .45rem; }
+input, button { font: inherit; min-height: 2.75rem; border: 1px solid #a5aca7; border-radius: .35rem; }
+input { flex: 1; min-width: 0; padding: .45rem .65rem; }
+button { padding: .45rem .75rem; color: #fff; background: #285c4b; cursor: pointer; }
+button:disabled { opacity: .65; cursor: wait; }
+:focus-visible { outline: 2px solid #285c4b; outline-offset: 2px; }

@@ -3,8 +3,8 @@ import { once } from "node:events";
 import { createServer } from "node:http";
 import test from "node:test";
 import { buildKnowledgeCorpus, type KnowledgeSource } from "../../lib/knowledge/contract";
-import { capturePublishedSource, verifyInBrowser } from "../../lib/knowledge/rendered";
-import { launchBrowser } from "./anonymous-browser.mjs";
+import { captureLocalPreviewSource, capturePublishedSource, verifyInBrowser } from "../../lib/knowledge/rendered";
+import { launchBrowser, localPreviewOrigin } from "./anonymous-browser.mjs";
 
 test("anonymous publication validation rejects hidden DOM, protected markers and indexing exclusions", async () => {
   const publicText = "Public paragraph with <strong>visible words</strong>.";
@@ -49,6 +49,54 @@ test("anonymous publication validation rejects hidden DOM, protected markers and
     assert.doesNotMatch(corpus.chunks[0].content, /Synthetic draft|Invisible note/);
   } finally {
     await browser.close();
+    await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+  }
+});
+
+test("local preview reads a client-rendered page without allowing external origins or background fetches", async () => {
+  assert.throws(() => localPreviewOrigin("https://portfolio.example"), /local preview origin/);
+  assert.throws(() => localPreviewOrigin("http://127.0.0.1:5173/projects"), /local preview origin/);
+  let backgroundRequests = 0;
+  const server = createServer((req, res) => {
+    if (req.url === "/src/portfolio.js") {
+      res.setHeader("Content-Type", "text/javascript");
+      res.end(`
+        document.querySelector('#app').innerHTML = '<main><div class="entrance"><h1 id="project">Project notes</h1>' +
+          '<p>We tested the prototype with volunteers.</p><p hidden>Draft-only information.</p></div></main>';
+        fetch('/api/content').catch(() => {});
+      `);
+    } else if (req.url === "/api/content") {
+      backgroundRequests++;
+      res.end("Draft-only information.");
+    } else {
+      res.setHeader("Content-Type", "text/html");
+      if (req.url === "/drafts") res.setHeader("X-Robots-Tag", "noindex");
+      res.end('<!DOCTYPE html><html lang="en"><style>@keyframes appear { from { opacity: 0; } to { opacity: 1; } } ' +
+        '.entrance { animation: appear 500ms 250ms both; }</style><div id="app"></div><script type="module" src="/src/portfolio.js"></script></html>');
+    }
+  });
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  const address = server.address();
+  if (!address || typeof address === "string") throw new Error("No test origin");
+  const origin = `http://127.0.0.1:${address.port}`;
+
+  try {
+    const browser = await launchBrowser();
+    try {
+      const source = await captureLocalPreviewSource(browser, origin, "/projects");
+      const corpus = await buildKnowledgeCorpus([source], "local-preview", verifyInBrowser(browser, origin, "local-preview"));
+      assert.equal(corpus.pages[0].title, "Project notes");
+      assert.equal(corpus.chunks[0].sourceUrl, "/projects#project");
+      assert.match(corpus.chunks[0].content, /tested the prototype with volunteers/);
+      assert.doesNotMatch(corpus.chunks[0].content, /Draft-only/);
+      assert.equal(backgroundRequests, 0);
+      await assert.rejects(captureLocalPreviewSource(browser, origin, "/drafts"), /X-Robots-Tag/);
+      await assert.rejects(capturePublishedSource(browser, origin, { url: "/projects", title: "Project notes", language: "en", kind: "page" }), /Missing visible public main/);
+    } finally {
+      await browser.close();
+    }
+  } finally {
     await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   }
 });
