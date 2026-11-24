@@ -159,6 +159,12 @@ test("comparison topic checks use source body and retain explicit attributes",()
   assert.equal(comparisonTopicMatcher("测试方法").matches("Research\nThe test methods included volunteer sessions."),true);
   assert.equal(comparisonTopicMatcher("テスト方法").matches("Research\nThe test methods included volunteer sessions."),true);
   assert.equal(comparisonTopicMatcher("测试方法费用").matches("Research\nThe test methods included volunteer sessions."),false);
+  const participantCount=comparisonTopicMatcher("両方のプロジェクトは何人で検証されましたか？");
+  assert.equal(participantCount.matches("Research\nThe team tested the prototype with six museum staff."),true);
+  assert.equal(participantCount.matches("Research\nSeven commuters tested the prototype."),true);
+  assert.equal(participantCount.matches("Research\nThe team tested six devices."),false);
+  assert.equal(participantCount.matches("Research\nSix staff built a prototype that tested seven devices."),false);
+  assert.equal(participantCount.matches("Research\nThe team did not test the prototype with six volunteers."),false);
   assert.equal(comparisonTopicMatcher("それぞれのプロジェクトはどう検証されましたか？").matches("Research\nThe team tested the prototype with volunteers."),true);
   assert.equal(comparisonTopicMatcher("それぞれのプロジェクトは検証されませんでしたか？").matches("Research\nThe team tested the prototype with volunteers."),false);
   assert.equal(comparisonTopicMatcher("両方のプロジェクトはどのように検証されましたか？").matches("Research\nThe team did not test the prototype with volunteers."),false);
@@ -219,6 +225,34 @@ test("Japanese passive verification preserves project scope and requested attrib
     assert.deepEqual((await excerptReply(projects,messages,"ja")).sources,[],text);
   }
   assert.equal(reservations,0);
+});
+
+test("Japanese generic method and participant count require relevant public evidence",async()=>{
+  const make=async(first:string,second:string)=>buildKnowledgeCorpus([
+    {access:"public",format:"rendered",page:{url:"/work/copper",title:"Copper",language:"en",kind:"case-study",projectId:"copper"},sections:[{title:"Research",anchor:"trial",text:first}]},
+    {access:"public",format:"rendered",page:{url:"/work/cedar",title:"Cedar",language:"en",kind:"case-study",projectId:"cedar"},sections:[{title:"Research",anchor:"trial",text:second}]},
+    {access:"public",format:"rendered",page:{url:"/work/reed",title:"Reed",language:"en",kind:"case-study",projectId:"reed"},sections:[{title:"Research",anchor:"trial",text:"A separate team tested a classroom journal with teachers."}]},
+  ],"japanese-person-method-development",async()=>{});
+  const projects=await make("The team tested a portable prototype with eight librarians during an observation session.","Researchers tested an audio guide prototype with five park rangers during a workshop.");
+  const prior=[...question("Compare Copper and Cedar"),{role:"assistant" as const,content:"Two projects."}];
+  for(const text of ["両方のプロジェクトはどんな方法で検証されましたか？","両方のプロジェクトは何人で検証されましたか？"]){
+    const result=await prepareAnswer({corpus:projects,messages:[...prior,...question(text)],language:"ja",config:{ownerName:"Example"}});
+    assert.equal(result.answer,null,text);
+    assert.deepEqual(new Set(result.pack.entries.map(entry=>entry.chunk.sourceUrl)),new Set(["/work/copper#trial","/work/cedar#trial"]),text);
+  }
+  const countQuestion=[...prior,...question("両方のプロジェクトは何人で検証されましたか？")];
+  for(const [first,second] of [
+    ["The team tested eight devices.","Researchers tested five sensors."],
+    ["Eight librarians built a prototype that tested five devices.","Five rangers built a prototype that tested eight sensors."],
+    ["The team did not test a prototype with eight librarians.","Researchers never tested a prototype with five rangers."],
+  ] as const){
+    const unsupported=await make(first,second);
+    const model=createModelReply(unsupported,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
+    let reservations=0;
+    assert.deepEqual((await model(countQuestion,"ja",undefined,{reserve:async()=>{reservations++;return false;}})).sources,[]);
+    assert.equal(reservations,0);
+    assert.deepEqual((await excerptReply(unsupported,countQuestion,"ja")).sources,[]);
+  }
 });
 
 test("the default retrieves an approved English excerpt for a Chinese question", async () => {

@@ -7,6 +7,9 @@ import { defaultPortfolioChatConfig } from "./engine-config";
 
 import type { PortfolioChatConfig } from "./engine-config";
 export const comparisonQuestion = /compare|different|difference|相比|比较|对比|對比|区别|差异|差異|不同|比較|比べ|違い/iu;
+// Shared vocabulary for explicitly counted people; this deliberately omits
+// arbitrary nouns so counts of devices or dates are not treated as people.
+export const countedPeopleNouns = String.raw`(?:people|persons?|participants?|visitors?|users?|passengers?|volunteers?|gardeners?|nurses?|teachers?|researchers?|curators?|archivists?|commuters?|staff|employees?|residents?|patients?|librarians?|rangers?|artists?|students?|designers?|developers?|workers?)`;
 export const comparisonTopicClarification = {
   en:"What would you like to compare about the projects?",
   zh:"你想比较这些项目的哪方面？",
@@ -77,6 +80,15 @@ function pluralProjectReference(query: string) {
   return /\b(?:both projects?|both of (?:the )?projects?|both of them|(?:the|these|those) two projects?|their (?:research|stud(?:y|ies)|tests?|testing|designs?|roles?|participants?|projects?))\b|(?:两个|兩個|两项|兩項)(?:项目|項目|專案)|(?:两者|兩者)(?:的|分别|分別)|(?:両方|両者|それぞれ)の(?:プロジェクト|作品)/iu.test(query);
 }
 
+const countNumber = String.raw`(?:\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)`;
+const countedPeople = countNumber + String.raw`\s+(?:[a-z-]+\s+){0,2}` + countedPeopleNouns + String.raw`\b`;
+const testedWithCountedPeople = new RegExp(String.raw`\b(?:test(?:ed|ing)?|validat(?:ed|ing)?|evaluat(?:ed|ing)?|trial(?:led|ed)?)\b[^.!?;]{0,140}\b(?:with|among)\s+(?:(?:a\s+group\s+of|approximately|about|around)\s+)?` + countedPeople,"iu");
+const countedPeopleTesting = new RegExp(String.raw`\b` + countedPeople + String.raw`\s+(?:tested|tried|evaluated|participated)\b`,"iu");
+function hasCountedTestParticipants(sentence:string):boolean {
+  return testedWithCountedPeople.test(sentence) || countedPeopleTesting.test(sentence) ||
+    /(?:[零〇一二三四五六七八九十百千万\d]+)(?:人|名)(?:で|が|を対象に).{0,40}(?:検証|テスト|試験|测试|測試|验证|驗證)|(?:検証|テスト|試験|测试|測試|验证|驗證).{0,40}(?:[零〇一二三四五六七八九十百千万\d]+)(?:人|名)(?:で|が参加|参加)/iu.test(sentence);
+}
+
 // A carried multi-project comparison must keep every explicit topic word in
 // each source body. Unknown terms are matched literally; a small multilingual
 // map covers common testing vocabulary. This is conservative, not entailment.
@@ -88,15 +100,20 @@ export function comparisonTopicMatcher(query: string): { hasTopic: boolean; tooM
   const personWords = new Set(["who","谁","誰"]);
   const reasonWords = new Set(["why","为什么","為什麼","为何","為何","なぜ"]);
   const methodWords = new Set(["方法","方式","手法","手段"]);
-  const queryText=query.normalize("NFKC").toLocaleLowerCase()
+  const personCountWords = new Set(["何人","几人","幾人","多少人"]);
+  const rawQuery=query.normalize("NFKC").toLocaleLowerCase();
+  const asksGenericTestingMethod=/(?:どのような|どんな)方法で[^?？]{0,80}(?:検証|テスト)/u.test(rawQuery);
+  const queryText=rawQuery
     .replace(/\b(?:the|these|those) two projects?\b/gu,"both projects")
     .replace(/(?:这|這)?(?:两个|兩個|两项|兩項)(?:项目|項目|專案)/gu,"项目")
+    .replace(/(?:どのような|どんな)方法で(?=[^?？]{0,80}(?:検証|テスト))/gu,"どう")
+    .replace(/(何人|几人|幾人|多少人)で(?=検証|テスト)/gu,"$1")
     // Normalise only affirmative Japanese passive endings. Negation remains
     // in the topic terms and must never be silently removed.
     .replace(/(検証|テスト)(?:されていました|されました|されています|されます|された)/gu,"$1");
   const asksTestingPurpose=/\bwhat\b[^?]{0,100}\btest(?:ed|ing)?\s+for\b/iu.test(queryText);
-  const asksNegativeTest=/(?:\b(?:not|never|no|without)\b|(?:未|没有|沒有|不曾|从未|從未).{0,8}(?:测试|測試|验证|驗證)|(?:検証|テスト).{0,15}(?:なかった|ない|ません|未実施)|未(?:検証|テスト))/iu.test(queryText);
-  const asksAffirmativeTestingHow=!asksNegativeTest && /(?:\bhow\b|どのように|どう|如何|怎么|怎麼)[^?？]{0,100}(?:\btest(?:ed|ing)?\b|検証|テスト|测试|測試)/iu.test(queryText);
+  const asksNegativeTest=/(?:\b(?:not|never|no|without|didn['’]t|doesn['’]t|wasn['’]t|weren['’]t)\b|(?:未|没有|沒有|不曾|从未|從未).{0,8}(?:测试|測試|验证|驗證)|(?:検証|テスト).{0,15}(?:なかった|ない|ません|未実施)|未(?:検証|テスト))/iu.test(queryText);
+  const asksAffirmativeTesting=!asksNegativeTest && /(?:\btest(?:s|ed|ing)?\b|検証|テスト|测试|測試)/iu.test(queryText);
   const language=/[\u3040-\u30ff]/u.test(queryText)?"ja":/[\u3400-\u9fff]/u.test(queryText)?"zh":"en";
   const terms=[...new Set([...new Intl.Segmenter(language,{granularity:"word"}).segment(queryText)]
     .filter(part=>part.isWordLike).map(part=>part.segment).filter(term=>!stop.has(term)))];
@@ -108,13 +125,15 @@ export function comparisonTopicMatcher(query: string): { hasTopic: boolean; tooM
     // does not establish a semantic relationship within one clause.
     const sentences=sourceBody.split(/(?<=[。！？])|(?<=[.!?])\s+|\n+|[;；]|\b(?:and|or|but|however|whereas|although|while)\b|但是|然而|一方|ただし/iu).filter(Boolean);
     return sentences.some(sentence=>(!asksTestingPurpose || /\btest(?:ed|ing)?\s+for\b/iu.test(sentence)) &&
-    (!asksAffirmativeTestingHow || !/(?:\b(?:(?:did|does|do|was|were|is|are|has|have|had)\s+not|not|never|didn['’]t|doesn['’]t|hasn['’]t|haven['’]t|wasn['’]t|weren['’]t)\s+(?:(?:be|been)\s+)?(?:test(?:ed|ing)?|validat(?:e|ed|ing)|evaluat(?:e|ed|ing))\b|\b(?:no|without)\s+(?:user\s+)?(?:testing|validation|tests?)\b|(?:未|没有|沒有|不曾|从未|從未).{0,8}(?:测试|測試|验证|驗證)|(?:検証|テスト).{0,12}(?:しなかった|されなかった|されていない|されません|未実施)|未(?:検証|テスト))/iu.test(sentence)) && terms.every(term=>{
+    (!asksGenericTestingMethod || /\b(?:test(?:ed|ing)?|validat(?:ed|ing)?|evaluat(?:ed|ing)?)\b[^.!?;]{0,140}\b(?:with|using|via|through|by)\s+(?!no\b)\S+|(?:テスト|検証|试验|試驗|测试|測試).{0,40}(?:用いて|使用|使って|参加者)|(?:用いて|使用して|使って|参加者).{0,40}(?:テスト|検証|试验|試驗|测试|測試)/iu.test(sentence)) &&
+    (!asksAffirmativeTesting || !/(?:\b(?:(?:did|does|do|was|were|is|are|has|have|had)\s+not|not|never|didn['’]t|doesn['’]t|hasn['’]t|haven['’]t|wasn['’]t|weren['’]t)\s+(?:(?:be|been)\s+)?(?:test(?:ed|ing)?|validat(?:e|ed|ing)|evaluat(?:e|ed|ing))\b|\b(?:no|without)\s+(?:user\s+)?(?:testing|validation|tests?)\b|(?:未|没有|沒有|不曾|从未|從未).{0,8}(?:测试|測試|验证|驗證)|(?:検証|テスト).{0,12}(?:しなかった|されなかった|されていない|されません|未実施)|未(?:検証|テスト))/iu.test(sentence)) && terms.every(term=>{
     if(testWords.has(term)) return /\b(?:test(?:s|ed|ing)?|validat(?:e|ed|ion|ing)|evaluat(?:e|ed|ion|ing))\b|验证|驗證|测试|測試|検証|テスト/iu.test(sentence);
     if(locationWords.has(term)) return /\b(?:location|venue|located|site)\b|地点|地點|場所|位于|位於/iu.test(sentence);
     if(timeWords.has(term)) return /\b(?:19|20)\d{2}\b|\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\b|\d{2,4}年/iu.test(sentence);
     if(personWords.has(term)) return /\b(?:people|person|users?|participants?|volunteers?|researchers?|team|staff|they|we|i)\b|参与者|參與者|志愿者|志願者|参加者|チーム|担当者/iu.test(sentence);
     if(reasonWords.has(term)) return /\b(?:because|since|therefore|so that|in order to)\b|因为|因為|所以|ため|理由/iu.test(sentence);
     if(methodWords.has(term)) return /\b(?:methods?|methodology|techniques?|procedures?|approaches?)\b|方法|方式|手法|手段/iu.test(sentence);
+    if(personCountWords.has(term)) return hasCountedTestParticipants(sentence);
     if (/^\d+$/u.test(term)) return new RegExp("(?<!\\d)"+term+"(?!\\d)","u").test(sentence);
     if (/^[a-z]+$/u.test(term)) {
       const stem=term.length>4 ? term.replace(/(?:ing|ed|es|s)$/u,"") : term;

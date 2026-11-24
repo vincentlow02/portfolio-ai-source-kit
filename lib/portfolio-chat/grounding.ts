@@ -3,7 +3,7 @@ import type { ModelClaims } from "./answer-schema";
 import type { buildB2Pack } from "./b2";
 import { resolveRecommendations, validateAnswer } from "./core";
 import { audienceEvidenceTerms, projectPath, replaceOwnerMentions, sourcePath as pathnameOf } from "./engine-config";
-import { resolveProjects } from "./retrieval";
+import { countedPeopleNouns, resolveProjects } from "./retrieval";
 
 export const audienceStatement = /(?:\b(?:designed|built|intended)\s+for\b|\bfor\s+(?:students?|researchers?|designers?|users?|people|teams?)\b|対象(?:ユーザー|者|として|に)|(?:学生|研究者|利用者|ユーザー).{0,12}(?:のため|向け)|(?:面向|针对).{0,12}(?:用户|使用者|学生|研究者))/iu;
 export const personalRoleLabel = /(?:^|\n)\s*(?:my role|我的职责|我的職責|担当)\s*(?:[:：]|\n)/iu;
@@ -55,7 +55,7 @@ function countedCjkNumbers(text: string): string[] {
 // event still require semantic review.
 function peopleCounts(text: string): string[] {
   const values: string[] = [];
-  const pattern = /(?<![a-z0-9零〇一二两兩三四五六七八九十百千])(\d+|[零〇一二两兩三四五六七八九十百千]{1,8})\s*(?:(?:[a-z-]+\s+){0,2}(?:people|participants?|visitors?|users?|passengers?|volunteers?|gardeners?|nurses?|teachers?|researchers?|curators?|archivists?|commuters?)\b|人(?!称|稱)|名(?!詞)|位(?=访客|訪客|来访者|來訪者|用户|用戶|来場者|参加者|利用者))/giu;
+  const pattern = new RegExp(String.raw`(?<![a-z0-9零〇一二两兩三四五六七八九十百千])(\d+|[零〇一二两兩三四五六七八九十百千]{1,8})\s*(?:(?:[a-z-]+\s+){0,2}` + countedPeopleNouns + String.raw`\b|人(?!称|稱)|名(?!詞)|位(?=访客|訪客|来访者|來訪者|用户|用戶|来場者|参加者|利用者))`,"giu");
   for (const match of normalizedNumbers(text).matchAll(pattern)) {
     const value = /^\d+$/u.test(match[1]) ? match[1] : countedCjkNumbers(match[1] + "人")[0];
     if (value !== undefined) values.push(value);
