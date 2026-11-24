@@ -1,0 +1,60 @@
+{
+  "corpusHash": "dba274c1decf82e7ccccf219e3c9c4de2b8c4a46cf70ba3637db7b9b406baf88",
+  "rows": [
+    {
+      "id": "x1",
+      "q": "Compare Harbor and Orchard research questions.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 2117.6072000000004
+    },
+    {
+      "id": "x2",
+      "q": "Compare Grove and Lantern audio storage costs.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 5.901000000000295
+    },
+    {
+      "id": "x3",
+      "q": "Compare Harbor and Orchard research participant ages.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 37.597099999999955
+    },
+    {
+      "id": "x4",
+      "q": "Compare Grove and Lantern ecological impacts.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 36.621700000000146
+    },
+    {
+      "id": "x5",
+      "q": "Compare Harbor and Orchard research findings.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 42.329299999999876
+    }
+  ]
+}

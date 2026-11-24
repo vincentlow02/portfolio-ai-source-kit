@@ -1,0 +1,383 @@
+{
+  "corpusHash": "dba274c1decf82e7ccccf219e3c9c4de2b8c4a46cf70ba3637db7b9b406baf88",
+  "rows": [
+    {
+      "id": "y1",
+      "q": "Compare Harbor and Orchard study recruitment.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 3958.9501999999998
+    },
+    {
+      "id": "y2",
+      "q": "Compare Harbor and Orchard who was interviewed in the research.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [
+        {
+          "url": "/work/orchard#discovery",
+          "id": "9857e8c32a835b6783bab835",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 144.77109999999993
+    },
+    {
+      "id": "y3",
+      "q": "Compare Harbor and Orchard interview duration.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [
+        {
+          "url": "/work/orchard#discovery",
+          "id": "9857e8c32a835b6783bab835",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 23.08480000000054
+    },
+    {
+      "id": "y4",
+      "q": "Compare Harbor and Orchard locations of the interviews.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [
+        {
+          "url": "/work/orchard#discovery",
+          "id": "9857e8c32a835b6783bab835",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 53.65799999999945
+    },
+    {
+      "id": "y5",
+      "q": "Compare Harbor and Orchard interview responses.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [
+        {
+          "url": "/work/orchard#discovery",
+          "id": "9857e8c32a835b6783bab835",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 32.85310000000027
+    },
+    {
+      "id": "y6",
+      "q": "Compare Harbor and Orchard interview methods.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [
+        {
+          "url": "/work/orchard#discovery",
+          "id": "9857e8c32a835b6783bab835",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 39.31840000000011
+    },
+    {
+      "id": "y7",
+      "q": "Compare Harbor and Orchard interview objectives.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [
+        {
+          "url": "/work/orchard#discovery",
+          "id": "9857e8c32a835b6783bab835",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 40.78160000000025
+    },
+    {
+      "id": "y8",
+      "q": "Compare Harbor and Orchard interview insights.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [
+        {
+          "url": "/work/orchard#discovery",
+          "id": "9857e8c32a835b6783bab835",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 67.41690000000017
+    },
+    {
+      "id": "y9",
+      "q": "Compare Harbor and Orchard participant feedback.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 116.09280000000035
+    },
+    {
+      "id": "y10",
+      "q": "Compare Harbor and Orchard participant gender.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 31.59190000000035
+    },
+    {
+      "id": "y11",
+      "q": "Compare Harbor and Orchard research study participants.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 73.54839999999967
+    },
+    {
+      "id": "y12",
+      "q": "Compare Harbor and Orchard research methods for recruitment.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 183.11459999999988
+    },
+    {
+      "id": "y13",
+      "q": "Compare Harbor and Orchard participant requirements.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 181.9448999999995
+    },
+    {
+      "id": "y14",
+      "q": "Compare Harbor and Orchard participant selection.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 110.87560000000121
+    },
+    {
+      "id": "y15",
+      "q": "Compare Harbor and Orchard research objectives.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 233.33500000000095
+    },
+    {
+      "id": "y16",
+      "q": "Compare Harbor and Orchard research outcomes.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 88.13060000000041
+    },
+    {
+      "id": "y17",
+      "q": "Compare Harbor and Orchard study participant names.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 111.50920000000042
+    },
+    {
+      "id": "y18",
+      "q": "Compare Harbor and Orchard study participant ethnicity.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 72.43059999999969
+    },
+    {
+      "id": "y19",
+      "q": "Compare Harbor and Orchard user research insights.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 33.66700000000128
+    },
+    {
+      "id": "y20",
+      "q": "Compare Harbor and Orchard user research feedback.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 23.902399999999034
+    },
+    {
+      "id": "y21",
+      "q": "Compare Harbor and Orchard design research results.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 51.777500000000146
+    },
+    {
+      "id": "y22",
+      "q": "Compare Harbor and Orchard methods of evaluating participants.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 205.46099999999933
+    },
+    {
+      "id": "y23",
+      "q": "Compare Harbor and Orchard research lessons.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 166.22880000000077
+    },
+    {
+      "id": "y24",
+      "q": "Compare Harbor and Orchard research interviews.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [
+        {
+          "url": "/work/orchard#discovery",
+          "id": "9857e8c32a835b6783bab835",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 127.32150000000001
+    },
+    {
+      "id": "y25",
+      "q": "Compare Harbor and Orchard workshop feedback.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 84.10829999999987
+    },
+    {
+      "id": "y26",
+      "q": "Compare Harbor and Orchard study results.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 25.66899999999987
+    },
+    {
+      "id": "y27",
+      "q": "Compare Harbor and Orchard study methods.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 47.09100000000035
+    },
+    {
+      "id": "y28",
+      "q": "Compare Harbor and Orchard participant locations.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 58.79439999999886
+    },
+    {
+      "id": "y29",
+      "q": "Compare Harbor and Orchard user testing feedback.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 96.29370000000017
+    },
+    {
+      "id": "y30",
+      "q": "Compare Harbor and Orchard user testing recruitment.",
+      "expected": [],
+      "kind": "diagnostic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 116.22159999999894
+    }
+  ]
+}

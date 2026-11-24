@@ -19,6 +19,8 @@ Statuses describe evidence and do not imply user acceptance of residual risk. `A
 | IA-13 | ACCEPTED_WITH_LIMITATION | New P1 risk: first-person and female-pronoun claims could attribute team work to the owner without entering personal-role checks. `grounding.ts` now checks selected English, Chinese and Japanese pronouns; `atlas-security.test.mts` rejects team-only citations and accepts explicit personal evidence, including traditional Chinese. This is not complete multilingual attribution verification. |
 | IA-14 | ACCEPTED_WITH_LIMITATION | New P1 risk: a source with six visitors in 2021 could support a claim of 2021 visitors in year six because both numbers occur. `grounding.ts` now cross-checks recognized people counts against cited people counts, with English/Chinese/Japanese swap and equivalent-terminology regressions. Other units, event associations, grammatical forms and multi-fact relationships are not generally checked. |
 
+| IA-15 | RESOLVED | Confirmed P1 experimental regression: the scoped comparison retry at `4dbf939` accepted two passages without names for `Compare Harbor and Orchard study participant names.` and would proceed to quota/generation. `05b39d7` reverts that retry; the same question now abstains and `comparison-development.test.mts` verifies zero reservations. The underlying IA-03 comparison recall limitation remains open. |
+
 ## Code evidence
 
 - Clarification and prior-project ambiguity: `lib/portfolio-chat/retrieval.ts:49`, `lib/portfolio-chat/b2.ts:115`, `lib/portfolio-chat/answer-engine.ts:32`; excerpt guard: `lib/portfolio-chat/source-reply.ts:57`. Reproduce using `npm run test:offline`, in particular `hybrid-retrieval.test.mts`.

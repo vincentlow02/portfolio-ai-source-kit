@@ -1,0 +1,142 @@
+{
+  "corpusHash": "dba274c1decf82e7ccccf219e3c9c4de2b8c4a46cf70ba3637db7b9b406baf88",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "Compare Harbor and Orchard study participants.",
+      "expected": [
+        "/work/harbor#evaluation",
+        "/work/orchard#discovery"
+      ],
+      "kind": "supported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 1903.4719999999998
+    },
+    {
+      "id": "p2",
+      "q": "Compare the accessibility of Harbor and Orchard.",
+      "expected": [
+        "/work/harbor#accessibility",
+        "/work/orchard#accessibility"
+      ],
+      "kind": "supported",
+      "evidence": [
+        {
+          "url": "/work/harbor#accessibility",
+          "id": "b0fda96d82cc91ed33835fd5",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 30.822700000000168
+    },
+    {
+      "id": "p3",
+      "q": "Compare Grove and Lantern offline audio storage.",
+      "expected": [
+        "/work/grove#storage",
+        "/work/lantern#storage"
+      ],
+      "kind": "supported",
+      "evidence": [
+        {
+          "url": "/work/grove#storage",
+          "id": "7feb2f28a3495527f86b5ddc",
+          "reason": "qualified-match"
+        },
+        {
+          "url": "/work/lantern#storage",
+          "id": "4219a8f16a68d46a4f8816ce",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": true,
+      "insufficient": false,
+      "clarification": false,
+      "preparationMs": 14.262099999999919
+    },
+    {
+      "id": "p4",
+      "q": "Compare Grove and Lantern prototype materials.",
+      "expected": [
+        "/work/grove#construction",
+        "/work/lantern#construction"
+      ],
+      "kind": "supported",
+      "evidence": [
+        {
+          "url": "/work/lantern#construction",
+          "id": "8510381073b9a85a95a900ea",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 24.151400000000194
+    },
+    {
+      "id": "n1",
+      "q": "Compare Harbor and Orchard submarine engine fuel capacity.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 25.158699999999953
+    },
+    {
+      "id": "n2",
+      "q": "Compare Grove and Lantern subscription prices.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 28.349499999999807
+    },
+    {
+      "id": "n3",
+      "q": "Compare Harbor and Orchard annual salaries for gardeners.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 1.9765000000002146
+    },
+    {
+      "id": "n4",
+      "q": "Compare Grove and Lantern rocket launch dates.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 24.805699999999888
+    },
+    {
+      "id": "a1",
+      "q": "Compare Harbor and Orchard participants.",
+      "expected": [
+        "/work/harbor#evaluation",
+        "/work/orchard#discovery"
+      ],
+      "kind": "ambiguous-topic",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 21.990900000000238
+    }
+  ]
+}

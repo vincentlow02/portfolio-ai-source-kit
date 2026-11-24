@@ -1,0 +1,199 @@
+{
+  "corpusHash": "dba274c1decf82e7ccccf219e3c9c4de2b8c4a46cf70ba3637db7b9b406baf88",
+  "rows": [
+    {
+      "id": "z1",
+      "q": "Compare Harbor and Orchard research participant ages.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 2256.4655999999995
+    },
+    {
+      "id": "z2",
+      "q": "Compare Harbor and Orchard participant disability diagnoses.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 52.11269999999968
+    },
+    {
+      "id": "z3",
+      "q": "Compare Harbor and Orchard participant names.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 37.82290000000012
+    },
+    {
+      "id": "z4",
+      "q": "Compare Harbor and Orchard participant political views.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 44.20390000000043
+    },
+    {
+      "id": "z5",
+      "q": "Compare Harbor and Orchard participant compensation.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 2.0583999999998923
+    },
+    {
+      "id": "z6",
+      "q": "Compare Harbor and Orchard research locations.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 50.86059999999998
+    },
+    {
+      "id": "z7",
+      "q": "Compare Harbor and Orchard research ethics approval.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 69.32410000000073
+    },
+    {
+      "id": "z8",
+      "q": "Compare Harbor and Orchard research budgets.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 38.2479000000003
+    },
+    {
+      "id": "z9",
+      "q": "Compare Harbor and Orchard reasons for project cancellation.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 49.51690000000053
+    },
+    {
+      "id": "z10",
+      "q": "Compare Harbor and Orchard equipment manufacturer.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 2.6306000000004133
+    },
+    {
+      "id": "z11",
+      "q": "Compare Harbor and Orchard data retention policies.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 43.95010000000002
+    },
+    {
+      "id": "z12",
+      "q": "Compare Harbor and Orchard research recruitment methods.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [
+        {
+          "url": "/work/orchard#discovery",
+          "id": "9857e8c32a835b6783bab835",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 40.39639999999963
+    },
+    {
+      "id": "z13",
+      "q": "Compare Harbor and Orchard study consent procedures.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 76.10490000000027
+    },
+    {
+      "id": "z14",
+      "q": "Compare Harbor and Orchard research sample selection criteria.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 41.59659999999985
+    },
+    {
+      "id": "z15",
+      "q": "Compare Harbor and Orchard researcher interview questions.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [
+        {
+          "url": "/work/orchard#discovery",
+          "id": "9857e8c32a835b6783bab835",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 23.10199999999986
+    },
+    {
+      "id": "z16",
+      "q": "Compare Harbor and Orchard prototype safety certifications.",
+      "expected": [],
+      "kind": "unsupported",
+      "evidence": [
+        {
+          "url": "/work/harbor#evaluation",
+          "id": "bcb5c15f07272048c19e8697",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": false,
+      "insufficient": true,
+      "clarification": false,
+      "preparationMs": 41.168799999999464
+    }
+  ]
+}

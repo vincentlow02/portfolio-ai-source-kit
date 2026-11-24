@@ -71,3 +71,19 @@ Compared with V2 commit `f370bebfb158f9a92d26502f6946d6a89ed76b44`. This registe
 | `scripts/portfolio-chat/scoped-retry-holdout.mts` | Independent evaluation or security regression coverage |
 | `scripts/portfolio-chat/scoped-retry-multisection.mts` | Independent evaluation or security regression coverage |
 | `scripts/portfolio-chat/usage-confirmation.mts` | Independent evaluation or security regression coverage |
+| `docs/v2-1-evaluation/comparison-adversarial-pre-retry.json` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `docs/v2-1-evaluation/comparison-adversarial-v2-1.json` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `docs/v2-1-evaluation/comparison-confirmation-pre-retry.json` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `docs/v2-1-evaluation/comparison-confirmation-v2-1.json` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `docs/v2-1-evaluation/comparison-confirmation-v2.json` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `docs/v2-1-evaluation/comparison-safety-pre-retry.json` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `docs/v2-1-evaluation/comparison-safety-v2-1.json` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `docs/v2-1-evaluation/comparison-wider-pre-retry.json` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `docs/v2-1-evaluation/comparison-wider-reverted.json` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `docs/v2-1-evaluation/comparison-wider-unsafe-retry.json` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `docs/v2-1-evaluation/original-v2-1-comparison.json` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `docs/v2-1-evaluation/v2-1-comparison.json` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `scripts/portfolio-chat/comparison-adversarial-probe.mts` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `scripts/portfolio-chat/comparison-confirmation.mts` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `scripts/portfolio-chat/comparison-safety-probe.mts` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `scripts/portfolio-chat/comparison-wider-probe.mts` | Reproducible comparison experiment, counterexample or per-case evidence |

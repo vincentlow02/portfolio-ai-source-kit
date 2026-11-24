@@ -14,3 +14,5 @@ A further independently authored development probe (`comparison-development.test
 **Follow-up:** the English generic interviewee development case now passes using an explicit past-interview supplement; an unrelated subject remains excluded. This does not establish that other paraphrases or the frozen Japanese/comparison cases are resolved.
 
 The narrow specific-intent gate reduces three independently observed unsupported generation paths, but further testing must cover valid paraphrases, mixed-intent questions, unsupported facts outside the three categories, and whether selection responses remain useful. A matching word is not semantic support.
+
+A per-project comparison retry was evaluated and reverted after it caused a two-sided unsupported participant-name question to proceed toward generation. The final system again abstains on that example, but the separately observed comparison recall failure remains. A replacement needs independent topic/relationship validation, false-positive and quota checks, and a bounded compute budget; score qualification alone was insufficient.

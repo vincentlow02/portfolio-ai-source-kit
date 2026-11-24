@@ -21,3 +21,7 @@ Commits `a6de258` and `2c52e83` add counted Chinese/Japanese numeral checks and 
 
 - `0bee033`: retry an empty single explicit project search with the project label removed while retaining that project's scope and unchanged retrieval thresholds; extend narrow intent checks to counts and dates. Extra retrieval can increase latency and irrelevant evidence.
 - `3a5416e`: add a narrow start-of-use intent check to distinguish some creation-date evidence. These lexical gates are not event-level entailment checks and can reject valid facts.
+
+- `4dbf939` temporarily introduced bounded per-project comparison retries; `05b39d7` removed the production change after a two-sided unrelated-evidence counterexample. The latter adds a zero-reservation regression; `lib` matches `16401f9` exactly. Retained experiment artifacts explain the observed recall/precision tradeoff and do not describe final behavior.
+
+- `93091ae`: restore the complete four-project fixture for the comparison quota regression. With local embedding assets available it fails on `4dbf939` and passes after rollback; a smaller corpus and literal-only fallback did not reproduce the defect.
