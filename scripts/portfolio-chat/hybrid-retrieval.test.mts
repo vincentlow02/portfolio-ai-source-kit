@@ -77,6 +77,12 @@ test("explicit plural follow-ups retain both compared projects without resolving
   }
   const singular=[...prior,...question("How was it tested?")];
   assert.equal(resolveContext(singular,projects).ambiguous,true);
+  for(const [earlier,later] of [["对比 Alpha 和 Beta","这两个项目如何测试？"],["Alpha と Beta を比べて","両方のプロジェクトはどうテストしましたか？"]]){
+    const history=[...question(earlier),{role:"assistant" as const,content:"Two projects."},...question(later)];
+    const context=resolveContext(history,projects);
+    assert.deepEqual(new Set(context.projects),new Set(["alpha","beta"]),earlier);
+    assert.equal(context.carryComparison,true,earlier);
+  }
   const mixed=[...prior,...question("Compare both projects and explain how it was tested.")];
   assert.equal(resolveContext(mixed,projects).ambiguous,true);
   assert.deepEqual(new Set(resolveContext([...prior,...question("それぞれのプロジェクトのテストは？")],projects).projects),new Set(["alpha","beta"]));

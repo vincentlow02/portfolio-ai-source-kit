@@ -6,7 +6,7 @@ import type { ChatMessage } from "./core";
 import { defaultPortfolioChatConfig } from "./engine-config";
 
 import type { PortfolioChatConfig } from "./engine-config";
-export const comparisonQuestion = /compare|different|difference|相比|比较|区别|不同|比較|違い/iu;
+export const comparisonQuestion = /compare|different|difference|相比|比较|对比|對比|区别|差异|差異|不同|比較|比べ|違い/iu;
 export const comparisonTopicClarification = {
   en:"What would you like to compare about the projects?",
   zh:"你想比较这些项目的哪方面？",
@@ -81,7 +81,7 @@ function pluralProjectReference(query: string) {
 // each source body. Unknown terms are matched literally; a small multilingual
 // map covers common testing vocabulary. This is conservative, not entailment.
 export function comparisonTopicMatcher(query: string): { hasTopic: boolean; matches: (source: string) => boolean } {
-  const stop = new Set(["what","how","were","was","are","is","did","do","does","both","the","these","those","projects","project","of","them","they","their","about","and","or","in","on","with","each","respectively","compare","different","difference","比较","比較","区别","區別","違い","这","這","那","呢","个","個","项","項","项目","項目","專案","两者","兩者","分别","分別","的","如何","怎么","怎麼","什么","什麼","両方","両者","それぞれ","プロジェクト","作品","の","は","が","を","に","どう","どの","よう","し","しま","まし","した","です","ます","か"]);
+  const stop = new Set(["what","how","were","was","are","is","did","do","does","both","the","these","those","projects","project","of","them","they","their","about","and","or","in","on","with","each","respectively","compare","different","difference","比较","比較","对比","對比","区别","區別","差异","差異","比べ","違い","这","這","那","呢","个","個","项","項","项目","項目","專案","两者","兩者","分别","分別","的","如何","怎么","怎麼","什么","什麼","両方","両者","それぞれ","プロジェクト","作品","の","は","が","を","に","て","どう","どの","よう","し","しま","まし","した","です","ます","か"]);
   const testWords = new Set(["test","tests","tested","testing","validate","validated","validation","验证","驗證","测试","測試","検証","テスト"]);
   const locationWords = new Set(["where","哪里","哪裡","何处","何處","地点","地點","どこ","場所"]);
   const timeWords = new Set(["when","何时","何時","何年","什么时候","什麼時候","いつ"]);
