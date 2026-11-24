@@ -135,28 +135,6 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
       retrieval = await retrieveEvidence(corpus, [{role:"user",content:stripped}], config, timing, projects);
     }
   }
-  // A comparison can dilute a topic embedding with several project names.
-  // Retry only missing, explicitly named projects using the same qualification
-  // rules and the complete topic, scoped to that project. Bound the extra work.
-  if (intent === "COMPARISON" && explicit.length >= 2 && explicit.length <= 3 &&
-      projects.length === explicit.length && explicit.every(id => id.length >= 3) && !selectedChunk) {
-    const stripped = removeProjectLabels(query, explicit, corpus, config)
-      .replace(/^\s*compare\s+(?:and\s+)?/iu, "").trim();
-    if (stripped !== query.trim() && stripped.replace(/[^\p{L}\p{N}]/gu, "").length >= 6) {
-      for (const id of projects) {
-        if (retrieval.qualifiedMatches.some(chunk => chunk.projectId === id)) continue;
-        const scoped = await retrieveEvidence(corpus, [{ role: "user", content: stripped }], config, timing, [id]);
-        for (const chunk of scoped.qualifiedMatches) {
-          if (!retrieval.scores.has(chunk.chunkId)) {
-            retrieval.scores.set(chunk.chunkId, scoped.scores.get(chunk.chunkId)!);
-            retrieval.qualifiedMatches.push(chunk);
-          }
-        }
-        retrieval.fallback ||= scoped.fallback;
-      }
-      retrieval.qualifiedMatches.sort((a, b) => retrieval.scores.get(b.chunkId)! - retrieval.scores.get(a.chunkId)!);
-    }
-  }
   const retrievalDuration = timing ? performance.now() - retrievalStarted : 0;
   timing?.("retrieval", retrievalDuration);
   const overview = overviewQuestion.test(query) && !presentationQuestion.test(query);
