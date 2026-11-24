@@ -3,13 +3,16 @@ import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { cp, mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildKnowledgeCorpus } from "../lib/knowledge/contract";
 import { embeddingModelDirectory } from "../lib/portfolio-chat/embedding-model.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const fixture = await mkdtemp(join(tmpdir(), "portfolio-ai-hosted-"));
+// On Windows, a junction crossing drives can make Webpack resolve Next's
+// absolute runtime entry points as relative paths. Keep this disposable
+// fixture beside the checkout, on the same volume as its node_modules.
+const fixture = await mkdtemp(join(process.platform === "win32" ? dirname(root) : tmpdir(), "portfolio-ai-hosted-"));
 const origin = "https://portfolio.fixture.example";
 const next = "node_modules/next/dist/bin/next";
 const preload = join(root, "scripts/portfolio-chat/mock-atlas.cjs").replaceAll("\\", "/");
