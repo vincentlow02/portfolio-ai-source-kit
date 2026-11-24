@@ -79,6 +79,8 @@ test("explicit plural follow-ups retain both compared projects without resolving
   assert.equal(resolveContext(singular,projects).ambiguous,true);
   const mixed=[...prior,...question("Compare both projects and explain how it was tested.")];
   assert.equal(resolveContext(mixed,projects).ambiguous,true);
+  assert.deepEqual(new Set(resolveContext([...prior,...question("それぞれのプロジェクトのテストは？")],projects).projects),new Set(["alpha","beta"]));
+  assert.equal(resolveContext([...prior,...question("それぞれのプロジェクトでそれは何ですか？")],projects).ambiguous,true);
   for(const text of ["Which of both projects tested with gardeners?","这两个项目哪个用了纸？","両方のプロジェクトのどちらを先に作りましたか？"]){
     assert.equal(resolveContext([...prior,...question(text)],projects).carryComparison,false,text);
   }
@@ -106,6 +108,8 @@ test("comparison topic checks use source body and retain explicit attributes",()
   assert.equal(comparisonTopicMatcher("How were both projects tested?")("Testing\nThe prototype was tested with volunteers."),true);
   assert.equal(comparisonTopicMatcher("How were both projects tested in 2021?")("Testing\nThe prototype was tested with volunteers in 2022."),false);
   assert.equal(comparisonTopicMatcher("Where were both projects tested?")("Testing\nThe prototype was tested with volunteers in 2022."),false);
+  assert.equal(comparisonTopicMatcher("Where were both projects tested?")("Testing\nThe prototype was tested with volunteers. The venue hosts a calendar of events."),false);
+  assert.equal(comparisonTopicMatcher("When were both projects tested?")("Testing\nThe prototype was tested with volunteers. A later version launched in 2022."),false);
   assert.equal(comparisonTopicMatcher("What materials did both projects use?")("Materials\nThe calendar schedules community events."),false);
   assert.equal(comparisonTopicMatcher("这两个项目分别如何测试地点？")("Testing\nThe prototype was tested with volunteers."),false);
   assert.equal(comparisonTopicMatcher("両方のプロジェクトの参加者の名前は？")("Testing\nResearchers tested the prototype with volunteers."),false);

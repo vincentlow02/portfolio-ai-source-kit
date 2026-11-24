@@ -88,19 +88,20 @@ export function comparisonTopicMatcher(query: string): (source: string) => boole
     .filter(part=>part.isWordLike).map(part=>part.segment).filter(term=>!stop.has(term));
   return source=>{
     const sourceBody=source.normalize("NFKC").toLocaleLowerCase().split("\n").slice(1).join("\n");
-    return terms.every(term=>{
-    if(testWords.has(term)) return /\b(?:test(?:s|ed|ing)?|validat(?:e|ed|ion|ing)|evaluat(?:e|ed|ion|ing))\b|验证|驗證|测试|測試|検証|テスト/iu.test(sourceBody);
-    if(locationWords.has(term)) return /\b(?:location|venue|located|site)\b|地点|地點|場所|位于|位於/iu.test(sourceBody);
-    if(timeWords.has(term)) return /\b(?:19|20)\d{2}\b|\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\b|\d{2,4}年/iu.test(sourceBody);
-    if(personWords.has(term)) return /\b(?:people|person|users?|participants?|volunteers?|researchers?|team|staff|they|we|i)\b|参与者|參與者|志愿者|志願者|参加者|チーム|担当者/iu.test(sourceBody);
-    if(reasonWords.has(term)) return /\b(?:because|since|therefore|so that|in order to)\b|因为|因為|所以|ため|理由/iu.test(sourceBody);
-    if (/^\d+$/u.test(term)) return new RegExp("(?<!\\d)"+term+"(?!\\d)","u").test(sourceBody);
+    const sentences=sourceBody.split(/(?<=[。！？])|(?<=[.!?])\s+|\n+/u).filter(Boolean);
+    return sentences.some(sentence=>terms.every(term=>{
+    if(testWords.has(term)) return /\b(?:test(?:s|ed|ing)?|validat(?:e|ed|ion|ing)|evaluat(?:e|ed|ion|ing))\b|验证|驗證|测试|測試|検証|テスト/iu.test(sentence);
+    if(locationWords.has(term)) return /\b(?:location|venue|located|site)\b|地点|地點|場所|位于|位於/iu.test(sentence);
+    if(timeWords.has(term)) return /\b(?:19|20)\d{2}\b|\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\b|\d{2,4}年/iu.test(sentence);
+    if(personWords.has(term)) return /\b(?:people|person|users?|participants?|volunteers?|researchers?|team|staff|they|we|i)\b|参与者|參與者|志愿者|志願者|参加者|チーム|担当者/iu.test(sentence);
+    if(reasonWords.has(term)) return /\b(?:because|since|therefore|so that|in order to)\b|因为|因為|所以|ため|理由/iu.test(sentence);
+    if (/^\d+$/u.test(term)) return new RegExp("(?<!\\d)"+term+"(?!\\d)","u").test(sentence);
     if (/^[a-z]+$/u.test(term)) {
       const stem=term.length>4 ? term.replace(/(?:ing|ed|es|s)$/u,"") : term;
-      return new RegExp("(?<![a-z])"+stem+"(?:s|es|ed|ing)?(?![a-z])","iu").test(sourceBody);
+      return new RegExp("(?<![a-z])"+stem+"(?:s|es|ed|ing)?(?![a-z])","iu").test(sentence);
     }
-    return sourceBody.includes(term);
-    });
+    return sentence.includes(term);
+    }));
   };
 }
 
@@ -121,7 +122,7 @@ export function resolveContext(messages: ChatMessage[], corpus: PortfolioCorpus,
     comparisonQuestion.test(query) && reference.test(query);
   const selectsOneProject = /\b(?:which (?:one|of)|which project|either project)\b|(?:哪一个|哪一個|哪个|哪個|哪项|哪項)|(?:どちら|どのプロジェクト)/iu.test(query);
   const carryComparison = !explicit.length && prior.length > 1 && Boolean(priorQuestion && comparisonQuestion.test(priorQuestion.content)) &&
-    pluralProjectReference(query) && !reference.test(query) && !selectsOneProject;
+    pluralProjectReference(query) && !reference.test(query.replace(/それぞれ/gu, "")) && !selectsOneProject;
   const projects = comparesPrior ? [prior[0], explicit[0]] : explicit.length ? explicit : prior.length === 1 || carryComparison ? prior : [];
   const ambiguous = !explicit.length && (contextual && prior.length > 1 && !carryComparison || prior.length === 0 && unresolvedProjectReference(query));
   const previous = priorQuestions[0]?.content;
