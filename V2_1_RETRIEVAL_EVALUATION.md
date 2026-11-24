@@ -1,6 +1,6 @@
 # V2.1 Retrieval Evaluation
 
-Full methodology and per-case data: `docs/v2-1-evaluation/README.md`, `original-v2.json`, `original-v2-1-final.json`, `v2-fresh.json` and `v2-1-final.json`. Results below are per supported query; irrelevant evidence is a proportion of all assembled entries. Timings are single local observations and generation uses a mock provider.
+Full methodology and per-case data: `docs/v2-1-evaluation/README.md`, `original-v2.json`, `original-v2-1-scoped.json`, `v2-fresh.json` and `v2-1-scoped.json`. Results below are per supported query; irrelevant evidence is a proportion of all assembled entries. Timings are single local observations and generation uses a mock provider.
 
 | Dataset | Version | Recall@5 | Evidence coverage | Irrelevant evidence | Unsupported abstention | Ambiguity clarification |
 |---|---|---:|---:|---:|---:|---:|
