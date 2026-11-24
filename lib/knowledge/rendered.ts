@@ -1,4 +1,4 @@
-import type { Browser, Page } from "puppeteer";
+import type { Browser, Page, ResponseForRequest } from "puppeteer";
 import type { z } from "zod";
 import { withAnonymousPortfolioPage } from "../../scripts/portfolio-knowledge/anonymous-browser.mjs";
 import { knowledgeLanguage, knowledgePath, type KnowledgeSource, type VerifyPublishedDocument, type pageMetadata } from "./contract";
@@ -99,13 +99,16 @@ async function inspectPublishedPage(page: Page, language: string, title: string,
   }, { language, title, expected, localPreview });
 }
 
-export function verifyInBrowser(browser: Browser, origin: string, mode: "published" | "local-preview" = "published"): VerifyPublishedDocument {
+type CaptureMode = "published" | "local-preview" | "hosted";
+type LoadResource = (url: string) => Promise<Partial<ResponseForRequest>>;
+
+export function verifyInBrowser(browser: Browser, origin: string, mode: CaptureMode = "published", loadResource?: LoadResource): VerifyPublishedDocument {
   return async ({ page: source, sections }) => {
     const url = originUrl(origin, source.url);
     await withAnonymousPortfolioPage(browser, origin, url, async (page: Page) => {
-      const { missing } = await inspectPublishedPage(page, source.language, source.title, sections, mode === "local-preview");
+      const { missing } = await inspectPublishedPage(page, source.language, source.title, sections, mode !== "published");
       if (missing) throw new Error("Source text or section anchor is not visible in the published page: " + source.url + " (" + missing + ")");
-    }, mode);
+    }, mode, loadResource);
   };
 }
 
@@ -118,6 +121,10 @@ export async function capturePublishedSource(browser: Browser, origin: string, m
 }
 
 export async function captureLocalPreviewSource(browser: Browser, origin: string, sourcePath: string): Promise<KnowledgeSource> {
+  return captureSiteSource(browser, origin, sourcePath, "local-preview");
+}
+
+export async function captureSiteSource(browser: Browser, origin: string, sourcePath: string, mode: "local-preview" | "hosted", loadResource?: LoadResource): Promise<KnowledgeSource> {
   const url = originUrl(origin, sourcePath);
   return withAnonymousPortfolioPage(browser, origin, url, async (page: Page): Promise<KnowledgeSource> => {
     const language = knowledgeLanguage.parse(await page.evaluate(() => document.documentElement.lang.toLowerCase().split("-")[0]));
@@ -129,5 +136,5 @@ export async function captureLocalPreviewSource(browser: Browser, origin: string
     });
     const { sections } = await inspectPublishedPage(page, language, title);
     return { access: "public", format: "rendered", page: { url: sourcePath, title, language, kind: "page" }, sections };
-  }, "local-preview");
+  }, mode, loadResource);
 }

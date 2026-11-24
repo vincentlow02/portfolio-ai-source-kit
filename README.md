@@ -2,8 +2,28 @@
 
 Portfolio AI adds an assistant that answers from selected pages on your own portfolio and links to its sources. Use your own public content with the kit or explore the fictional Atlas example.
 
+- [Hosted assistant](#hosted-assistant) deploys a separate service and adds it to a public portfolio with one script.
 - [Vite local preview](#vite-local-preview) runs the assistant on your development machine while you keep your existing Vite portfolio.
 - [Next.js App Router installation](#install-into-your-nextjs-portfolio) uses the released `v1.1.0` registry item and supports deployment through the Next.js integration.
+
+## Hosted assistant
+
+Use this route for a public HTTPS portfolio that allows an embedded script and frame. The assistant runs in its own project and uses the pages you approve.
+
+[![Deploy Portfolio AI with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvincentlow02%2Fportfolio-ai-source-kit%2Ftree%2Fhosted-assistant-template&env=PORTFOLIO_SITE_ORIGIN%2CPORTFOLIO_SOURCE_PATHS&project-name=portfolio-ai-assistant)
+
+1. Set `PORTFOLIO_SITE_ORIGIN` to your portfolio's canonical HTTPS origin, such as `https://www.example.com`. Set `PORTFOLIO_SOURCE_PATHS` to the exact paths you approve, such as `/,/projects,/projects/field-notes`. The build generates a private knowledge file from those pages. Each page needs an anonymous HTTP 200, a supported HTML language, and visible `<main>` text that renders using same-origin scripts and styles. Read the Vite preview section below for content limits.
+2. Copy the assistant's HTTPS deployment origin into this script and add it to your portfolio HTML before `</body>`. Publish your portfolio with the script in place.
+
+   ```html
+   <script src="https://your-assistant.example.com/embed.js" defer></script>
+   ```
+
+3. Open your public portfolio, choose **Ask about this portfolio**, and ask about a distinctive term from an approved page. Confirm the answer includes a **Source** link pointing back to that page. Redeploy the assistant to refresh the knowledge base after updating the source pages.
+
+If a Vite portfolio page opens through site navigation but its direct URL returns 404, configure your host to serve the app at that URL before selecting it. For a Vite SPA on Vercel, see [the deep-link rewrite instructions](https://vercel.com/docs/frameworks/frontend/vite#using-vite-to-make-spas).
+
+The default hosted mode returns source passages using local retrieval, with no model account required. To enable generated Qwen answers, copy the settings shown in the [environment template](.env.example) to your assistant project's environment, apply the [quota migration](supabase/migrations/202611100001_vincent_ai_analytics.sql) to a dedicated Supabase project, and set `PORTFOLIO_HOSTED_MODEL=1`. Configure the model, region, rate limits and budget using the [security and quota guide](docs/security.md). The assistant reserves shared quota before making a model call. It sends the question and selected approved passages to Qwen. Keep provider keys and quota credentials in the assistant project's server environment.
 
 ## Vite local preview
 

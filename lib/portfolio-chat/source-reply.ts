@@ -1,26 +1,23 @@
 import { generateText, Output } from "ai";
 import { z } from "zod";
-import type { PortfolioCorpus } from "../../../lib/portfolio-knowledge";
-import { b2Prompt, b2Schema, b2Substantive, validateB2, type buildB2Pack } from "../../../lib/portfolio-chat/b2";
-import { validateAnswer, type ChatMessage } from "../../../lib/portfolio-chat/core";
-import { defaultPortfolioChatConfig } from "../../../lib/portfolio-chat/engine-config";
-import { resolveGuardianReply } from "../../../lib/portfolio-chat/guardian";
-import { clearlyWrongLanguage, type ResponseLanguage } from "../../../lib/portfolio-chat/language";
-import { configureModel } from "../../../lib/portfolio-chat/provider";
-import { retrieveEvidence } from "../../../lib/portfolio-chat/retrieval";
+import type { PortfolioCorpus } from "../portfolio-knowledge";
+import { b2Prompt, b2Schema, b2Substantive, validateB2, type buildB2Pack } from "./b2";
+import { validateAnswer, type ChatMessage } from "./core";
+import { defaultPortfolioChatConfig } from "./engine-config";
+import { resolveGuardianReply } from "./guardian";
+import { clearlyWrongLanguage, type ResponseLanguage } from "./language";
+import { configureModel } from "./provider";
+import { retrieveEvidence } from "./retrieval";
 
 const jsonObjectSchema = b2Schema.extend({
   recommendedProjectIds: b2Schema.shape.recommendedProjectIds.default([]),
   followUpQuestions: b2Schema.shape.followUpQuestions.default([]),
 });
 
-export function createModelReply(corpus: PortfolioCorpus) {
-  try { process.loadEnvFile(".env.local"); } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-  }
-  const provider = configureModel(process.env);
-  if (!provider) throw new Error("Configure a model provider in the kit's .env.local before using --model");
-  const jsonObjectMode = provider.provider === "qwen" && process.env.QWEN_JSON_MODE?.trim() === "object";
+export function createModelReply(corpus: PortfolioCorpus, env: NodeJS.ProcessEnv = process.env) {
+  const provider = configureModel(env);
+  if (!provider) throw new Error("Configure a supported model provider before enabling model replies");
+  const jsonObjectMode = provider.provider === "qwen" && env.QWEN_JSON_MODE?.trim() === "object";
   const responseInstructions = jsonObjectMode
     ? `Return exactly one JSON object matching this schema.\n${JSON.stringify(z.toJSONSchema(jsonObjectSchema, { io: "input" }))}`
     : "Return a JSON object matching the requested response shape.";
@@ -45,7 +42,7 @@ export function createModelReply(corpus: PortfolioCorpus) {
     }
     if (!entries.length) return insufficient();
 
-    // Local capture provides public passages without project-specific manifest metadata.
+    // Site capture provides public passages without project-specific manifest metadata.
     const pack: Awaited<ReturnType<typeof buildB2Pack>> = {
       config: defaultPortfolioChatConfig, intent: "OTHER", projects: [], ambiguous: false,
       catalog: null, topic: null, topicQualified: false, allowProjectEvidence: false, entries, bytes, fallback,
@@ -60,4 +57,15 @@ export function createModelReply(corpus: PortfolioCorpus) {
     if (output.language !== language || output.claims.some(claim => clearlyWrongLanguage(claim.text, language))) return insufficient();
     return validateB2(output, corpus, pack);
   };
+}
+
+export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessage[], language: ResponseLanguage) {
+  const { scores } = await retrieveEvidence(corpus, messages);
+  const match = corpus.chunks.filter(chunk => (scores.get(chunk.chunkId) ?? 0) > 0 && b2Substantive(chunk))
+    .sort((a, b) => scores.get(b.chunkId)! - scores.get(a.chunkId)!)[0];
+  const result = validateAnswer({
+    language, insufficient: !match, answer: "Matching portfolio passage.",
+    sourceIds: match ? [match.chunkId] : [], recommendedProjectIds: [],
+  }, corpus);
+  return { ...result, answer: match ? match.content.slice(match.content.indexOf("\n") + 1) : result.answer };
 }

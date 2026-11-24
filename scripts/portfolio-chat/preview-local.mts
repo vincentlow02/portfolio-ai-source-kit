@@ -6,13 +6,12 @@ import { parseArgs } from "node:util";
 import { APICallError, NoObjectGeneratedError, NoOutputGeneratedError } from "ai";
 import { ZodError } from "zod";
 import type { PortfolioCorpus } from "../../lib/portfolio-knowledge";
-import { b2PublicCorpus, b2Substantive } from "../../lib/portfolio-chat/b2";
-import { validateAnswer, validateMessages } from "../../lib/portfolio-chat/core";
+import { b2PublicCorpus } from "../../lib/portfolio-chat/b2";
+import { validateMessages } from "../../lib/portfolio-chat/core";
 import { resolveResponseLanguage } from "../../lib/portfolio-chat/language";
 import { readPortfolioRequest } from "../../lib/portfolio-chat/request-body";
-import { retrieveEvidence } from "../../lib/portfolio-chat/retrieval";
+import { createModelReply, excerptReply } from "../../lib/portfolio-chat/source-reply";
 import { localPreviewOrigin } from "../portfolio-knowledge/anonymous-browser.mjs";
-import { createModelReply } from "./local-preview/model-reply.mjs";
 
 const { values } = parseArgs({ options: {
   port: { type: "string", default: "4174" },
@@ -47,6 +46,11 @@ async function servePreview(port: number, useModel: boolean) {
   corpus.chunks = corpus.chunks.filter(chunk => chunk.accessLevel === "public" &&
     chunk.buildVersion === corpus.contentHash && corpus.pages.some(page => page.url === chunk.sourceUrl.split("#")[0]));
   if (!corpus.chunks.length) throw new Error("The preview has no eligible passages");
+  if (useModel) {
+    try { process.loadEnvFile(".env.local"); } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
+  }
   const modelReply = useModel ? createModelReply(corpus) : undefined;
 
   const assets = new Map(await Promise.all([
@@ -141,17 +145,6 @@ function describeModelFailure(error: unknown): string {
     return "The model request timed out. Try again when the model service is responding.";
   }
   return "The preview could not process the model response. Check the kit and model configuration.";
-}
-
-async function excerptReply(corpus: PortfolioCorpus, messages: ReturnType<typeof validateMessages>, language: ReturnType<typeof resolveResponseLanguage>) {
-  const { scores } = await retrieveEvidence(corpus, messages);
-  const match = corpus.chunks.filter(chunk => (scores.get(chunk.chunkId) ?? 0) > 0 && b2Substantive(chunk))
-    .sort((a, b) => scores.get(b.chunkId)! - scores.get(a.chunkId)!)[0];
-  const result = validateAnswer({
-    language, insufficient: !match, answer: "Matching portfolio passage.",
-    sourceIds: match ? [match.chunkId] : [], recommendedProjectIds: [],
-  }, corpus);
-  return { ...result, answer: match ? match.content.slice(match.content.indexOf("\n") + 1) : result.answer };
 }
 
 function readQuestion(request: IncomingMessage, origin: string) {

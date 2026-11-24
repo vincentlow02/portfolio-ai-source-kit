@@ -3,7 +3,8 @@ import { once } from "node:events";
 import { createServer } from "node:http";
 import test from "node:test";
 import { buildKnowledgeCorpus, type KnowledgeSource } from "../../lib/knowledge/contract";
-import { captureLocalPreviewSource, capturePublishedSource, verifyInBrowser } from "../../lib/knowledge/rendered";
+import { captureLocalPreviewSource, capturePublishedSource, captureSiteSource, verifyInBrowser } from "../../lib/knowledge/rendered";
+import { hostedPortfolioOrigin } from "../../lib/knowledge/hosted-origin";
 import { launchBrowser, localPreviewOrigin } from "./anonymous-browser.mjs";
 
 test("anonymous publication validation rejects hidden DOM, protected markers and indexing exclusions", async () => {
@@ -51,6 +52,28 @@ test("anonymous publication validation rejects hidden DOM, protected markers and
     await browser.close();
     await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   }
+});
+
+test("hosted capture only loads an approved public page and its same-origin scripts", async () => {
+  assert.throws(() => hostedPortfolioOrigin("https://127.0.0.1"), /public HTTPS domain/);
+  assert.throws(() => hostedPortfolioOrigin("https://portfolio.example.com/extra"), /public HTTPS domain/);
+  const origin = hostedPortfolioOrigin("https://portfolio.example.com");
+  const allowed = new Set<string>();
+  const load = async (url: string) => {
+    allowed.add(url);
+    if (url === origin + "/projects") return { status: 200, contentType: "text/html", body:
+      '<!doctype html><html lang="en"><div id="app"></div><script src="/app.js"></script><script src="https://other.example.com/app.js"></script>' };
+    if (url === origin + "/app.js") return { status: 200, contentType: "text/javascript", body:
+      'document.querySelector("#app").innerHTML = "<main><h1>Field notes</h1><p>Public prototype measurements.</p></main>";' };
+    throw new Error("Unexpected fixture resource");
+  };
+  const browser = await launchBrowser(["--proxy-server=http://127.0.0.1:9", "--proxy-bypass-list=<-loopback>"]);
+  try {
+    const source = await captureSiteSource(browser, origin, "/projects", "hosted", load);
+    const corpus = await buildKnowledgeCorpus([source], "hosted", verifyInBrowser(browser, origin, "hosted", load));
+    assert.match(corpus.chunks[0].content, /Public prototype measurements/);
+    assert.deepEqual([...allowed].sort(), [origin + "/app.js", origin + "/projects"]);
+  } finally { await browser.close(); }
 });
 
 test("local preview reads a client-rendered page without allowing external origins or background fetches", async () => {
