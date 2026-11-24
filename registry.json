@@ -61,6 +61,11 @@
           "target": "~/lib/knowledge/contract.ts"
         },
         {
+          "path": "lib/knowledge/corpus.ts",
+          "type": "registry:file",
+          "target": "~/lib/knowledge/corpus.ts"
+        },
+        {
           "path": "lib/knowledge/rendered.ts",
           "type": "registry:file",
           "target": "~/lib/knowledge/rendered.ts"

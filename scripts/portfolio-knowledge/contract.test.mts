@@ -1,7 +1,10 @@
 import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildKnowledgeCorpus, normalizeKnowledgeSource, type KnowledgeSource } from "../../lib/knowledge/contract";
+import { buildKnowledgeCorpus, normalizeKnowledgeSource, validateSourcePlan, type KnowledgeSource } from "../../lib/knowledge/contract";
+
+import { parsePortfolioCorpus } from "../../lib/knowledge/corpus";
+import { b2PublicCorpus } from "../../lib/portfolio-chat/b2";
 
 const fixtures = new URL("./fixtures/", import.meta.url);
 const markdown = await readFile(new URL("lantern.md", fixtures), "utf8");
@@ -50,6 +53,32 @@ test("ambiguous, private, unverifiable and dynamic sources fail explicitly", asy
   await assert.rejects(buildKnowledgeCorpus([md, md], "b1", pass), /Duplicate source URL/);
   await assert.rejects(buildKnowledgeCorpus([md, { access: "protected", url: "/work" }], "b1", pass), /overlaps a protected route/);
   await assert.rejects(buildKnowledgeCorpus([md], "b1", async () => { throw new Error("Public verification failed"); }), /Public verification failed/);
+});
+
+test("publication checks the whole source plan before verifying or reading any source body", async () => {
+  const protectedRoute = { access: "protected", url: "/work?lang=ja" } as const;
+  const unreadable = { ...md, get text(): string { throw new Error("Attempted to read protected content"); } };
+  assert.throws(() => validateSourcePlan([unreadable, protectedRoute]), /overlaps a protected route/);
+  await assert.rejects(buildKnowledgeCorpus([unreadable, protectedRoute], "b1", async () => {
+    assert.fail("Attempted to verify a conflicting source");
+  }), /overlaps a protected route/);
+});
+
+test("a rebuilt snapshot removes revoked passages and rejects stale or corrupted input", async () => {
+  const verify = async () => {};
+  const before = await buildKnowledgeCorpus(docs, "previous-build", verify);
+  const revoked = { access: "protected", url: "/work/lantern" } as const;
+  const after = await buildKnowledgeCorpus([revoked, ...docs.slice(1)], "next-build", verify);
+  assert.notEqual(after.contentHash, before.contentHash);
+  assert.deepEqual(parsePortfolioCorpus(after), after);
+  const afterSanitized = b2PublicCorpus(after, "next-build");
+  assert.ok(afterSanitized.report.exclusions.some(entry => entry.pathname === revoked.url));
+  assert.ok(!afterSanitized.chunks.some(chunk => chunk.sourceUrl.startsWith(revoked.url)));
+  assert.ok(!afterSanitized.caseStudies.some(project => project.projectId === "lantern"));
+  assert.throws(() => b2PublicCorpus(before, "next-build"), /Corpus build mismatch/);
+  assert.throws(() => parsePortfolioCorpus({ ...after, schemaVersion: 2 }), /missing or invalid/);
+  assert.throws(() => parsePortfolioCorpus({ ...after, chunks: [...after.chunks, before.chunks[0]] }), /inconsistent passages/);
+  assert.throws(() => parsePortfolioCorpus({ ...after, chunks: [{...after.chunks[0], sourceUrl: "/missing#stale"}] }), /inconsistent passages/);
 });
 
 test("long sections split across the B2 byte budget without dropping text", async () => {

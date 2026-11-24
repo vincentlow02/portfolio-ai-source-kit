@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { GenerationError } from "../../lib/portfolio-chat/generation";
 import { createRequestLimiter } from "../../lib/portfolio-chat/request-limits";
-import type { PortfolioCorpus } from "../../lib/portfolio-knowledge";
+import { parsePortfolioCorpus } from "../../lib/knowledge/corpus";
 import { b2PublicCorpus } from "../../lib/portfolio-chat/b2";
 import { prepareEmbeddingModel } from "../../lib/portfolio-chat/embedding-model.mjs";
 import { resolveResponseLanguage } from "../../lib/portfolio-chat/language";
@@ -40,13 +40,9 @@ async function servePreview(port: number, useModel: boolean) {
     if (error.code === "ENOENT") throw new Error("Run npm run preview:local and approve the source pages first");
     throw error;
   });
-  const preview = JSON.parse(text) as { origin: string; corpus: PortfolioCorpus };
+  const preview = JSON.parse(text) as { origin?: string; corpus?: unknown };
   const portfolioOrigin = localPreviewOrigin(preview.origin);
-  if (preview.corpus?.schemaVersion !== 1 || !preview.corpus.contentHash ||
-      !preview.corpus.pages?.length || !preview.corpus.chunks?.length) throw new Error("Invalid local knowledge preview");
-  const corpus = b2PublicCorpus(preview.corpus, "local-preview");
-  corpus.chunks = corpus.chunks.filter(chunk => chunk.accessLevel === "public" &&
-    chunk.buildVersion === corpus.contentHash && corpus.pages.some(page => page.url === chunk.sourceUrl.split("#")[0]));
+  const corpus = b2PublicCorpus(parsePortfolioCorpus(preview.corpus), "local-preview");
   if (!corpus.chunks.length) throw new Error("The preview has no eligible passages");
   await prepareEmbeddingModel();
   if (useModel) {

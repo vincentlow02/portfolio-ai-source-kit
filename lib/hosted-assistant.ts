@@ -3,7 +3,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { hostedPortfolioOrigin } from "./knowledge/hosted-origin";
-import type { PortfolioCorpus } from "./portfolio-knowledge";
+import { parsePortfolioCorpus } from "./knowledge/corpus";
 import { b2PublicCorpus } from "./portfolio-chat/b2";
 import { resolveResponseLanguage } from "./portfolio-chat/language";
 import { readPortfolioRequest } from "./portfolio-chat/request-body";
@@ -18,12 +18,10 @@ const headers = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosnif
 
 async function loadHostedAssistant() {
   const artifact = join(process.cwd(), ".portfolio-knowledge", "hosted.json");
-  const stored = JSON.parse(await readFile(artifact, "utf8")) as { origin: string; corpus: PortfolioCorpus };
+  const stored = JSON.parse(await readFile(artifact, "utf8")) as { origin?: unknown; corpus?: unknown };
   const origin = hostedPortfolioOrigin(process.env.PORTFOLIO_SITE_ORIGIN);
-  if (stored.origin !== origin || stored.corpus?.schemaVersion !== 1 || !stored.corpus.contentHash) throw new Error("Hosted corpus does not match the deployment");
-  const corpus = b2PublicCorpus(stored.corpus, "hosted");
-  corpus.chunks = corpus.chunks.filter(chunk => chunk.accessLevel === "public" &&
-    chunk.buildVersion === corpus.contentHash && corpus.pages.some(page => page.url === chunk.sourceUrl.split("#")[0]));
+  if (stored.origin !== origin) throw new Error("Hosted corpus does not match the deployment");
+  const corpus = b2PublicCorpus(parsePortfolioCorpus(stored.corpus), "hosted");
   if (!corpus.chunks.length) throw new Error("The hosted corpus has no eligible passages");
   const model = process.env.PORTFOLIO_HOSTED_MODEL === "1"
     ? createModelReply(corpus, { ...process.env, PORTFOLIO_AI_PROVIDER: "qwen", QWEN_JSON_MODE: process.env.QWEN_JSON_MODE ?? "object" })

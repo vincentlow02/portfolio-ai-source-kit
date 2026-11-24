@@ -3,7 +3,7 @@ import { once } from "node:events";
 import { mkdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
-import { buildKnowledgeCorpus, type KnowledgeSource } from "../../lib/knowledge/contract";
+import { buildKnowledgeCorpus, validateSourcePlan, type KnowledgeSource } from "../../lib/knowledge/contract";
 import { capturePublishedSource, verifyInBrowser } from "../../lib/knowledge/rendered";
 import { embeddingTraceIncludes, prepareEmbeddingModel } from "../../lib/portfolio-chat/embedding-model.mjs";
 import { launchBrowser } from "./anonymous-browser.mjs";
@@ -69,9 +69,9 @@ async function traceArtifact(route: string) {
 
 const configFile = resolve(root, process.argv[2] ?? "portfolio-knowledge.config.ts");
 const { default: config }: { default: KnowledgeBuildConfig } = await import(pathToFileURL(configFile).href);
-if (!Array.isArray(config?.sources) || !config.sources.length) throw new Error("Missing knowledge source configuration");
-
 try {
+  if (!Array.isArray(config?.sources) || !config.sources.length) throw new Error("Missing knowledge source configuration");
+  validateSourcePlan(config.sources);
   await prepareEmbeddingModel(root);
   await mkdir(dirname(artifact), { recursive: true });
   await writeFile(artifact, "{}\n");
@@ -101,9 +101,9 @@ try {
     }
     const corpus = await buildKnowledgeCorpus(sources, buildId, verifyInBrowser(browser, origin));
     await writeFile(artifact + ".tmp", JSON.stringify(corpus) + "\n");
-    await rename(artifact + ".tmp", artifact);
     const response = await fetch(origin + "/.portfolio-knowledge/corpus.json", { redirect: "error", signal: AbortSignal.timeout(10_000) });
     if (response.status !== 404) throw new Error("The corpus artifact must not be publicly served");
+    await rename(artifact + ".tmp", artifact);
     console.log("Portfolio knowledge:", { pages: corpus.pages.length, chunks: corpus.chunks.length, excluded: corpus.report.exclusions.length });
   } finally {
     try { await browser?.close(); } finally { server.kill(); }

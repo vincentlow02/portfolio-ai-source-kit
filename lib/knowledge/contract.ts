@@ -63,6 +63,35 @@ function publishedPage(value: unknown): KnowledgePage {
   return page;
 }
 
+type SourceApproval = { access: "protected"; url: string } | { access: "public"; page: unknown };
+
+/** Validate declared access and identities before opening files or capturing pages. */
+export function validateSourcePlan(sources: readonly SourceApproval[]): string[] {
+  const excluded = new Set<string>();
+  const published: KnowledgePage[] = [];
+  for (const source of sources) {
+    if (source.access === "protected") excluded.add(knowledgePath(source.url, true));
+    else if (source.access === "public") published.push(publishedPage(source.page));
+    else throw new Error("A source must declare its publication state");
+  }
+  if (!published.length) throw new Error("No public knowledge sources are configured");
+  const urls = new Set<string>();
+  const studies = new Set<string>();
+  for (const page of published) {
+    const pathname = knowledgePath(page.url);
+    if ([...excluded].some(path => path === "/" || pathname === path || pathname.startsWith(path + "/"))) {
+      throw new Error("Public source overlaps a protected route: " + page.url);
+    }
+    if (urls.has(page.url)) throw new Error("Duplicate source URL: " + page.url);
+    urls.add(page.url);
+    if (page.kind !== "case-study") continue;
+    const key = page.projectId + "|" + page.language;
+    if (studies.has(key)) throw new Error("Duplicate case study for " + key);
+    studies.add(key);
+  }
+  return [...excluded].sort();
+}
+
 type MarkdownNode = {
   type: string;
   children?: MarkdownNode[];
@@ -204,28 +233,15 @@ export async function buildKnowledgeCorpus(
   verifyPublished: VerifyPublishedDocument,
 ): Promise<PortfolioCorpus> {
   if (!buildId.trim()) throw new Error("Missing portfolio build ID");
-  const documents = sources.map(normalizeKnowledgeSource);
-  const excluded = [...new Set(documents.flatMap(document => document.access === "protected" ? [document.url] : []))].sort();
-  const published = documents.flatMap(document => document.access === "public" ? [document] : [])
+  const excluded = validateSourcePlan(sources);
+  const published = sources.map(normalizeKnowledgeSource).flatMap(document => document.access === "public" ? [document] : [])
     .sort((a, b) => a.page.url.localeCompare(b.page.url, "en"));
-  if (!published.length) throw new Error("No public knowledge sources are configured");
   const pages: PortfolioCorpus["pages"] = [];
   const caseStudies: PortfolioCorpus["caseStudies"] = [];
   const chunks: Omit<PortfolioChunk, "buildVersion">[] = [];
-  const urls = new Set<string>();
-  const studies = new Set<string>();
   for (const document of published) {
     const { page } = document;
-    const pathname = knowledgePath(page.url);
-    if (excluded.some(path => pathname === path || pathname.startsWith(path === "/" ? "/" : path + "/"))) {
-      throw new Error("Public source overlaps a protected route: " + page.url);
-    }
-    if (urls.has(page.url)) throw new Error("Duplicate source URL: " + page.url);
-    urls.add(page.url);
     if (page.kind === "case-study" && page.projectId) {
-      const key = page.projectId + "|" + page.language;
-      if (studies.has(key)) throw new Error("Duplicate case study for " + key);
-      studies.add(key);
       caseStudies.push({ url: page.url, title: page.title, language: page.language, projectId: page.projectId });
     }
     const ids = new Set<string>();

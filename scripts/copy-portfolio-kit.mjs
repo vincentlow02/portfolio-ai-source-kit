@@ -12,6 +12,7 @@ export const kitFiles = [
   "components/portfolio-chat/portfolio-chat-panel.module.css",
   "components/portfolio-chat/portfolio-chat-panel.tsx",
   "lib/knowledge/contract.ts",
+  "lib/knowledge/corpus.ts",
   "lib/knowledge/rendered.ts",
   "lib/portfolio-knowledge.ts",
   "lib/portfolio-chat/embedding-model.mjs",

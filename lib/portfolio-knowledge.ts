@@ -1,6 +1,7 @@
 import "server-only";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { parsePortfolioCorpus } from "./knowledge/corpus";
 type Locale = "en" | "zh" | "ja";
 
 export type PortfolioSource = {
@@ -38,11 +39,5 @@ export type PortfolioCorpus = {
 
 export async function loadPortfolioCorpus(): Promise<PortfolioCorpus> {
   const file = path.join(process.cwd(), ".portfolio-knowledge", "corpus.json");
-  const data = JSON.parse(await readFile(file, "utf8")) as Partial<PortfolioCorpus>;
-  if (data.schemaVersion !== 1 || !data.siteBuildId || !data.contentHash ||
-      !data.pages?.length || !data.caseStudies || !data.chunks?.length || !Array.isArray(data.report?.exclusions) ||
-      data.chunks.some((chunk) => chunk.accessLevel !== "public" || chunk.buildVersion !== data.contentHash)) {
-    throw new Error("Portfolio knowledge artifact is missing or invalid. Run npm run build.");
-  }
-  return data as PortfolioCorpus;
+  return parsePortfolioCorpus(JSON.parse(await readFile(file, "utf8")));
 }
