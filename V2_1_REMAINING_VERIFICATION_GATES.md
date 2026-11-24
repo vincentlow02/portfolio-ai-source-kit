@@ -28,3 +28,5 @@ The old long-form Japanese case has been promoted to development and now returns
 ## Latest gate update
 
 The formerly observed Japanese method/count examples are now development cases and were recovered, but a separately frozen synthetic confirmation still misses 3/3 supported pairs; solve generalization without admitting unrelated or negated evidence, then obtain a new independently authored and adjudicated holdout. IA-18's account/device substitutions are blocked for selected compounds; test unseen noun compounds, units, cross-language relations and valid evidence expressed in unrecognized forms. The historical Prism run's differing model artifact remains unavailable. Real LLM quality, production deployment controls and exact GitHub SHA installation remain NOT VERIFIED.
+
+**Archive update:** Candidate `f9eb6fe` was independently extracted and reinstalled; 80/80 offline and Atlas integration passed. The final archive must still match the final Git tree; report-only updates do not change the tested executable source.
