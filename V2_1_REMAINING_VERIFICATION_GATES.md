@@ -5,14 +5,20 @@
 3. Verify a distributed request/compute limit for Hosted excerpt mode in the intended multi-instance deployment. Set provider-side and database model budgets independently; test production config without exposing keys.
 4. After the V2.1 commit is actually published, install its exact GitHub SHA in a clean host. A local registry test is not equivalent.
 5. With explicit authorization, measure real provider answer quality, failure behavior, latency and billing, and deployed quota configuration. No actual model calls were authorized in this phase.
-6. Re-audit the final source archive after report-only updates. The `ec57fb4` source archive passed manifest/secret checks, negative tests, clean extraction, install, 70 offline tests and Atlas integration. Confirm the final archive differs only in documented report updates if those are made after this check.
+6. Re-audit the final source archive after report-only updates. The `2b586a4` source archive passed manifest checks, clean extraction, install, 73 offline tests and Atlas integration; this is a historical source state. Confirm the final archive differs only in documented report updates if those are made after this check.
 
 The independent PostgreSQL concurrency test and local lockfile advisory checks were completed locally. They do not prove deployed database grants or prevent future dependency advisories.
 
-A further independently authored development probe (`comparison-development.test.mts`) confirmed an English multi-project paraphrase miss. The failing expected-evidence assertion remains in the diagnostic test; the original offline suite does not run this file. A naive `interviews` query expansion also retrieved results after adding an unrelated submarine term, so no expansion was adopted.
+**Historical development finding:** an independently authored probe (`comparison-development.test.mts`) confirmed an English multi-project paraphrase miss. That particular assertion was subsequently fixed and added to the offline suite; the separate comparison limitation remains. A naive `interviews` query expansion also retrieved results after adding an unrelated submarine term, so no expansion was adopted.
 
 **Follow-up:** the English generic interviewee development case now passes using an explicit past-interview supplement; an unrelated subject remains excluded. This does not establish that other paraphrases or the frozen Japanese/comparison cases are resolved.
 
 The narrow specific-intent gate reduces three independently observed unsupported generation paths, but further testing must cover valid paraphrases, mixed-intent questions, unsupported facts outside the three categories, and whether selection responses remain useful. A matching word is not semantic support.
 
 A per-project comparison retry was evaluated and reverted after it caused a two-sided unsupported participant-name question to proceed toward generation. The final system again abstains on that example, but the separately observed comparison recall failure remains. A replacement needs independent topic/relationship validation, false-positive and quota checks, and a bounded compute budget; score qualification alone was insufficient.
+
+Explicit plural project follow-ups now retain scope, but the topic filter is lexical and clause-based. Independently evaluate additional languages, coreference patterns, location/time/role relationships and multi-sentence evidence; reject semantic overclaims. Selecting one of several projects remains conservative, and the standalone participant-comparison miss remains open.
+
+The separate topic holdout retained one supported Japanese long-form retrieval miss. The first clarification-continuation sample was promoted to development after it exposed Chinese/Japanese method-word misses; a later six-case confirmation is too small and same-reviewer to establish generalization. Evaluate longer Japanese constructions, unseen method vocabulary, same-clause unrelated facts and clarification history adversarially with an independently adjudicated corpus.
+
+The localized-history confirmation shares the Chinese and Japanese comparison patterns in the new regression tests; it must not be treated as independent evidence for unseen phrasing. Run a larger independently authored corpus across varied prior comparisons, short clarification answers and unrelated facts. The Japanese long-form topic holdout failure and standalone `f4` remain unresolved.

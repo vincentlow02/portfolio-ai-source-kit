@@ -49,3 +49,9 @@ See the [integration guide](integration.md) for installing the kit in another po
 ### V2.1 scoped-search update
 
 After an empty qualified result for a single explicit project, the shared engine can retry without the project label within that same project scope. Similarity thresholds are unchanged; an additional search has latency and precision costs. Narrow count/date/start-of-use evidence gates are conservative lexical checks, not semantic proof. See the V2.1 retrieval and security reports for observed failures and limits.
+
+For an explicitly plural follow-up to a named multi-project comparison, the shared resolver carries the compared project scope. The shared evidence pack requires conservative same-clause topic matches for each source; this is not a semantic entailment guarantee and can reduce recall. Hosted excerpt mode returns one cited public passage per project only when every side has evidence; otherwise it returns insufficient evidence. Singular references remain subject to clarification.
+
+An unspecified plural comparison topic is clarified without model reservation; a short answer to the application's exact localized clarification can retain the earlier named projects. Prior assistant text is only a context signal, not evidence. The language vocabulary and same-clause checks are limited and can reject legitimate paraphrases or miss relational contradictions.
+
+Carried multi-project comparisons fail closed before retrieval above 18 projects or 32 distinct topic terms; repeated terms are deduplicated. This limits per-request work and can refuse unusually large legitimate requests. It does not provide a distributed compute budget.

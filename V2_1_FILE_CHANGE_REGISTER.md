@@ -87,3 +87,36 @@ Compared with V2 commit `f370bebfb158f9a92d26502f6946d6a89ed76b44`. This registe
 | `scripts/portfolio-chat/comparison-confirmation.mts` | Reproducible comparison experiment, counterexample or per-case evidence |
 | `scripts/portfolio-chat/comparison-safety-probe.mts` | Reproducible comparison experiment, counterexample or per-case evidence |
 | `scripts/portfolio-chat/comparison-wider-probe.mts` | Reproducible comparison experiment, counterexample or per-case evidence |
+| `docs/v2-1-evaluation/localized-comparison-after.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/localized-comparison-before.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/original-v2-1-plural.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-clarification-after.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-clarification-before.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-clarification-promoted-dev.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-context-before.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-context-final.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-context-initial.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-context-promoted-dev.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-fresh-before.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-fresh-final.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-fresh-initial.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-holdout-before.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-holdout-current.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-methods-after.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-methods-before.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-relation-after.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-relation-before.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-relation-initial.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-topic-holdout-after.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-topic-holdout-before.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/v2-1-plural.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `scripts/portfolio-chat/localized-comparison-holdout.mts` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `scripts/portfolio-chat/plural-clarification-holdout.mts` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `scripts/portfolio-chat/plural-context-confirmation.mts` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `scripts/portfolio-chat/plural-context-fresh-confirmation.mts` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `scripts/portfolio-chat/plural-context-holdout.mts` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `scripts/portfolio-chat/plural-methods-fresh.mts` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `scripts/portfolio-chat/plural-relation-probe.mts` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `scripts/portfolio-chat/plural-topic-holdout.mts` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-methods-regression.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/plural-topic-regression.json` | Multiturn context evaluation, per-case evidence or regression coverage |

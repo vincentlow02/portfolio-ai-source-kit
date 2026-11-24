@@ -1,0 +1,212 @@
+{
+  "corpusHash": "ec47c86eded5601858e88eb58e00ddff8b11a6df9832db8abbe83f78f08c6cd8",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "How did both projects test?",
+      "language": "en",
+      "kind": "supported",
+      "projects": [
+        "harbor",
+        "meadow"
+      ],
+      "evidence": [
+        "/work/harbor#trial",
+        "/work/meadow#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/harbor#trial",
+        "/work/meadow#trial"
+      ],
+      "excerptAnswer": "Harbor: The team tested the Harbor navigation prototype with cyclists in 2023.\n\nMeadow: Researchers tested the Meadow music prototype with musicians in 2023.",
+      "elapsedMs": 1563.4009
+    },
+    {
+      "id": "p2",
+      "q": "两个项目怎么测试？",
+      "language": "zh",
+      "kind": "supported",
+      "projects": [
+        "harbor",
+        "meadow"
+      ],
+      "evidence": [
+        "/work/harbor#trial",
+        "/work/meadow#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/harbor#trial",
+        "/work/meadow#trial"
+      ],
+      "excerptAnswer": "Harbor: The team tested the Harbor navigation prototype with cyclists in 2023.\n\nMeadow: Researchers tested the Meadow music prototype with musicians in 2023.",
+      "elapsedMs": 33.14060000000018
+    },
+    {
+      "id": "p3",
+      "q": "それぞれのプロジェクトはどう検証されましたか？",
+      "language": "ja",
+      "kind": "supported",
+      "projects": [
+        "harbor",
+        "meadow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "この公開ポートフォリオには、この質問に答えるための十分な情報がありません。",
+      "elapsedMs": 18.47609999999986
+    },
+    {
+      "id": "n1",
+      "q": "Where did both projects test?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [
+        "harbor",
+        "meadow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 21.559000000000196
+    },
+    {
+      "id": "n2",
+      "q": "When were both projects tested in 2021?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [
+        "harbor",
+        "meadow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 22.283800000000156
+    },
+    {
+      "id": "n3",
+      "q": "両方のプロジェクトのテスト料金は？",
+      "language": "ja",
+      "kind": "unsupported",
+      "projects": [
+        "harbor",
+        "meadow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "この公開ポートフォリオには、この質問に答えるための十分な情報がありません。",
+      "elapsedMs": 2.047599999999875
+    },
+    {
+      "id": "t1",
+      "q": "And both of them?",
+      "language": "en",
+      "kind": "topic-ambiguous",
+      "projects": [
+        "harbor",
+        "meadow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "What would you like to compare about the projects?",
+      "elapsedMs": 0.6507999999998901
+    },
+    {
+      "id": "t2",
+      "q": "那两个项目呢？",
+      "language": "zh",
+      "kind": "topic-ambiguous",
+      "projects": [
+        "harbor",
+        "meadow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "你想比较这些项目的哪方面？",
+      "elapsedMs": 0.6420000000002801
+    },
+    {
+      "id": "t3",
+      "q": "それぞれのプロジェクトは？",
+      "language": "ja",
+      "kind": "topic-ambiguous",
+      "projects": [
+        "harbor",
+        "meadow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "これらのプロジェクトの何を比較しますか？",
+      "elapsedMs": 0.6025999999997111
+    },
+    {
+      "id": "a1",
+      "q": "How was it tested?",
+      "language": "en",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/cove#trial",
+        "/work/meadow#trial",
+        "/work/harbor#trial"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "Which project do you mean?",
+      "elapsedMs": 9.921499999999924
+    },
+    {
+      "id": "a2",
+      "q": "它是怎么测试的？",
+      "language": "zh",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/cove#trial",
+        "/work/meadow#trial",
+        "/work/harbor#trial"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "你指的是哪个项目？",
+      "elapsedMs": 8.886599999999817
+    },
+    {
+      "id": "a3",
+      "q": "それはどうテストされましたか？",
+      "language": "ja",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/cove#trial",
+        "/work/meadow#trial",
+        "/work/harbor#trial"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "どのプロジェクトについてですか？",
+      "elapsedMs": 6.873699999999644
+    }
+  ]
+}

@@ -1,0 +1,213 @@
+{
+  "corpusHash": "a6fc2a7e75747c7fc56ae132f7ff45a69c2f69bf0f2a3e2a2504e0475c6ba319",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "Where were both projects tested?",
+      "language": "en",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/elm#trial",
+        "/work/alder#trial",
+        "/work/birch#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/elm#trial"
+      ],
+      "excerptAnswer": "The team tested a separate gardening journal with teachers.",
+      "elapsedMs": 1740.4184999999998
+    },
+    {
+      "id": "p2",
+      "q": "When were both projects tested?",
+      "language": "en",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/elm#trial",
+        "/work/alder#trial",
+        "/work/birch#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/elm#trial"
+      ],
+      "excerptAnswer": "The team tested a separate gardening journal with teachers.",
+      "elapsedMs": 23.161800000000312
+    },
+    {
+      "id": "p3",
+      "q": "What about their testing?",
+      "language": "en",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/alder#trial",
+        "/work/birch#trial",
+        "/work/elm#trial"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "Which project do you mean?",
+      "elapsedMs": 10.311799999999948
+    },
+    {
+      "id": "p4",
+      "q": "両方のプロジェクトはいつテストしましたか？",
+      "language": "ja",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/birch#trial",
+        "/work/alder#trial",
+        "/work/elm#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/birch#trial"
+      ],
+      "excerptAnswer": "In 2020 the testing location for Birch was the community hall with four volunteers using the prototype.",
+      "elapsedMs": 29.24409999999989
+    },
+    {
+      "id": "n1",
+      "q": "What were both projects tested for?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/alder#trial",
+        "/work/birch#trial",
+        "/work/elm#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/alder#trial"
+      ],
+      "excerptAnswer": "In 2020 the testing location for Alder was the city library with five residents using the prototype.",
+      "elapsedMs": 15.440200000000004
+    },
+    {
+      "id": "n2",
+      "q": "What were both projects’ participant names?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 13.908599999999751
+    },
+    {
+      "id": "n3",
+      "q": "How were both projects tested in 2021?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/alder#trial",
+        "/work/birch#trial",
+        "/work/elm#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/alder#trial"
+      ],
+      "excerptAnswer": "In 2020 the testing location for Alder was the city library with five residents using the prototype.",
+      "elapsedMs": 14.712299999999686
+    },
+    {
+      "id": "n4",
+      "q": "How were both projects tested without participants?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/elm#trial",
+        "/work/birch#trial",
+        "/work/alder#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/elm#trial"
+      ],
+      "excerptAnswer": "The team tested a separate gardening journal with teachers.",
+      "elapsedMs": 15.890600000000177
+    },
+    {
+      "id": "n5",
+      "q": "両方のプロジェクトのテスト費用は？",
+      "language": "ja",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "この公開ポートフォリオには、この質問に答えるための十分な情報がありません。",
+      "elapsedMs": 1.5455000000001746
+    },
+    {
+      "id": "a1",
+      "q": "How was it tested?",
+      "language": "en",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/elm#trial",
+        "/work/birch#trial",
+        "/work/alder#trial"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "Which project do you mean?",
+      "elapsedMs": 6.765800000000127
+    },
+    {
+      "id": "a2",
+      "q": "它是怎么测试的？",
+      "language": "zh",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/elm#trial",
+        "/work/birch#trial",
+        "/work/alder#trial"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "你指的是哪个项目？",
+      "elapsedMs": 5.8322000000002845
+    },
+    {
+      "id": "a3",
+      "q": "それはどうテストされましたか？",
+      "language": "ja",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/elm#trial",
+        "/work/birch#trial",
+        "/work/alder#trial"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "どのプロジェクトについてですか？",
+      "elapsedMs": 5.568199999999706
+    }
+  ]
+}

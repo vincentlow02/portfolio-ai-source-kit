@@ -25,3 +25,11 @@ Commits `a6de258` and `2c52e83` add counted Chinese/Japanese numeral checks and 
 - `4dbf939` temporarily introduced bounded per-project comparison retries; `05b39d7` removed the production change after a two-sided unrelated-evidence counterexample. The latter adds a zero-reservation regression; `lib` matches `16401f9` exactly. Retained experiment artifacts explain the observed recall/precision tradeoff and do not describe final behavior.
 
 - `93091ae`: restore the complete four-project fixture for the comparison quota regression. With local embedding assets available it fails on `4dbf939` and passes after rollback; a smaller corpus and literal-only fallback did not reproduce the defect.
+
+- `dcca1b3`, `6523b85`, `b5e02fe`, `f9ec58e`, `036b31a`: carry explicitly plural project comparisons across turns; constrain each side with conservative same-clause topic cues and preserve numbers/purpose; return paired cited public excerpts in Hosted or abstain. The rules can both miss valid evidence and fail on subtle within-clause relationships. `6bd1856` adds Hosted-route coverage. No extra model or search threshold was introduced.
+
+- `7ab3750`, `8017608`, `e76f381`: clarify a missing plural-comparison topic without reservation, carry named-project scope when the visitor replies to that exact clarification, and recognise limited Chinese/Japanese method terms in English evidence. The assistant message is a context hint rather than evidence; other phrasings and semantic relations remain limited. `eecc26d` verifies the Hosted route and quota-unavailable behavior.
+
+- `c01ec71`: recognise common Chinese and Japanese comparison verbs in conversation history. The localized-history confirmation shares these templates with the added regression tests and is not a generalization estimate.
+
+- `f75c164`, `5d065b0`: bound carried comparison work to 18 projects and 32 distinct topic terms, deduplicate repeated terms and fail closed before retrieval; add zero-reservation regressions. Very large valid comparisons can be refused.

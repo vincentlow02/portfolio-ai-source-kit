@@ -1,0 +1,181 @@
+{
+  "corpusHash": "bffc8368a96cf211a9a9d90a2bfb3138ec6ed4424ea17ebd42beb83a800700a3",
+  "rows": [
+    {
+      "id": "p1",
+      "language": "zh",
+      "prior": "对比 Orchid 和 Tern",
+      "q": "这两个项目如何测试？",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/tern#trial",
+        "/work/orchid#trial",
+        "/work/birch#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/tern#trial"
+      ],
+      "excerptAnswer": "The team tested Tern with four gardeners in 2022.",
+      "elapsedMs": 1549.5812999999998
+    },
+    {
+      "id": "p2",
+      "language": "ja",
+      "prior": "Orchid と Tern を比べて",
+      "q": "両方のプロジェクトはどうテストしましたか？",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/tern#trial",
+        "/work/orchid#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/tern#trial"
+      ],
+      "excerptAnswer": "The team tested Tern with four gardeners in 2022.",
+      "elapsedMs": 21.58120000000008
+    },
+    {
+      "id": "p3",
+      "language": "en",
+      "prior": "Compare Orchid and Tern",
+      "q": "How were both projects tested?",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/tern#trial",
+        "/work/birch#trial",
+        "/work/orchid#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/tern#trial"
+      ],
+      "excerptAnswer": "The team tested Tern with four gardeners in 2022.",
+      "elapsedMs": 25.573500000000422
+    },
+    {
+      "id": "n1",
+      "language": "zh",
+      "prior": "对比 Orchid 和 Tern",
+      "q": "这两个项目的测试地点在哪里？",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/tern#trial",
+        "/work/orchid#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/tern#trial"
+      ],
+      "excerptAnswer": "The team tested Tern with four gardeners in 2022.",
+      "elapsedMs": 13.149499999999989
+    },
+    {
+      "id": "n2",
+      "language": "ja",
+      "prior": "Orchid と Tern を比べて",
+      "q": "両方のプロジェクトのテスト料金は？",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "この公開ポートフォリオには、この質問に答えるための十分な情報がありません。",
+      "elapsedMs": 1.3237999999996646
+    },
+    {
+      "id": "n3",
+      "language": "en",
+      "prior": "Compare Orchid and Tern",
+      "q": "When were both projects tested in 2021?",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/tern#trial",
+        "/work/orchid#trial",
+        "/work/birch#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/tern#trial"
+      ],
+      "excerptAnswer": "The team tested Tern with four gardeners in 2022.",
+      "elapsedMs": 14.223199999999906
+    },
+    {
+      "id": "t1",
+      "language": "zh",
+      "prior": "对比 Orchid 和 Tern",
+      "q": "那两个项目呢？",
+      "kind": "topic-ambiguous",
+      "projects": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "这份公开作品集没有提供足够的信息来回答这个问题。",
+      "elapsedMs": 12.179399999999987
+    },
+    {
+      "id": "t2",
+      "language": "ja",
+      "prior": "Orchid と Tern を比べて",
+      "q": "それぞれのプロジェクトは？",
+      "kind": "topic-ambiguous",
+      "projects": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "どのプロジェクトについてですか？",
+      "elapsedMs": 6.724799999999959
+    },
+    {
+      "id": "a1",
+      "language": "zh",
+      "prior": "对比 Orchid 和 Tern",
+      "q": "它是怎么测试的？",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/tern#trial",
+        "/work/orchid#trial",
+        "/work/birch#trial"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "你指的是哪个项目？",
+      "elapsedMs": 6.322099999999864
+    },
+    {
+      "id": "a2",
+      "language": "ja",
+      "prior": "Orchid と Tern を比べて",
+      "q": "それはどうテストされましたか？",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/tern#trial",
+        "/work/orchid#trial",
+        "/work/birch#trial"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "どのプロジェクトについてですか？",
+      "elapsedMs": 6.582799999999679
+    }
+  ]
+}

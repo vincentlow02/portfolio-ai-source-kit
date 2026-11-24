@@ -1,0 +1,119 @@
+{
+  "corpusHash": "2d2851f5f3c6a1e153eb5500a6f72c3ba67b3898fa118a3155727f2c52485094",
+  "rows": [
+    {
+      "id": "p1",
+      "language": "en",
+      "vague": "And both of them?",
+      "topic": "Testing procedure",
+      "kind": "supported",
+      "projects": [
+        "delta",
+        "lotus"
+      ],
+      "evidence": [
+        "/work/delta#study",
+        "/work/lotus#study"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/delta#study",
+        "/work/lotus#study"
+      ],
+      "elapsedMs": 982.0783
+    },
+    {
+      "id": "p2",
+      "language": "zh",
+      "vague": "那两个项目呢？",
+      "topic": "测试方式",
+      "kind": "supported",
+      "projects": [
+        "delta",
+        "lotus"
+      ],
+      "evidence": [
+        "/work/delta#study",
+        "/work/lotus#study"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/delta#study",
+        "/work/lotus#study"
+      ],
+      "elapsedMs": 43.92190000000005
+    },
+    {
+      "id": "p3",
+      "language": "ja",
+      "vague": "それぞれのプロジェクトは？",
+      "topic": "テスト手法",
+      "kind": "supported",
+      "projects": [
+        "delta",
+        "lotus"
+      ],
+      "evidence": [
+        "/work/delta#study",
+        "/work/lotus#study"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/delta#study",
+        "/work/lotus#study"
+      ],
+      "elapsedMs": 10.068300000000136
+    },
+    {
+      "id": "n1",
+      "language": "en",
+      "vague": "And both of them?",
+      "topic": "Participant names",
+      "kind": "unsupported",
+      "projects": [
+        "delta",
+        "lotus"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 11.111199999999826
+    },
+    {
+      "id": "n2",
+      "language": "zh",
+      "vague": "那两个项目呢？",
+      "topic": "测试工资",
+      "kind": "unsupported",
+      "projects": [
+        "delta",
+        "lotus"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 1.16599999999994
+    },
+    {
+      "id": "n3",
+      "language": "ja",
+      "vague": "それぞれのプロジェクトは？",
+      "topic": "テスト料金",
+      "kind": "unsupported",
+      "projects": [
+        "delta",
+        "lotus"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 0.8831000000000131
+    }
+  ]
+}

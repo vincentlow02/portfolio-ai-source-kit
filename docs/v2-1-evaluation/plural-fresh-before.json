@@ -1,0 +1,245 @@
+{
+  "corpusHash": "cc00dec16bae0c276343720c1114fdca42d9baa6bd87c457609ce8187847968a",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "What about their testing?",
+      "language": "en",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/spruce#trial",
+        "/work/quartz#trial",
+        "/work/orbit#trial"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "Which project do you mean?",
+      "elapsedMs": 1475.9293
+    },
+    {
+      "id": "p2",
+      "q": "When were both projects tested?",
+      "language": "en",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/quartz#trial",
+        "/work/spruce#trial",
+        "/work/orbit#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/quartz#trial"
+      ],
+      "excerptAnswer": "Researchers tested the Quartz music prototype with musicians in 2022.",
+      "elapsedMs": 25.646400000000085
+    },
+    {
+      "id": "p3",
+      "q": "这两个项目如何测试？",
+      "language": "zh",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/spruce#trial",
+        "/work/quartz#trial",
+        "/work/orbit#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/spruce#trial"
+      ],
+      "excerptAnswer": "The team tested a separate gardening journal with teachers.",
+      "elapsedMs": 25.68650000000025
+    },
+    {
+      "id": "p4",
+      "q": "両方のプロジェクトはどうテストしましたか？",
+      "language": "ja",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/quartz#trial",
+        "/work/spruce#trial",
+        "/work/orbit#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/quartz#trial"
+      ],
+      "excerptAnswer": "Researchers tested the Quartz music prototype with musicians in 2022.",
+      "elapsedMs": 15.783899999999903
+    },
+    {
+      "id": "n1",
+      "q": "Where were both projects tested?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/quartz#trial",
+        "/work/spruce#trial",
+        "/work/orbit#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/quartz#trial"
+      ],
+      "excerptAnswer": "Researchers tested the Quartz music prototype with musicians in 2022.",
+      "elapsedMs": 14.44190000000026
+    },
+    {
+      "id": "n2",
+      "q": "What were both projects’ participant names?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 15.179800000000341
+    },
+    {
+      "id": "n3",
+      "q": "How were both projects tested in 2021?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/orbit#trial",
+        "/work/quartz#trial",
+        "/work/spruce#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/orbit#trial"
+      ],
+      "excerptAnswer": "The team tested the Orbit navigation prototype with cyclists in 2022.",
+      "elapsedMs": 15.820200000000114
+    },
+    {
+      "id": "n4",
+      "q": "How were both projects tested without consent?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/spruce#trial",
+        "/work/quartz#trial",
+        "/work/orbit#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/spruce#trial"
+      ],
+      "excerptAnswer": "The team tested a separate gardening journal with teachers.",
+      "elapsedMs": 15.862300000000232
+    },
+    {
+      "id": "n5",
+      "q": "What materials did both projects use?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 13.76279999999997
+    },
+    {
+      "id": "n6",
+      "q": "这两个项目的测试地点在哪里？",
+      "language": "zh",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/quartz#trial",
+        "/work/orbit#trial",
+        "/work/spruce#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/quartz#trial"
+      ],
+      "excerptAnswer": "Researchers tested the Quartz music prototype with musicians in 2022.",
+      "elapsedMs": 13.410800000000108
+    },
+    {
+      "id": "n7",
+      "q": "両方のプロジェクトの参加者の名前は？",
+      "language": "ja",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "この公開ポートフォリオには、この質問に答えるための十分な情報がありません。",
+      "elapsedMs": 14.82699999999977
+    },
+    {
+      "id": "a1",
+      "q": "How was it tested?",
+      "language": "en",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/spruce#trial",
+        "/work/quartz#trial",
+        "/work/orbit#trial"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "Which project do you mean?",
+      "elapsedMs": 6.403199999999742
+    },
+    {
+      "id": "a2",
+      "q": "它是怎么测试的？",
+      "language": "zh",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/spruce#trial",
+        "/work/quartz#trial",
+        "/work/orbit#trial"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "你指的是哪个项目？",
+      "elapsedMs": 6.628500000000258
+    },
+    {
+      "id": "a3",
+      "q": "それはどうテストされましたか？",
+      "language": "ja",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/spruce#trial",
+        "/work/quartz#trial",
+        "/work/orbit#trial"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "どのプロジェクトについてですか？",
+      "elapsedMs": 6.769500000000335
+    }
+  ]
+}

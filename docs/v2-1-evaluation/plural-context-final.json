@@ -1,0 +1,299 @@
+{
+  "corpusHash": "7bc07df1e79e49da67d13b202d37cd46964135144be59dc9d61188d0888d58b3",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "What about their testing?",
+      "language": "en",
+      "kind": "supported",
+      "projects": [
+        "fjord",
+        "willow"
+      ],
+      "evidence": [
+        "/work/fjord#evaluation",
+        "/work/willow#evaluation"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/fjord#evaluation",
+        "/work/willow#evaluation"
+      ],
+      "excerptAnswer": "Fjord: Researchers tested the Fjord prototype with nine volunteers in 2023.\n\nWillow: Researchers tested the Willow prototype with six residents in 2023.",
+      "elapsedMs": 1663.3811999999998
+    },
+    {
+      "id": "p2",
+      "q": "两者分别怎么测试？",
+      "language": "zh",
+      "kind": "supported",
+      "projects": [
+        "fjord",
+        "willow"
+      ],
+      "evidence": [
+        "/work/willow#evaluation"
+      ],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "这份公开作品集没有提供足够的信息来回答这个问题。",
+      "elapsedMs": 30.533699999999953
+    },
+    {
+      "id": "p3",
+      "q": "それぞれのプロジェクトのテストは？",
+      "language": "ja",
+      "kind": "supported",
+      "projects": [
+        "fjord",
+        "willow"
+      ],
+      "evidence": [
+        "/work/fjord#evaluation",
+        "/work/willow#evaluation"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/fjord#evaluation",
+        "/work/willow#evaluation"
+      ],
+      "excerptAnswer": "Fjord: Researchers tested the Fjord prototype with nine volunteers in 2023.\n\nWillow: Researchers tested the Willow prototype with six residents in 2023.",
+      "elapsedMs": 18.40809999999965
+    },
+    {
+      "id": "p4",
+      "q": "When were both projects tested?",
+      "language": "en",
+      "kind": "supported",
+      "projects": [
+        "fjord",
+        "willow"
+      ],
+      "evidence": [
+        "/work/fjord#evaluation",
+        "/work/willow#evaluation"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/fjord#evaluation",
+        "/work/willow#evaluation"
+      ],
+      "excerptAnswer": "Fjord: Researchers tested the Fjord prototype with nine volunteers in 2023.\n\nWillow: Researchers tested the Willow prototype with six residents in 2023.",
+      "elapsedMs": 18.195799999999963
+    },
+    {
+      "id": "p5",
+      "q": "How were both projects validated?",
+      "language": "en",
+      "kind": "supported",
+      "projects": [
+        "fjord",
+        "willow"
+      ],
+      "evidence": [
+        "/work/willow#evaluation"
+      ],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 15.277000000000044
+    },
+    {
+      "id": "n1",
+      "q": "Where were both projects tested?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [
+        "fjord",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 18.018800000000283
+    },
+    {
+      "id": "n2",
+      "q": "What are their testing costs?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [
+        "fjord",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 1.9434000000001106
+    },
+    {
+      "id": "n3",
+      "q": "What were both projects’ test participant names?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [
+        "fjord",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 21.005099999999857
+    },
+    {
+      "id": "n4",
+      "q": "How were both projects tested without consent?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [
+        "fjord",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 20.074299999999766
+    },
+    {
+      "id": "n5",
+      "q": "How were both projects tested in 2024?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [
+        "fjord",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 20.889599999999973
+    },
+    {
+      "id": "n6",
+      "q": "What materials did both projects use?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [
+        "fjord",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 19.082499999999982
+    },
+    {
+      "id": "n7",
+      "q": "这两个项目的测试地点是哪里？",
+      "language": "zh",
+      "kind": "unsupported",
+      "projects": [
+        "fjord",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "这份公开作品集没有提供足够的信息来回答这个问题。",
+      "elapsedMs": 19.70029999999997
+    },
+    {
+      "id": "n8",
+      "q": "両方のプロジェクトのテストの場所は？",
+      "language": "ja",
+      "kind": "unsupported",
+      "projects": [
+        "fjord",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "この公開ポートフォリオには、この質問に答えるための十分な情報がありません。",
+      "elapsedMs": 19.378600000000006
+    },
+    {
+      "id": "n9",
+      "q": "What about their research salaries?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [
+        "fjord",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 1.7345000000000255
+    },
+    {
+      "id": "a1",
+      "q": "How was it tested?",
+      "language": "en",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/willow#evaluation",
+        "/work/fjord#evaluation"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "Which project do you mean?",
+      "elapsedMs": 9.73279999999977
+    },
+    {
+      "id": "a2",
+      "q": "它是怎么测试的？",
+      "language": "zh",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/willow#evaluation",
+        "/work/fjord#evaluation"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "你指的是哪个项目？",
+      "elapsedMs": 8.651899999999841
+    },
+    {
+      "id": "a3",
+      "q": "それはどうテストされましたか？",
+      "language": "ja",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/fjord#evaluation",
+        "/work/willow#evaluation"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "どのプロジェクトについてですか？",
+      "elapsedMs": 6.844300000000203
+    }
+  ]
+}

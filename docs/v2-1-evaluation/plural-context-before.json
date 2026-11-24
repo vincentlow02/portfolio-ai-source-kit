@@ -1,0 +1,285 @@
+{
+  "corpusHash": "7bc07df1e79e49da67d13b202d37cd46964135144be59dc9d61188d0888d58b3",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "What about their testing?",
+      "language": "en",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/fjord#evaluation",
+        "/work/willow#evaluation"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "Which project do you mean?",
+      "elapsedMs": 1212.4749
+    },
+    {
+      "id": "p2",
+      "q": "两者分别怎么测试？",
+      "language": "zh",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/willow#evaluation",
+        "/work/fjord#evaluation"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/willow#evaluation"
+      ],
+      "excerptAnswer": "Researchers tested the Willow prototype with six residents in 2023.",
+      "elapsedMs": 50.8158999999996
+    },
+    {
+      "id": "p3",
+      "q": "それぞれのプロジェクトのテストは？",
+      "language": "ja",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/fjord#evaluation",
+        "/work/willow#evaluation",
+        "/work/willow#product"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "どのプロジェクトについてですか？",
+      "elapsedMs": 8.49200000000019
+    },
+    {
+      "id": "p4",
+      "q": "When were both projects tested?",
+      "language": "en",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [
+        "/work/willow#evaluation",
+        "/work/fjord#evaluation",
+        "/work/cedar#evaluation"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/willow#evaluation"
+      ],
+      "excerptAnswer": "Researchers tested the Willow prototype with six residents in 2023.",
+      "elapsedMs": 19.29950000000008
+    },
+    {
+      "id": "p5",
+      "q": "How were both projects validated?",
+      "language": "en",
+      "kind": "supported",
+      "projects": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 11.980000000000018
+    },
+    {
+      "id": "n1",
+      "q": "Where were both projects tested?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/willow#evaluation",
+        "/work/fjord#evaluation",
+        "/work/cedar#evaluation"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/willow#evaluation"
+      ],
+      "excerptAnswer": "Researchers tested the Willow prototype with six residents in 2023.",
+      "elapsedMs": 13.337599999999838
+    },
+    {
+      "id": "n2",
+      "q": "What are their testing costs?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 1.2770000000000437
+    },
+    {
+      "id": "n3",
+      "q": "What were both projects’ test participant names?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/fjord#evaluation",
+        "/work/willow#evaluation"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/fjord#evaluation"
+      ],
+      "excerptAnswer": "Researchers tested the Fjord prototype with nine volunteers in 2023.",
+      "elapsedMs": 14.264900000000125
+    },
+    {
+      "id": "n4",
+      "q": "How were both projects tested without consent?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/willow#evaluation",
+        "/work/fjord#evaluation",
+        "/work/cedar#evaluation"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/willow#evaluation"
+      ],
+      "excerptAnswer": "Researchers tested the Willow prototype with six residents in 2023.",
+      "elapsedMs": 13.26319999999987
+    },
+    {
+      "id": "n5",
+      "q": "How were both projects tested in 2024?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/willow#evaluation",
+        "/work/fjord#evaluation"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/willow#evaluation"
+      ],
+      "excerptAnswer": "Researchers tested the Willow prototype with six residents in 2023.",
+      "elapsedMs": 14.121800000000349
+    },
+    {
+      "id": "n6",
+      "q": "What materials did both projects use?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 11.255099999999857
+    },
+    {
+      "id": "n7",
+      "q": "这两个项目的测试地点是哪里？",
+      "language": "zh",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/willow#evaluation",
+        "/work/fjord#evaluation"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/willow#evaluation"
+      ],
+      "excerptAnswer": "Researchers tested the Willow prototype with six residents in 2023.",
+      "elapsedMs": 11.555299999999988
+    },
+    {
+      "id": "n8",
+      "q": "両方のプロジェクトのテストの場所は？",
+      "language": "ja",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [
+        "/work/willow#evaluation",
+        "/work/fjord#evaluation"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/willow#evaluation"
+      ],
+      "excerptAnswer": "Researchers tested the Willow prototype with six residents in 2023.",
+      "elapsedMs": 12.24350000000004
+    },
+    {
+      "id": "n9",
+      "q": "What about their research salaries?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "Which project do you mean?",
+      "elapsedMs": 0.8533000000002176
+    },
+    {
+      "id": "a1",
+      "q": "How was it tested?",
+      "language": "en",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/willow#evaluation",
+        "/work/fjord#evaluation"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "Which project do you mean?",
+      "elapsedMs": 4.869300000000294
+    },
+    {
+      "id": "a2",
+      "q": "它是怎么测试的？",
+      "language": "zh",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/willow#evaluation",
+        "/work/fjord#evaluation"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "你指的是哪个项目？",
+      "elapsedMs": 4.766299999999774
+    },
+    {
+      "id": "a3",
+      "q": "それはどうテストされましたか？",
+      "language": "ja",
+      "kind": "singular-ambiguous",
+      "projects": [],
+      "evidence": [
+        "/work/fjord#evaluation",
+        "/work/willow#evaluation"
+      ],
+      "needsGeneration": false,
+      "clarification": true,
+      "excerptSources": [],
+      "excerptAnswer": "どのプロジェクトについてですか？",
+      "elapsedMs": 5.304900000000089
+    }
+  ]
+}

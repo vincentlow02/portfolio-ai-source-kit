@@ -1,0 +1,107 @@
+{
+  "corpusHash": "df6cedb94684cf167eebcece5e6765daaba19531ea217c4b909d83b6f3245d19",
+  "rows": [
+    {
+      "id": "p1",
+      "language": "en",
+      "vague": "And both of them?",
+      "topic": "Test methods",
+      "kind": "supported",
+      "projects": [
+        "reed",
+        "vale"
+      ],
+      "evidence": [
+        "/work/reed#study",
+        "/work/vale#study"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/reed#study",
+        "/work/vale#study"
+      ],
+      "elapsedMs": 1079.0448000000001
+    },
+    {
+      "id": "p2",
+      "language": "zh",
+      "vague": "那两个项目呢？",
+      "topic": "测试方法",
+      "kind": "supported",
+      "projects": [
+        "reed",
+        "vale"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 50.4541999999999
+    },
+    {
+      "id": "p3",
+      "language": "ja",
+      "vague": "それぞれのプロジェクトは？",
+      "topic": "テスト方法",
+      "kind": "supported",
+      "projects": [
+        "reed",
+        "vale"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 8.965400000000045
+    },
+    {
+      "id": "n1",
+      "language": "en",
+      "vague": "And both of them?",
+      "topic": "Participant names",
+      "kind": "unsupported",
+      "projects": [
+        "reed",
+        "vale"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 10.63760000000002
+    },
+    {
+      "id": "n2",
+      "language": "zh",
+      "vague": "那两个项目呢？",
+      "topic": "测试费用",
+      "kind": "unsupported",
+      "projects": [
+        "reed",
+        "vale"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 1.8745000000001255
+    },
+    {
+      "id": "n3",
+      "language": "ja",
+      "vague": "それぞれのプロジェクトは？",
+      "topic": "参加者の名前",
+      "kind": "unsupported",
+      "projects": [
+        "reed",
+        "vale"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 8.374399999999696
+    }
+  ]
+}

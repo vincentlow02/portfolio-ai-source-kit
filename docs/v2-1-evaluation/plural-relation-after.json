@@ -1,0 +1,21 @@
+{
+  "corpusHash": "83a46f22f8321d279a478acf476724c63fca1740ee616e3848d9078f1ea52eb7",
+  "rows": [
+    {
+      "id": "x1",
+      "q": "Where were both projects tested?",
+      "language": "en",
+      "kind": "unsupported",
+      "projects": [
+        "orbit",
+        "quartz"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "excerptAnswer": "The published portfolio does not provide enough information to answer that.",
+      "elapsedMs": 1899.4074
+    }
+  ]
+}
