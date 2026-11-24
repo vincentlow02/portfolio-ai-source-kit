@@ -2,10 +2,10 @@
 
 | Check | Result and scope |
 |---|---|
-| Original offline + added tests | `npm run test:offline` passed 67/67 at `b85b1fe`, with Node 24, installed Chrome and `--test-concurrency=1`; full existing assertions retained. A parallel attempt failed due to ONNX memory allocation and revealed a Chinese overbroad clarification; the rule was narrowed and the sequential full run passed. |
+| Original offline + added tests | `npm run test:offline` passed 70/70 at `2c52e83`, with Node 24, installed Chrome and `--test-concurrency=1`; full existing assertions retained. A parallel attempt failed due to ONNX memory allocation and revealed a Chinese overbroad clarification; the rule was narrowed and the sequential full run passed. |
 | Atlas integration | Passed at `1eeefe6` using mock provider, fixture quota and a D: temporary directory; authorization, privacy, selections, citations, follow-up, cancellation and concurrency were exercised. |
-| Hosted integration | Passed at `437bd50` with default cross-drive temp; reruns at `5623571`, `9f32942`, `bca2817` and `e022f38` passed webpack, excerpt/model, origin and fail-closed quota. At `e022f38` an initial run failed with JavaScript heap allocation; a sequential retry passed. |
-| Local registry / two portfolios | Passed at `e022f38` via local registry, fresh install, builds, type checks and mock/browser integration in both hosts using a 512 MB npm child-process heap setting. Exact remote GitHub installation is separate and remains unverified. |
+| Hosted integration | Passed at `437bd50` with default cross-drive temp; reruns including `2c52e83` passed webpack, excerpt/model, origin and fail-closed quota. At `e022f38` an initial run failed with JavaScript heap allocation; a sequential retry passed. |
+| Local registry / two portfolios | Passed at `2c52e83` via local registry, fresh install, builds, type checks and mock/browser integration in both hosts using a 512 MB npm child-process heap setting. Exact remote GitHub installation is separate and remains unverified. |
 | PostgreSQL | Passed on fresh 16.16 instance; 12 concurrent, 5 accepted/7 rejected; rollback lock test passed. See security report. |
 | Original 100-question benchmark | Aggregate V2 figures preserved after search fallback; per-case JSON retained. |
 | Independent dataset | Frozen initial and fresh cases recorded; several cross-language/comparison misses remain. |
