@@ -37,3 +37,24 @@ test("positive claim is rejected when cited sentence explicitly negates the same
   assert.equal(check("Beacon launched the service.").insufficient,true);
   assert.equal(check("Beacon tested the prototype with 6 visitors.").insufficient,false);
 });
+
+test("cross-language counted numbers cannot silently change", () => {
+  assert.equal(check("Beacon は六人の来場者と試作品をテストしました。", ["E1"], "ja").insufficient, false);
+  assert.equal(check("Beacon は九人の来場者と試作品をテストしました。", ["E1"], "ja").insufficient, true);
+  assert.equal(check("Beacon 与六位访客测试了原型。", ["E1"], "zh").insufficient, false);
+  assert.equal(check("Beacon 与九位访客测试了原型。", ["E1"], "zh").insufficient, true);
+  assert.equal(check("Beacon は二千二十一年にテストしました。", ["E1"], "ja").insufficient, false);
+  assert.equal(check("Beacon は二千二十四年にテストしました。", ["E1"], "ja").insufficient, true);
+});
+
+test("Japanese numeric evidence can support equivalent Arabic numerals", async () => {
+  const japanese = await buildKnowledgeCorpus([
+    {access:"public",format:"rendered",page:{url:"/work/hoshi",title:"Hoshi",language:"ja",kind:"case-study",projectId:"hoshi"},sections:[{title:"調査",anchor:"study",text:"二十人が二千二十一年に試作品をテストしました。"}]},
+  ],"japanese-numeric",async()=>{});
+  const initial = await buildB2Pack(japanese,[{role:"user",content:"Hoshi の調査は？"}],null,"ja",undefined,undefined,{ownerName:"Morgan"});
+  const source=japanese.chunks[0];
+  const scoped={...initial,projects:["hoshi"],entries:[{key:"E1",chunk:source,reason:"qualified-match"}]};
+  const validate=(text:string)=>validateB2({language:"en",insufficient:false,claims:[{text,evidenceKeys:["E1"]}],recommendedProjectIds:[]},japanese,scoped);
+  assert.equal(validate("Hoshi tested a prototype with 20 people in 2021.").insufficient,false);
+  assert.equal(validate("Hoshi tested a prototype with 21 people in 2021.").insufficient,true);
+});

@@ -24,6 +24,32 @@ function normalizedNumbers(text: string) {
 function digits(text: string) {
   return normalizedNumbers(text).match(/(?<![a-z0-9])\d+(?:[.,]\d+)*(?![0-9])/gu) ?? [];
 }
+// Recognize limited Chinese/Japanese numerals only when followed by a count
+// or date unit. Bare characters such as 一 in ordinary words are not counts.
+const cjkDigits: Record<string, number> = { "零":0, "〇":0, "一":1, "二":2, "两":2, "兩":2, "三":3, "四":4, "五":5, "六":6, "七":7, "八":8, "九":9 };
+const cjkUnits: Record<string, number> = { "十":10, "百":100, "千":1000 };
+function countedCjkNumbers(text: string): string[] {
+  const values: string[] = [];
+  const pattern = /(?<![零〇一二两兩三四五六七八九十百千])([零〇一二两兩三四五六七八九十百千]{1,8})(?=(?:人(?!称|稱)|位|名(?!詞)|个|個|台|件|次|年|个月|個月|か月|ヶ月|月|日|周|週|小时|小時|時間|分|站|駅|所|円|元))/gu;
+  for (const match of text.normalize("NFKC").matchAll(pattern)) {
+    const token = match[1];
+    if (![...token].some(char => char in cjkUnits)) {
+      values.push([...token].map(char => cjkDigits[char]).join(""));
+      continue;
+    }
+    let total = 0, current = 0, previousUnit = Infinity, valid = true;
+    for (const char of token) {
+      if (char in cjkDigits) { if (current) { valid = false; break; } current = cjkDigits[char]; }
+      else {
+        const unit = cjkUnits[char];
+        if (unit >= previousUnit) { valid = false; break; }
+        total += (current || 1) * unit; current = 0; previousUnit = unit;
+      }
+    }
+    if (valid) values.push(String(total + current));
+  }
+  return values;
+}
 function actionStem(word: string) {
   return word.toLowerCase().replace(/(?:ed|ing|s)$/u, "");
 }
@@ -57,10 +83,10 @@ export function validateB2(output: ModelClaims, corpus: PortfolioCorpus, pack: A
   }) && !/(?:https?:\/\/|www\.|\]\s*\(|\/(?:api|projects|images|private)\/)/iu.test(claim.text)).filter(claim => {
     const citedChunks = claim.evidenceKeys.map(key => evidence.get(key)!);
     const cited = citedChunks.map(chunk => chunk.content);
-    const sourceNumbers = new Set(cited.flatMap(digits));
+    const sourceNumbers = new Set(cited.flatMap(text => [...digits(text), ...countedCjkNumbers(text)]));
     // "One" is often a discourse marker ("one approach"); other written
     // numbers and digits require matching cited evidence.
-    const claimNumbers = digits(claim.text.replace(/\bone\b/giu, ""));
+    const claimNumbers = [...digits(claim.text.replace(/\bone\b/giu, "")), ...countedCjkNumbers(claim.text)];
     if (claimNumbers.some(number => !sourceNumbers.has(number))) return false;
     // Very short or generic project IDs can coincide with ordinary prose
     // (for example, project "a" and the article "a"). Do not infer an
