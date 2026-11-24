@@ -1,0 +1,143 @@
+{
+  "corpusHash": "6fe235373d168758e9f23f7f763c5ed3708e9c6b9516aa9b3c74da5116fb646c",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "Compare Orion and Cairn participants.",
+      "kind": "supported",
+      "projects": [
+        "cairn",
+        "orion"
+      ],
+      "evidence": [
+        {
+          "url": "/work/cairn#research",
+          "id": "778bb367d79d9c2a617968b0"
+        },
+        {
+          "url": "/work/orion#research",
+          "id": "1e881b009d4e2c26931672a9"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/cairn#research",
+        "/work/orion#research"
+      ],
+      "elapsedMs": 1217.8529
+    },
+    {
+      "id": "n1",
+      "q": "Compare Snow and Wave participants.",
+      "kind": "negated",
+      "projects": [
+        "snow",
+        "wave"
+      ],
+      "evidence": [
+        {
+          "url": "/work/snow#research",
+          "id": "f2bfc965a97dcdca97f72f28"
+        },
+        {
+          "url": "/work/wave#research",
+          "id": "979b0d98df2fe9b94bc8c1d7"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/snow#research",
+        "/work/wave#research"
+      ],
+      "elapsedMs": 23.397100000000137
+    },
+    {
+      "id": "n2",
+      "q": "Compare Crest and Fir participants.",
+      "kind": "conditional",
+      "projects": [
+        "crest",
+        "fir"
+      ],
+      "evidence": [
+        {
+          "url": "/work/crest#research",
+          "id": "14535b8f6900593394033c7e"
+        },
+        {
+          "url": "/work/fir#research",
+          "id": "c99f41b8d2e7fe860107ee98"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/crest#research",
+        "/work/fir#research"
+      ],
+      "elapsedMs": 22.106700000000274
+    },
+    {
+      "id": "n3",
+      "q": "Compare Ferry and Dale participants.",
+      "kind": "denied-report",
+      "projects": [
+        "dale",
+        "ferry"
+      ],
+      "evidence": [
+        {
+          "url": "/work/dale#research",
+          "id": "52c686c449100d9bfb6059c8"
+        },
+        {
+          "url": "/work/ferry#research",
+          "id": "ab28df4da33ea108c72e3674"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/dale#research",
+        "/work/ferry#research"
+      ],
+      "elapsedMs": 25.749899999999798
+    },
+    {
+      "id": "n4",
+      "q": "Compare Orion and Snow participants.",
+      "kind": "one-sided",
+      "projects": [
+        "orion",
+        "snow"
+      ],
+      "evidence": [
+        {
+          "url": "/work/orion#research",
+          "id": "1e881b009d4e2c26931672a9"
+        },
+        {
+          "url": "/work/snow#research",
+          "id": "f2bfc965a97dcdca97f72f28"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/orion#research",
+        "/work/snow#research"
+      ],
+      "elapsedMs": 24.164299999999912
+    },
+    {
+      "id": "n5",
+      "q": "Compare Orion and Cairn participant names.",
+      "kind": "unknown-names",
+      "projects": [
+        "cairn",
+        "orion"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 27.89960000000019
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "corpusHash": "6fe235373d168758e9f23f7f763c5ed3708e9c6b9516aa9b3c74da5116fb646c",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "Compare Orion and Cairn participants.",
+      "kind": "supported",
+      "projects": [
+        "cairn",
+        "orion"
+      ],
+      "evidence": [
+        {
+          "url": "/work/cairn#research",
+          "id": "778bb367d79d9c2a617968b0"
+        },
+        {
+          "url": "/work/orion#research",
+          "id": "1e881b009d4e2c26931672a9"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/cairn#research",
+        "/work/orion#research"
+      ],
+      "elapsedMs": 1238.7722
+    },
+    {
+      "id": "n1",
+      "q": "Compare Snow and Wave participants.",
+      "kind": "negated",
+      "projects": [
+        "snow",
+        "wave"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 25.860199999999622
+    },
+    {
+      "id": "n2",
+      "q": "Compare Crest and Fir participants.",
+      "kind": "conditional",
+      "projects": [
+        "crest",
+        "fir"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 24.217200000000048
+    },
+    {
+      "id": "n3",
+      "q": "Compare Ferry and Dale participants.",
+      "kind": "denied-report",
+      "projects": [
+        "dale",
+        "ferry"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 25.421100000000024
+    },
+    {
+      "id": "n4",
+      "q": "Compare Orion and Snow participants.",
+      "kind": "one-sided",
+      "projects": [
+        "orion",
+        "snow"
+      ],
+      "evidence": [
+        {
+          "url": "/work/orion#research",
+          "id": "1e881b009d4e2c26931672a9"
+        }
+      ],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 23.698799999999665
+    },
+    {
+      "id": "n5",
+      "q": "Compare Orion and Cairn participant names.",
+      "kind": "unknown-names",
+      "projects": [
+        "cairn",
+        "orion"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 31.338000000000193
+    }
+  ]
+}

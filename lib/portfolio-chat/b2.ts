@@ -22,7 +22,7 @@ const participantObject=new RegExp(String.raw`\b(?:interviewed|surveyed|observed
 function hasDirectStudyParticipants(source:string):boolean {
   return source.split("\n").slice(1).join("\n").split(/(?<=[.!?。！？])\s*|[;；]|\b(?:and|or|but|while|however)\b/iu)
     .some(sentence => (participantSubject.test(sentence) || participantObject.test(sentence)) &&
-      !/\b(?:no|not|never|neither|nor|without|didn['’]t|doesn['’]t|wasn['’]t|weren['’]t|hasn['’]t|haven['’]t|hadn['’]t|will|would|might|could)\b/iu.test(sentence.replace(/\bnot only\b/giu,"")) &&
+      !/\b(?:no|not|never|neither|nor|without|den(?:y|ies|ied)|refut(?:e|es|ed)|didn['’]t|doesn['’]t|wasn['’]t|weren['’]t|hasn['’]t|haven['’]t|hadn['’]t|will|would|might|could)\b/iu.test(sentence.replace(/\bnot only\b/giu,"")) &&
       /\b(?:test(?:ed|ing)?|tried|interviews?|interviewed|surveys?|surveyed|study|studies|research|workshops?)\b/iu.test(sentence));
 }
 export function isExplicitParticipantComparison(query:string,projects:string[],corpus:PortfolioCorpus,config:PortfolioChatConfig=defaultPortfolioChatConfig):boolean {

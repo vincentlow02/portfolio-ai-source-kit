@@ -79,6 +79,15 @@ test("a participant comparison cannot turn negated interviews into study evidenc
  assert.deepEqual((await model(messages,"en",undefined,{reserve:async()=>{reservations++;return false;}})).sources,[]);
  assert.equal(reservations,0);
  assert.deepEqual((await excerptReply(fixture,messages,"en")).sources,[]);
+ const denied=await buildKnowledgeCorpus([
+  {access:"public",format:"rendered",page:{url:"/work/maple",title:"Maple",language:"en",kind:"case-study",projectId:"maple"},sections:[{title:"Research",anchor:"research",text:"The report denied that the team interviewed eight gardeners during the study."}]},
+  {access:"public",format:"rendered",page:{url:"/work/copper",title:"Copper",language:"en",kind:"case-study",projectId:"copper"},sections:[{title:"Research",anchor:"research",text:"The report denied that researchers interviewed five teachers during the study."}]},
+ ],"participant-denial-development",async()=>{});
+ const deniedModel=createModelReply(denied,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
+ let deniedReservations=0;
+ assert.deepEqual((await deniedModel(messages,"en",undefined,{reserve:async()=>{deniedReservations++;return false;}})).sources,[]);
+ assert.equal(deniedReservations,0);
+ assert.deepEqual((await excerptReply(denied,messages,"en")).sources,[]);
  const affirmative=await buildKnowledgeCorpus([
   {access:"public",format:"rendered",page:{url:"/work/maple",title:"Maple",language:"en",kind:"case-study",projectId:"maple"},sections:[{title:"Research",anchor:"research",text:"The team not only interviewed eight gardeners but also prepared a public report."}]},
   {access:"public",format:"rendered",page:{url:"/work/copper",title:"Copper",language:"en",kind:"case-study",projectId:"copper"},sections:[{title:"Research",anchor:"research",text:"Researchers interviewed five teachers during the study."}]},
