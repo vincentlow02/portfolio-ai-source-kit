@@ -5,6 +5,7 @@ import { buildB2Pack, parsePageContext, validateB2 } from "../../lib/portfolio-c
 import { createEvidenceRetriever, resolveContext } from "../../lib/portfolio-chat/retrieval";
 import { createModelReply, excerptReply, validateWidgetQuestion } from "../../lib/portfolio-chat/source-reply";
 import { prepareAnswer } from "../../lib/portfolio-chat/answer-engine";
+import { verifySelection } from "../../lib/portfolio-chat/selection";
 
 const observatory = "Visitors look at the night sky using two reflecting telescopes.";
 const garden = "Volunteers grow mint and basil in the courtyard.";
@@ -18,7 +19,7 @@ const corpus = await buildKnowledgeCorpus([
 const question = (content: string) => [{ role: "user" as const, content }];
 
 test("unresolved pronouns clarify without selecting evidence in three languages", async () => {
-  for (const [text, language] of [["How was it tested?", "en"], ["它是怎么测试的？", "zh"], ["それはどうやってテストしましたか？", "ja"]] as const) {
+  for (const [text, language] of [["How was it tested?", "en"], ["What does it do?", "en"], ["它是怎么测试的？", "zh"], ["它有什么功能？", "zh"], ["それはどうやってテストしましたか？", "ja"], ["それは何ですか？", "ja"]] as const) {
     const result = await prepareAnswer({ corpus, messages: question(text), language });
     assert.equal(result.answer?.clarification, true);
     assert.deepEqual(result.answer?.sources, []);
@@ -91,6 +92,10 @@ test("hybrid preserves exact terms and verified selections", async () => {
   }, corpus);
   const selected = await excerptReply(corpus, messages, "en", quote);
   assert.equal(selected.answer, garden);
+  const selection = verifySelection({pagePath:"/garden",sectionId:"herbs",text:"mint and basil"},corpus,parsePageContext({pathname:"/garden",lang:"en"},corpus));
+  const selectedAnswer = await prepareAnswer({corpus,messages:question("What is it?"),language:"en",selection});
+  assert.equal(selectedAnswer.answer?.clarification, undefined);
+  assert.ok(selectedAnswer.pack.entries.some(entry => entry.chunk.chunkId === selection.chunk.chunkId));
 });
 
 test("context carries one topic, resolves comparisons and resets on a named project switch", async () => {

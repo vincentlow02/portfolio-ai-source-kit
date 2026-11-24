@@ -112,7 +112,7 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   const allowProjectEvidence = personal && representativeProjectQuestion.test(query);
   // A page can supply a missing subject, but cannot resolve a conversation
   // that explicitly referred to several projects.
-  const ambiguous = resolved.ambiguous && (resolved.multiplePriorProjects || !page?.projectId);
+  const ambiguous = !selectedChunk && resolved.ambiguous && (resolved.multiplePriorProjects || !page?.projectId);
   const searchQuery = [...projects, query, resolved.topic].filter(Boolean).join(" ");
   const searchMessages: ChatMessage[] = [{ role: "user", content: searchQuery }];
   const retrievalStarted = timing ? performance.now() : 0;
