@@ -116,9 +116,16 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   const searchQuery = [...projects, query, resolved.topic].filter(Boolean).join(" ");
   const searchMessages: ChatMessage[] = [{ role: "user", content: searchQuery }];
   const retrievalStarted = timing ? performance.now() : 0;
-  const retrieval: RetrievalResult = listRequested && !selectedChunk
+  let retrieval: RetrievalResult = listRequested && !selectedChunk
     ? { projects, chunks: [], qualifiedMatches: [], candidates: [], scores: new Map(), fallback: false }
     : await retrieveEvidence(corpus, searchMessages, config, timing);
+  // A duplicated explicit project label can lower semantic similarity. Retry
+  // an empty search with only context-derived labels; all normal qualification
+  // thresholds still apply, and existing non-empty results stay unchanged.
+  if (!retrieval.qualifiedMatches.length && explicit.length && !listRequested) {
+    const alternative = [...projects.filter(id => !explicit.includes(id)), query, resolved.topic].filter(Boolean).join(" ");
+    if (alternative !== searchQuery) retrieval = await retrieveEvidence(corpus, [{role:"user",content:alternative}], config, timing);
+  }
   const retrievalDuration = timing ? performance.now() - retrievalStarted : 0;
   timing?.("retrieval", retrievalDuration);
   const overview = overviewQuestion.test(query) && !presentationQuestion.test(query);

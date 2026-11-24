@@ -59,6 +59,16 @@ test("the default retrieves an approved English excerpt for a Chinese question",
   assert.deepEqual(reply.sources.map(source => source.url), ["/observatory#optics"]);
 });
 
+test("evidence assembly preserves a qualified cross-language named-project match", async () => {
+  const fixture = await buildKnowledgeCorpus([
+    {access:"public",format:"rendered",page:{url:"/work/cairn",title:"Cairn",language:"en",kind:"case-study",projectId:"cairn"},sections:[
+      {title:"Delivery",anchor:"delivery",text:"The exhibit stores audio descriptions on the kiosk itself, allowing visitors to listen when the network is disconnected."},
+      {title:"Design",anchor:"design",text:"Large raised buttons give visitors tactile controls while a soft light confirms a selection."}]},
+  ], "assembly-regression", async () => {});
+  const pack = await buildB2Pack(fixture, question("Cairn の音声ガイドはオフラインでどう動きますか？"), null, "ja", undefined, undefined, {ownerName:"Example"});
+  assert.ok(pack.entries.some(entry => entry.chunk.sourceUrl === "/work/cairn#delivery"));
+});
+
 test("retrieval combines keyword and semantic scores for approved current passages", async () => {
   const optics = corpus.chunks.find(chunk => chunk.sectionId === "optics")!;
   const herbs = corpus.chunks.find(chunk => chunk.sectionId === "herbs")!;
