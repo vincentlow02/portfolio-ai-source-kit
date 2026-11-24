@@ -161,6 +161,11 @@ test("comparison topic checks use source body and retain explicit attributes",()
   assert.equal(comparisonTopicMatcher("测试方法费用").matches("Research\nThe test methods included volunteer sessions."),false);
   assert.equal(comparisonTopicMatcher("それぞれのプロジェクトはどう検証されましたか？").matches("Research\nThe team tested the prototype with volunteers."),true);
   assert.equal(comparisonTopicMatcher("それぞれのプロジェクトは検証されませんでしたか？").matches("Research\nThe team tested the prototype with volunteers."),false);
+  assert.equal(comparisonTopicMatcher("両方のプロジェクトはどのように検証されましたか？").matches("Research\nThe team did not test the prototype with volunteers."),false);
+  assert.equal(comparisonTopicMatcher("How were both projects tested?").matches("Research\nThe prototype was never tested with volunteers."),false);
+  assert.equal(comparisonTopicMatcher("How were both projects tested?").matches("Research\nThe prototype hasn’t been tested with volunteers."),false);
+  assert.equal(comparisonTopicMatcher("How were both projects tested?").matches("Research\nThe prototype: not tested with volunteers."),false);
+  assert.equal(comparisonTopicMatcher("How were both projects not tested?").matches("Research\nThe prototype was not tested with volunteers."),true);
   const repeated=comparisonTopicMatcher(Array(100).fill("testing").join(" "));
   assert.equal(repeated.matches("Testing\nThe prototype was tested with volunteers."),true);
   const manyTerms=Array.from({length:33},(_,i)=>`term${i}`);

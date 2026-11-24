@@ -95,6 +95,8 @@ export function comparisonTopicMatcher(query: string): { hasTopic: boolean; tooM
     // in the topic terms and must never be silently removed.
     .replace(/(検証|テスト)(?:されていました|されました|されています|されます|された)/gu,"$1");
   const asksTestingPurpose=/\bwhat\b[^?]{0,100}\btest(?:ed|ing)?\s+for\b/iu.test(queryText);
+  const asksNegativeTest=/(?:\b(?:not|never|no|without)\b|(?:未|没有|沒有|不曾|从未|從未).{0,8}(?:测试|測試|验证|驗證)|(?:検証|テスト).{0,15}(?:なかった|ない|ません|未実施)|未(?:検証|テスト))/iu.test(queryText);
+  const asksAffirmativeTestingHow=!asksNegativeTest && /(?:\bhow\b|どのように|どう|如何|怎么|怎麼)[^?？]{0,100}(?:\btest(?:ed|ing)?\b|検証|テスト|测试|測試)/iu.test(queryText);
   const language=/[\u3040-\u30ff]/u.test(queryText)?"ja":/[\u3400-\u9fff]/u.test(queryText)?"zh":"en";
   const terms=[...new Set([...new Intl.Segmenter(language,{granularity:"word"}).segment(queryText)]
     .filter(part=>part.isWordLike).map(part=>part.segment).filter(term=>!stop.has(term)))];
@@ -105,7 +107,8 @@ export function comparisonTopicMatcher(query: string): { hasTopic: boolean; tooM
     // Avoid combining anchors across clearly distinct clauses. This still
     // does not establish a semantic relationship within one clause.
     const sentences=sourceBody.split(/(?<=[。！？])|(?<=[.!?])\s+|\n+|[;；]|\b(?:and|or|but|however|whereas|although|while)\b|但是|然而|一方|ただし/iu).filter(Boolean);
-    return sentences.some(sentence=>(!asksTestingPurpose || /\btest(?:ed|ing)?\s+for\b/iu.test(sentence)) && terms.every(term=>{
+    return sentences.some(sentence=>(!asksTestingPurpose || /\btest(?:ed|ing)?\s+for\b/iu.test(sentence)) &&
+    (!asksAffirmativeTestingHow || !/(?:\b(?:(?:did|does|do|was|were|is|are|has|have|had)\s+not|not|never|didn['’]t|doesn['’]t|hasn['’]t|haven['’]t|wasn['’]t|weren['’]t)\s+(?:(?:be|been)\s+)?(?:test(?:ed|ing)?|validat(?:e|ed|ing)|evaluat(?:e|ed|ing))\b|\b(?:no|without)\s+(?:user\s+)?(?:testing|validation|tests?)\b|(?:未|没有|沒有|不曾|从未|從未).{0,8}(?:测试|測試|验证|驗證)|(?:検証|テスト).{0,12}(?:しなかった|されなかった|されていない|されません|未実施)|未(?:検証|テスト))/iu.test(sentence)) && terms.every(term=>{
     if(testWords.has(term)) return /\b(?:test(?:s|ed|ing)?|validat(?:e|ed|ion|ing)|evaluat(?:e|ed|ion|ing))\b|验证|驗證|测试|測試|検証|テスト/iu.test(sentence);
     if(locationWords.has(term)) return /\b(?:location|venue|located|site)\b|地点|地點|場所|位于|位於/iu.test(sentence);
     if(timeWords.has(term)) return /\b(?:19|20)\d{2}\b|\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\b|\d{2,4}年/iu.test(sentence);
