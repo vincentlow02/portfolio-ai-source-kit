@@ -143,13 +143,13 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   // comparison has no qualified evidence, retry once with only this synonym
   // substituted, preserving every other query word, project scope and score
   // threshold. The original query still governs evidence eligibility below.
+  let japaneseComparisonRetryUsed = false;
   if (!retrieval.qualifiedMatches.length && resolved.carryComparison && !ambiguousTopic &&
       !tooManyComparisonProjects && !tooManyComparisonTerms && !selectedChunk && /検証/u.test(query)) {
     const alternative=query.replace(/検証/gu,"テスト");
     retrieval=await retrieveEvidence(corpus,[{role:"user",content:alternative}],config,timing,projects);
+    japaneseComparisonRetryUsed = true;
   }
-  const retrievalDuration = timing ? performance.now() - retrievalStarted : 0;
-  timing?.("retrieval", retrievalDuration);
   const overview = overviewQuestion.test(query) && !presentationQuestion.test(query);
   const eligible = corpus.chunks.filter(c => {
     const sourcePath = pathnameOf(c.sourceUrl);
@@ -157,6 +157,24 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
       (!overview || !presentationSection.test(c.sectionTitle)) &&
       (intent !== "PERSONAL_OVERVIEW" || sourcePath === config.profilePath || allowProjectEvidence && c.projectId !== null && (sourcePath === projectPath(corpus, config, c.projectId, c.language) || sourcePath === config.publicOverviewPath));
   });
+  // An already-qualified passage from one project must not suppress the same
+  // scoped synonym retry for the other. Keep the full original question and
+  // all original topic checks; add only qualified evidence for missing sides.
+  const coveredProjects = new Set(retrieval.qualifiedMatches.filter(c => eligible.includes(c)).map(c => c.projectId));
+  if (!japaneseComparisonRetryUsed && resolved.carryComparison && !ambiguousTopic &&
+      !tooManyComparisonProjects && !tooManyComparisonTerms && !selectedChunk && /検証/u.test(query) &&
+      projects.some(id => !coveredProjects.has(id))) {
+    const alternative=query.replace(/検証/gu,"テスト");
+    const retry=await retrieveEvidence(corpus,[{role:"user",content:alternative}],config,timing,projects);
+    for (const chunk of retry.qualifiedMatches) {
+      if (!chunk.projectId || coveredProjects.has(chunk.projectId) || !eligible.includes(chunk)) continue;
+      retrieval.qualifiedMatches.push(chunk);
+      const score=retry.scores.get(chunk.chunkId);
+      if (score !== undefined) retrieval.scores.set(chunk.chunkId,score);
+    }
+  }
+  const retrievalDuration = timing ? performance.now() - retrievalStarted : 0;
+  timing?.("retrieval", retrievalDuration);
   const ranked = retrieval.qualifiedMatches.filter(chunk => eligible.includes(chunk));
   const supplements = new Map<string, string>();
   const seen = new Set<string>();

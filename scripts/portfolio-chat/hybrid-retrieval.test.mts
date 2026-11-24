@@ -258,6 +258,35 @@ test("Japanese generic method and participant count require relevant public evid
   }
 });
 
+test("Japanese testing comparisons preserve participant and method relations across paraphrases",async()=>{
+  const make=async(first:string,second:string)=>buildKnowledgeCorpus([
+    {access:"public",format:"rendered",page:{url:"/work/linen",title:"Linen",language:"en",kind:"case-study",projectId:"linen"},sections:[{title:"Trial",anchor:"trial",text:first}]},
+    {access:"public",format:"rendered",page:{url:"/work/stone",title:"Stone",language:"en",kind:"case-study",projectId:"stone"},sections:[{title:"Trial",anchor:"trial",text:second}]},
+  ],"participant-relation-development",async()=>{});
+  const fixture=await make("Six visitors tested a tactile display during an interview session.","Four gallery staff tested an audio guide during a workshop.");
+  const prior=[...question("Linen と Stone を比べて"),{role:"assistant" as const,content:"Two projects."}];
+  for(const text of ["それぞれのプロジェクトは何人で検証されましたか？","それぞれのプロジェクトはどんな方法で検証されたのですか？","両方のプロジェクトの検証に参加した人は何人ですか？"]){
+    const messages=[...prior,...question(text)];
+    const result=await prepareAnswer({corpus:fixture,messages,language:"ja",config:{ownerName:"Example"}});
+    assert.equal(result.answer,null,text);
+    assert.deepEqual(new Set(result.pack.entries.map(entry=>entry.chunk.sourceUrl)),new Set(["/work/linen#trial","/work/stone#trial"]),text);
+  }
+  for(const text of ["両方のプロジェクトの火星での検証に参加した人は何人ですか？","それぞれのプロジェクトは火星でどんな方法で検証されたのですか？"]){
+    const messages=[...prior,...question(text)];
+    const reply=createModelReply(fixture,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
+    let reservations=0;
+    assert.deepEqual((await reply(messages,"ja",undefined,{reserve:async()=>{reservations++;return false;}})).sources,[]);
+    assert.equal(reservations,0,text);
+  }
+  const method=comparisonTopicMatcher("それぞれのプロジェクトはどんな方法で検証されたのですか？");
+  assert.equal(method.matches("Trial\nSix visitors tested the exhibit during an interview session."),true);
+  assert.equal(method.matches("Trial\nThe team tested the exhibit and attended an unrelated workshop."),false);
+  assert.equal(method.matches("Trial\nSix visitors did not test the exhibit during an interview session."),false);
+  assert.equal(method.matches("Trial\nThe team plans to test the exhibit during a workshop."),false);
+  const count=comparisonTopicMatcher("両方のプロジェクトの検証に参加した人は何人ですか？");
+  assert.equal(count.matches("Trial\nThe team plans to test the exhibit with six visitors."),false);
+});
+
 test("the default retrieves an approved English excerpt for a Chinese question", async () => {
   const reply = await excerptReply(corpus, question("哪里可以用望远镜观察夜空？"), "zh");
   assert.equal(reply.answer, observatory);

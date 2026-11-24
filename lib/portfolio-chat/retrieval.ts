@@ -112,6 +112,7 @@ export function comparisonTopicMatcher(query: string): { hasTopic: boolean; tooM
     .replace(/(?:这|這)?(?:两个|兩個|两项|兩項)(?:项目|項目|專案)/gu,"项目")
     .replace(/(?:どのような|どんな)方法で(?=[^?？]{0,80}(?:検証|テスト))/gu,"どう")
     .replace(/(何人|几人|幾人|多少人)で(?=検証|テスト)/gu,"$1")
+    .replace(/(検証|テスト)に参加した人は(?=何人)/gu,"$1 ")
     // Normalise only affirmative Japanese passive endings. Negation remains
     // in the topic terms and must never be silently removed.
     .replace(/(検証|テスト)(?:されていました|されました|されています|されます|された)/gu,"$1");
@@ -129,7 +130,8 @@ export function comparisonTopicMatcher(query: string): { hasTopic: boolean; tooM
     // does not establish a semantic relationship within one clause.
     const sentences=sourceBody.split(/(?<=[。！？])|(?<=[.!?])\s+|\n+|[;；]|\b(?:and|or|but|however|whereas|although|while)\b|但是|然而|一方|ただし/iu).filter(Boolean);
     return sentences.some(sentence=>(!asksTestingPurpose || /\btest(?:ed|ing)?\s+for\b/iu.test(sentence)) &&
-    (!asksGenericTestingMethod || /\b(?:test(?:ed|ing)?|validat(?:ed|ing)?|evaluat(?:ed|ing)?)\b[^.!?;]{0,140}\b(?:with|using|via|through|by)\s+(?!no\b)\S+|(?:テスト|検証|试验|試驗|测试|測試).{0,40}(?:用いて|使用|使って|参加者)|(?:用いて|使用して|使って|参加者).{0,40}(?:テスト|検証|试验|試驗|测试|測試)/iu.test(sentence)) &&
+    (!asksGenericTestingMethod || /\b(?:test(?:ed|ing)?|validat(?:ed|ing)?|evaluat(?:ed|ing)?)\b[^.!?;]{0,140}\b(?:with|using|via|through|by)\s+(?!no\b)\S+|\b(?:test(?:ed|ing)?|validat(?:ed|ing)?|evaluat(?:ed|ing)?)\b[^.!?;]{0,100}\bduring\s+(?:(?:an?|the)\s+)?(?:interview(?:\s+session)?|workshop|usability\s+(?:study|session|test))\b|(?:テスト|検証|试验|試驗|测试|測試).{0,40}(?:用いて|使用|使って|参加者)|(?:用いて|使用して|使って|参加者).{0,40}(?:テスト|検証|试验|試驗|测试|測試)/iu.test(sentence)) &&
+    (!asksAffirmativeTesting || !/\b(?:(?:plans?|planned|hopes?|hoped|intends?|intended|proposes?|proposed|expects?|expected)\s+to|will|would|may|might|could)\s+(?:test|validate|evaluate)\b/iu.test(sentence)) &&
     (!asksAffirmativeTesting || !/(?:\b(?:(?:did|does|do|was|were|is|are|has|have|had)\s+not|not|never|didn['’]t|doesn['’]t|hasn['’]t|haven['’]t|wasn['’]t|weren['’]t)\s+(?:(?:be|been)\s+)?(?:test(?:ed|ing)?|validat(?:e|ed|ing)|evaluat(?:e|ed|ing))\b|\b(?:no|without)\s+(?:user\s+)?(?:testing|validation|tests?)\b|(?:未|没有|沒有|不曾|从未|從未).{0,8}(?:测试|測試|验证|驗證)|(?:検証|テスト).{0,12}(?:しなかった|されなかった|されていない|されません|未実施)|未(?:検証|テスト))/iu.test(sentence)) && terms.every(term=>{
     if(testWords.has(term)) return /\b(?:test(?:s|ed|ing)?|validat(?:e|ed|ion|ing)|evaluat(?:e|ed|ion|ing))\b|验证|驗證|测试|測試|検証|テスト/iu.test(sentence);
     if(locationWords.has(term)) return /\b(?:location|venue|located|site)\b|地点|地點|場所|位于|位於/iu.test(sentence);
