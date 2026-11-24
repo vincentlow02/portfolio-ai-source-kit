@@ -113,10 +113,12 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   // A page can supply a missing subject, but cannot resolve a conversation
   // that explicitly referred to several projects.
   const ambiguous = !selectedChunk && resolved.ambiguous && (resolved.multiplePriorProjects || !page?.projectId);
+  const comparisonTopic = resolved.carryComparison ? comparisonTopicMatcher(query) : undefined;
+  const ambiguousTopic = Boolean(comparisonTopic && !comparisonTopic.hasTopic && !comparisonQuestion.test(query) && !selectedChunk);
   const searchQuery = [...projects, query, resolved.topic].filter(Boolean).join(" ");
   const searchMessages: ChatMessage[] = [{ role: "user", content: searchQuery }];
   const retrievalStarted = timing ? performance.now() : 0;
-  let retrieval: RetrievalResult = listRequested && !selectedChunk
+  let retrieval: RetrievalResult = (listRequested && !selectedChunk) || ambiguousTopic
     ? { projects, chunks: [], qualifiedMatches: [], candidates: [], scores: new Map(), fallback: false }
     : await retrieveEvidence(corpus, searchMessages, config, timing);
   // A duplicated explicit project label can lower semantic similarity. Retry
@@ -138,10 +140,9 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   const retrievalDuration = timing ? performance.now() - retrievalStarted : 0;
   timing?.("retrieval", retrievalDuration);
   const overview = overviewQuestion.test(query) && !presentationQuestion.test(query);
-  const matchesComparisonTopic = resolved.carryComparison ? comparisonTopicMatcher(query) : undefined;
   const eligible = corpus.chunks.filter(c => {
     const sourcePath = pathnameOf(c.sourceUrl);
-    return c.accessLevel === "public" && (!projects.length || projects.includes(c.projectId ?? "")) && isSubstantivePassage(c) && (!matchesComparisonTopic || matchesComparisonTopic(c.content)) && corpus.pages.some(p => p.url === c.sourceUrl.split("#")[0]) &&
+    return c.accessLevel === "public" && (!projects.length || projects.includes(c.projectId ?? "")) && isSubstantivePassage(c) && (!comparisonTopic?.hasTopic || comparisonTopic.matches(c.content)) && corpus.pages.some(p => p.url === c.sourceUrl.split("#")[0]) &&
       (!overview || !presentationSection.test(c.sectionTitle)) &&
       (intent !== "PERSONAL_OVERVIEW" || sourcePath === config.profilePath || allowProjectEvidence && c.projectId !== null && (sourcePath === projectPath(corpus, config, c.projectId, c.language) || sourcePath === config.publicOverviewPath));
   });
@@ -296,7 +297,7 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
     for (const c of ranked) { const key = c.projectId + "|" + c.sectionTitle; if (!sections.has(key)) { add(c); sections.add(key); } }
     for (const c of ranked) add(c);
   }
-  const pack = { config, intent, projects, ambiguous, catalog: listRequested ? catalog : null, topic, topicQualified, allowProjectEvidence, entries: result.map((chunk, i) => ({ key: `E${i + 1}`, chunk, reason: supplements.get(chunk.chunkId) ?? "qualified-match" })), bytes, fallback: retrieval.fallback };
+  const pack = { config, intent, projects, ambiguous, ambiguousTopic, catalog: listRequested ? catalog : null, topic, topicQualified, allowProjectEvidence, entries: result.map((chunk, i) => ({ key: `E${i + 1}`, chunk, reason: supplements.get(chunk.chunkId) ?? "qualified-match" })), bytes, fallback: retrieval.fallback };
   timing?.("assembly", performance.now() - packStarted - retrievalDuration);
   return pack;
 }

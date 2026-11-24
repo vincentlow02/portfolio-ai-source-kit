@@ -43,6 +43,8 @@ export async function prepareAnswer(input: AnswerInput) {
   if (selection && !pack.entries.some(entry => sourceMatchesSpecificIntent(messages.at(-1)!.content, entry.chunk.content))) return { pack, answer: insufficient() };
   if (pack.ambiguous) return { pack, answer: { ...insufficient(), clarification: true,
     answer: { en:"Which project do you mean?", zh:"你指的是哪个项目？", ja:"どのプロジェクトについてですか？" }[language] } };
+  if (pack.ambiguousTopic) return { pack, answer: { ...insufficient(), clarification: true,
+    answer: { en:"What would you like to compare about the projects?", zh:"你想比较这些项目的哪方面？", ja:"これらのプロジェクトの何を比較しますか？" }[language] } };
   const catalog = validateProjectCatalog(corpus, pack, language);
   if (catalog) return { pack, answer: finishAnswer(input, pack, catalog, []) };
   if (!pack.entries.length || (pack.projects.length > 1 && pack.projects.some(id => !pack.entries.some(entry => entry.chunk.projectId === id)))) {

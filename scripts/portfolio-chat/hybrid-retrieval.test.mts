@@ -88,6 +88,16 @@ test("explicit plural follow-ups retain both compared projects without resolving
   assert.deepEqual(resolveContext(missing,projects).projects,[]);
   const model=createModelReply(projects,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
   let reservations=0;
+  for (const [text,language] of [["What about both projects?","en"],["这两个项目呢？","zh"],["両方のプロジェクトは？","ja"]] as const){
+    const messages=[...prior,...question(text)];
+    const prepared=await prepareAnswer({corpus:projects,messages,language});
+    assert.equal(prepared.answer?.clarification,true,text);
+    assert.deepEqual(prepared.answer?.sources,[],text);
+    const excerpt=await excerptReply(projects,messages,language);
+    assert.deepEqual(excerpt.sources,[],text);
+    const clarified=await model(messages,language,undefined,{reserve:async()=>{reservations++;return false;}});
+    assert.deepEqual(clarified.sources,[],text);
+  }
   const reply=await model([...prior,...question("What about both projects' submarine fuel capacity?")],"en",undefined,{reserve:async()=>{reservations++;return false;}});
   assert.deepEqual(reply.sources,[]);
   assert.equal(reservations,0);
@@ -105,20 +115,20 @@ test("explicit plural follow-ups retain both compared projects without resolving
 });
 
 test("comparison topic checks use source body and retain explicit attributes",()=>{
-  assert.equal(comparisonTopicMatcher("How were both projects tested?")("Testing\nThe prototype was tested with volunteers."),true);
-  assert.equal(comparisonTopicMatcher("How were both projects tested in 2021?")("Testing\nThe prototype was tested with volunteers in 2022."),false);
-  assert.equal(comparisonTopicMatcher("How were both projects tested with two participants?")("Testing\nThe prototype was tested with one participant."),false);
-  assert.equal(comparisonTopicMatcher("What were both projects tested for?")("Testing\nThe prototype was tested with volunteers."),false);
-  assert.equal(comparisonTopicMatcher("What were both projects tested for?")("Testing\nThe testing location for the project was a library."),false);
-  assert.equal(comparisonTopicMatcher("What were both projects tested for?")("Testing\nThe prototype was tested for usability."),true);
-  assert.equal(comparisonTopicMatcher("Where were both projects tested?")("Testing\nThe prototype was tested with volunteers in 2022."),false);
-  assert.equal(comparisonTopicMatcher("Where were both projects tested?")("Testing\nThe prototype was tested with volunteers. The venue hosts a calendar of events."),false);
-  assert.equal(comparisonTopicMatcher("Where were both projects tested?")("Testing\nThe prototype was tested, but the venue location for an unrelated conference is not known."),false);
-  assert.equal(comparisonTopicMatcher("Where were both projects tested?")("Testing\nThe prototype was tested and the venue location for an unrelated conference is not known."),false);
-  assert.equal(comparisonTopicMatcher("When were both projects tested?")("Testing\nThe prototype was tested with volunteers. A later version launched in 2022."),false);
-  assert.equal(comparisonTopicMatcher("What materials did both projects use?")("Materials\nThe calendar schedules community events."),false);
-  assert.equal(comparisonTopicMatcher("这两个项目分别如何测试地点？")("Testing\nThe prototype was tested with volunteers."),false);
-  assert.equal(comparisonTopicMatcher("両方のプロジェクトの参加者の名前は？")("Testing\nResearchers tested the prototype with volunteers."),false);
+  assert.equal(comparisonTopicMatcher("How were both projects tested?").matches("Testing\nThe prototype was tested with volunteers."),true);
+  assert.equal(comparisonTopicMatcher("How were both projects tested in 2021?").matches("Testing\nThe prototype was tested with volunteers in 2022."),false);
+  assert.equal(comparisonTopicMatcher("How were both projects tested with two participants?").matches("Testing\nThe prototype was tested with one participant."),false);
+  assert.equal(comparisonTopicMatcher("What were both projects tested for?").matches("Testing\nThe prototype was tested with volunteers."),false);
+  assert.equal(comparisonTopicMatcher("What were both projects tested for?").matches("Testing\nThe testing location for the project was a library."),false);
+  assert.equal(comparisonTopicMatcher("What were both projects tested for?").matches("Testing\nThe prototype was tested for usability."),true);
+  assert.equal(comparisonTopicMatcher("Where were both projects tested?").matches("Testing\nThe prototype was tested with volunteers in 2022."),false);
+  assert.equal(comparisonTopicMatcher("Where were both projects tested?").matches("Testing\nThe prototype was tested with volunteers. The venue hosts a calendar of events."),false);
+  assert.equal(comparisonTopicMatcher("Where were both projects tested?").matches("Testing\nThe prototype was tested, but the venue location for an unrelated conference is not known."),false);
+  assert.equal(comparisonTopicMatcher("Where were both projects tested?").matches("Testing\nThe prototype was tested and the venue location for an unrelated conference is not known."),false);
+  assert.equal(comparisonTopicMatcher("When were both projects tested?").matches("Testing\nThe prototype was tested with volunteers. A later version launched in 2022."),false);
+  assert.equal(comparisonTopicMatcher("What materials did both projects use?").matches("Materials\nThe calendar schedules community events."),false);
+  assert.equal(comparisonTopicMatcher("这两个项目分别如何测试地点？").matches("Testing\nThe prototype was tested with volunteers."),false);
+  assert.equal(comparisonTopicMatcher("両方のプロジェクトの参加者の名前は？").matches("Testing\nResearchers tested the prototype with volunteers."),false);
 });
 
 test("the default retrieves an approved English excerpt for a Chinese question", async () => {
