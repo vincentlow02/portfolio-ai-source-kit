@@ -81,6 +81,10 @@ try {
       sections: [{ title: "Research", anchor: "research", text: article }] },
     { access: "public", format: "rendered", page: { url: "/work/spruce", title: "Spruce", language: "en", projectId: "spruce", kind: "case-study" },
       sections: [{ title: "Research", anchor: "research", text: "The Spruce team tested paper maps with five volunteers." }] },
+    { access: "public", format: "rendered", page: { url: "/work/haven", title: "Haven", language: "en", projectId: "haven", kind: "case-study" },
+      sections: [{ title: "Discovery", anchor: "discovery", text: "Six transit workers described accessibility barriers during interviews at a railway station." }] },
+    { access: "public", format: "rendered", page: { url: "/work/vale", title: "Vale", language: "en", projectId: "vale", kind: "case-study" },
+      sections: [{ title: "Trial", anchor: "trial", text: "Four teachers tested paper lesson cards during a workshop at a community centre." }] },
     { access: "protected", url: "/private" },
   ], "hosted", async () => {});
   await writeFile(join(fixture, ".portfolio-knowledge/hosted.json"), JSON.stringify({ origin, corpus }));
@@ -105,6 +109,12 @@ try {
     assert.deepEqual(new Set(compared.sources.map((source: {href:string})=>source.href)),new Set([origin+"/work/lantern#research",origin+"/work/spruce#research"]));
     assert.match(compared.answer,/Lantern:/u);
     assert.match(compared.answer,/Spruce:/u);
+    const namedParticipants=await ask(base,"Compare Haven and Vale participants.");
+    assert.equal(namedParticipants.status,200);
+    assert.deepEqual(new Set((await namedParticipants.json()).sources.map((source:{href:string})=>source.href)),new Set([origin+"/work/haven#discovery",origin+"/work/vale#trial"]));
+    const unsupportedNames=await ask(base,"Compare Haven and Vale study participant names.");
+    assert.equal(unsupportedNames.status,200);
+    assert.deepEqual((await unsupportedNames.json()).sources,[]);
     const unsupported=await askConversation(base,[...prior,{role:"user",content:"How were both projects tested in 2025?"}]);
     assert.equal(unsupported.status,200);
     assert.deepEqual((await unsupported.json()).sources,[]);

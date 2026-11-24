@@ -133,12 +133,15 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   const ambiguousTopic = Boolean(comparisonTopic && !comparisonTopic.hasTopic && !comparisonQuestion.test(query) && !selectedChunk);
   const tooManyComparisonProjects = resolved.carryComparison && projects.length > 18;
   const tooManyComparisonTerms = comparisonTopic?.tooManyTerms === true;
-  const searchQuery = [...projects, query, resolved.topic].filter(Boolean).join(" ");
+  // A bare clarification answer has no extra attributes to lose. Resolve its
+  // project scope separately so project-name tokens cannot distort the query.
+  const scopedTestingClarification = resolved.carryComparison && /^(?:test|testing)[?.!]*$/iu.test(query.trim());
+  const searchQuery = scopedTestingClarification ? query : [...projects, query, resolved.topic].filter(Boolean).join(" ");
   const searchMessages: ChatMessage[] = [{ role: "user", content: searchQuery }];
   const retrievalStarted = timing ? performance.now() : 0;
   let retrieval: RetrievalResult = (listRequested && !selectedChunk) || ambiguousTopic || tooManyComparisonProjects || tooManyComparisonTerms
     ? { projects, chunks: [], qualifiedMatches: [], candidates: [], scores: new Map(), fallback: false }
-    : await retrieveEvidence(corpus, searchMessages, config, timing);
+    : await retrieveEvidence(corpus, searchMessages, config, timing, scopedTestingClarification ? projects : undefined);
   // A duplicated explicit project label can lower semantic similarity. Retry
   // an empty search with only context-derived labels; all normal qualification
   // thresholds still apply, and existing non-empty results stay unchanged.

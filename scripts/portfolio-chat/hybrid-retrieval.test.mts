@@ -316,6 +316,18 @@ test("cross-language participant-count retrieval keeps every original qualifier"
   }
 });
 
+test("a testing clarification keeps its project scope as the public corpus grows",async()=>{
+ const fixture=await buildKnowledgeCorpus([
+  {access:"public",format:"rendered",page:{url:"/work/lantern",title:"Lantern",language:"en",kind:"case-study",projectId:"lantern"},sections:[{title:"Research",anchor:"research",text:"The Lantern team tested tactile signs at six libraries."}]},
+  {access:"public",format:"rendered",page:{url:"/work/spruce",title:"Spruce",language:"en",kind:"case-study",projectId:"spruce"},sections:[{title:"Research",anchor:"research",text:"The Spruce team tested paper maps with five volunteers."}]},
+  {access:"public",format:"rendered",page:{url:"/work/haven",title:"Haven",language:"en",kind:"case-study",projectId:"haven"},sections:[{title:"Discovery",anchor:"discovery",text:"Six transit workers described accessibility barriers during interviews at a railway station."}]},
+  {access:"public",format:"rendered",page:{url:"/work/vale",title:"Vale",language:"en",kind:"case-study",projectId:"vale"},sections:[{title:"Trial",anchor:"trial",text:"Four teachers tested paper lesson cards during a workshop at a community centre."}]},
+ ],"hosted-expanded-development",async()=>{});
+ const messages=[...question("Compare Lantern and Spruce"),{role:"assistant" as const,content:"They are different projects."},...question("What about both projects?"),{role:"assistant" as const,content:"What would you like to compare about the projects?"},...question("Testing")];
+ const reply=await excerptReply(fixture,messages,"en");
+ assert.deepEqual(new Set(reply.sources.map(source=>source.url)),new Set(["/work/lantern#research","/work/spruce#research"]));
+});
+
 test("the default retrieves an approved English excerpt for a Chinese question", async () => {
   const reply = await excerptReply(corpus, question("哪里可以用望远镜观察夜空？"), "zh");
   assert.equal(reply.answer, observatory);

@@ -1,0 +1,17 @@
+{"q":"Testing","qualified":["/work/spruce#research","/work/lantern#research"],"scores":[["6223d1e2185ddf2fa7b2a35e",0.37093391903753997],["b08d64bf1e6ce299b07be9f5",0.4211142651032521]]}
+{"q":"Testing project research","qualified":["/work/spruce#research","/work/lantern#research"],"scores":[["6223d1e2185ddf2fa7b2a35e",0.6271951044807231],["b08d64bf1e6ce299b07be9f5",0.7885521722559519]]}
+{"q":"Testing study","qualified":["/work/spruce#research","/work/lantern#research"],"scores":[["6223d1e2185ddf2fa7b2a35e",0.4231000795563795],["b08d64bf1e6ce299b07be9f5",0.5013423450412339]]}
+{
+  "projects": [
+    "lantern",
+    "spruce"
+  ],
+  "entries": [
+    "/work/lantern#research"
+  ],
+  "reply": {
+    "answer": "The published portfolio does not provide enough information to answer that.",
+    "sources": [],
+    "recommendations": []
+  }
+}

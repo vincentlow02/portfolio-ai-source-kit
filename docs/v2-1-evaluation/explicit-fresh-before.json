@@ -1,0 +1,130 @@
+{
+  "corpusHash": "05e059bf6e12e8027995fdf233976cf5535cea40014f0e247318f887c6981684",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "Compare Alder and Comet research participants.",
+      "kind": "supported",
+      "expected": [
+        "/work/alder#research",
+        "/work/comet#evaluation"
+      ],
+      "projects": [
+        "alder",
+        "comet"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 1678.3906999999997
+    },
+    {
+      "id": "p2",
+      "q": "Compare Alder and Comet participants.",
+      "kind": "supported",
+      "expected": [
+        "/work/alder#research",
+        "/work/comet#evaluation"
+      ],
+      "projects": [
+        "alder",
+        "comet"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 30.205599999999777
+    },
+    {
+      "id": "n1",
+      "q": "Compare Alder and Comet participant names.",
+      "kind": "unknown-names",
+      "projects": [
+        "alder",
+        "comet"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 25.687399999999798
+    },
+    {
+      "id": "n2",
+      "q": "Compare Alder and Comet participants by salary.",
+      "kind": "unknown-salary",
+      "projects": [
+        "alder",
+        "comet"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 1.377100000000155
+    },
+    {
+      "id": "n3",
+      "q": "Compare Alder and Comet participants in a submarine.",
+      "kind": "unknown-subject",
+      "projects": [
+        "alder",
+        "comet"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 27.34999999999991
+    },
+    {
+      "id": "n4",
+      "q": "Compare Alder and Ridge participants.",
+      "kind": "one-sided",
+      "projects": [
+        "alder",
+        "ridge"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 20.25739999999996
+    },
+    {
+      "id": "n5",
+      "q": "Compare Cove and Mist participants.",
+      "kind": "negated-planned",
+      "projects": [
+        "cove",
+        "mist"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 20.89240000000018
+    },
+    {
+      "id": "n6",
+      "q": "Compare Alder and Comet child participants.",
+      "kind": "unknown-age",
+      "projects": [
+        "alder",
+        "comet"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 24.815099999999802
+    },
+    {
+      "id": "n7",
+      "q": "Compare Alder and Comet participants from Mars.",
+      "kind": "unknown-place",
+      "projects": [
+        "alder",
+        "comet"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 25.368099999999686
+    }
+  ]
+}
