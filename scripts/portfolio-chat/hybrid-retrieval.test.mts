@@ -328,6 +328,27 @@ test("a testing clarification keeps its project scope as the public corpus grows
  assert.deepEqual(new Set(reply.sources.map(source=>source.url)),new Set(["/work/lantern#research","/work/spruce#research"]));
 });
 
+test("Japanese generic testing retrieves both English projects without dropping qualifiers", async () => {
+  const fixture = await buildKnowledgeCorpus([
+    { access: "public", format: "rendered", page: { url: "/work/lantern", title: "Lantern", language: "en", kind: "case-study", projectId: "lantern" },
+      sections: [{ title: "Research", anchor: "research", text: "The Lantern team tested tactile signs at six libraries." }] },
+    { access: "public", format: "rendered", page: { url: "/work/spruce", title: "Spruce", language: "en", kind: "case-study", projectId: "spruce" },
+      sections: [{ title: "Research", anchor: "research", text: "The Spruce team tested paper maps with five volunteers." }] },
+    { access: "public", format: "rendered", page: { url: "/work/vale", title: "Vale", language: "en", kind: "case-study", projectId: "vale" },
+      sections: [{ title: "Trial", anchor: "trial", text: "Four teachers tested paper lesson cards during a workshop at a community centre." }] },
+  ], "hosted-japanese-development", async () => {});
+  const prior = [...question("Compare Lantern and Spruce"), { role: "assistant" as const, content: "Two public projects." }];
+  const generic = [...prior, ...question("両方のプロジェクトはどう検証されましたか？")];
+  const reply = await excerptReply(fixture, generic, "ja");
+  assert.deepEqual(new Set(reply.sources.map(source => source.url)), new Set(["/work/lantern#research", "/work/spruce#research"]));
+  for (const text of ["両方のプロジェクトは火星でどう検証されましたか？", "両方のプロジェクトはどう検証されませんでしたか？"]) {
+    const messages = [...prior, ...question(text)];
+    const result = await prepareAnswer({ corpus: fixture, messages, language: "ja" });
+    assert.equal(result.answer?.insufficient, true, text);
+    assert.deepEqual((await excerptReply(fixture, messages, "ja")).sources, [], text);
+  }
+});
+
 test("the default retrieves an approved English excerpt for a Chinese question", async () => {
   const reply = await excerptReply(corpus, question("哪里可以用望远镜观察夜空？"), "zh");
   assert.equal(reply.answer, observatory);

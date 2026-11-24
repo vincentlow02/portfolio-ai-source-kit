@@ -130,7 +130,10 @@ try {
     assert.equal(japanese.status,200);
     const japaneseSources=(await japanese.json()).sources.map((source:{href:string})=>source.href);
     assert.ok(japaneseSources.length===0 || japaneseSources.length===2,"A comparison must not return one-sided evidence");
-    if(japaneseSources.length===2) assert.deepEqual(new Set(japaneseSources),new Set([origin+"/work/lantern#research",origin+"/work/spruce#research"]));
+    assert.deepEqual(new Set(japaneseSources),new Set([origin+"/work/lantern#research",origin+"/work/spruce#research"]));
+    const qualifiedJapanese = await askConversation(base, [...prior, { role: "user", content: "両方のプロジェクトは火星でどう検証されましたか？" }]);
+    assert.equal(qualifiedJapanese.status, 200);
+    assert.deepEqual((await qualifiedJapanese.json()).sources, []);
     console.log("Hosted Japanese comparison source count:",japaneseSources.length);
   });
 

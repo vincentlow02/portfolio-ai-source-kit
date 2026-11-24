@@ -22,6 +22,19 @@ const participantPhrase=participantNumber+String.raw`\s+(?:[a-z-]+\s+){0,2}`+cou
 // sentence-initial participant subjects or a small set of direct agents.
 const participantSubject=new RegExp(String.raw`^\s*`+participantPhrase+String.raw`\s+(?:tested|tried|participated|described|reported|shared)\b`,"iu");
 const participantObject=new RegExp(String.raw`^\s*(?:(?:the\s+)?(?:project\s+|design\s+|research\s+)?team|(?:the\s+)?researchers|we|i)\s+(?:had\s+)?(?:not\s+only\s+)?(?:interviewed|surveyed|observed)\s+`+participantPhrase+String.raw`\b`,"iu");
+const genericJapaneseTestQuestion = /^(?:両方|両者|それぞれ)の(?:プロジェクト|作品)は(?:どう|どのように)(?:検証|テスト)(?:されました|しました)か[?。!]*$/u;
+const directTestAction = String.raw`\s+(?:had\s+)?(?:tested|validated|evaluated)\b`;
+const directEnglishTest = new RegExp(String.raw`^\s*(?:(?:(?:the|our)\s+)?(?:[a-z0-9-]+\s+)?(?:team|researchers)|we|i)` + directTestAction, "iu");
+const participantsTested = new RegExp(String.raw`^\s*` + participantPhrase + directTestAction, "iu");
+const passiveEnglishTest = /^\s*(?:(?:the|a)\s+)?(?:[a-z0-9-]+\s+){0,2}(?:prototype|design|app|product|tool|system|display|signs)\s+(?:was|were)\s+(?:tested|validated|evaluated)\b/iu;
+
+function describesCompletedEnglishTest(source: string) {
+  const clauses = source.split("\n").slice(1).join("\n").split(/(?<=[.!?])\s+|[;\n]|\b(?:and|but|while|however)\b/iu);
+  return clauses.some(clause => participantsTested.test(clause) ||
+    (directEnglishTest.test(clause) || passiveEnglishTest.test(clause)) &&
+    /\b(?:with|using|at|in|during|through|by|via|on)\s+(?!no\b)\S+/iu.test(clause));
+}
+
 function hasDirectStudyParticipants(source:string):boolean {
   return source.split("\n").slice(1).join("\n").split(/(?<=[.!?。！？])\s*|[;；]|\b(?:and|or|but|while|however)\b/iu)
     .some(sentence => (participantSubject.test(sentence) || participantObject.test(sentence)) &&
@@ -137,6 +150,7 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   const ambiguousTopic = Boolean(comparisonTopic && !comparisonTopic.hasTopic && !comparisonQuestion.test(query) && !selectedChunk);
   const tooManyComparisonProjects = resolved.carryComparison && projects.length > 18;
   const tooManyComparisonTerms = comparisonTopic?.tooManyTerms === true;
+  const genericJapaneseTesting = resolved.carryComparison && !selectedChunk && genericJapaneseTestQuestion.test(query.normalize("NFKC").trim());
   // A bare clarification answer has no extra attributes to lose. Resolve its
   // project scope separately so project-name tokens cannot distort the query.
   const scopedTestingClarification = resolved.carryComparison && /^(?:test|testing)[?.!]*$/iu.test(query.trim());
@@ -162,43 +176,41 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
       retrieval = await retrieveEvidence(corpus, [{role:"user",content:stripped}], config, timing, projects);
     }
   }
-  // Retain the full original participant-count question alongside a small
-  // cross-language hint. Other Japanese verification questions use the
-  // existing testing synonym; the original query still governs eligibility.
-  const japaneseComparisonAlternative = /(?:何人|几人|幾人|多少人)/u.test(query)
-    ? query + " testing participants"
-    : query.replace(/検証/gu,"テスト");
-  let japaneseComparisonRetryUsed = false;
-  if (!retrieval.qualifiedMatches.length && resolved.carryComparison && !ambiguousTopic &&
-      !tooManyComparisonProjects && !tooManyComparisonTerms && !selectedChunk && /検証/u.test(query)) {
-    retrieval=await retrieveEvidence(corpus,[{role:"user",content:japaneseComparisonAlternative}],config,timing,projects);
-    japaneseComparisonRetryUsed = true;
-  }
   const overview = overviewQuestion.test(query) && !presentationQuestion.test(query);
   const eligible = corpus.chunks.filter(c => {
     const sourcePath = pathnameOf(c.sourceUrl);
     return !tooManyComparisonProjects && !tooManyComparisonTerms && c.accessLevel === "public" && (!projects.length || projects.includes(c.projectId ?? "")) && isSubstantivePassage(c) && (!comparisonTopic?.hasTopic || comparisonTopic.matches(c.content)) && (!genericParticipantComparison || hasDirectStudyParticipants(c.content)) && corpus.pages.some(p => p.url === c.sourceUrl.split("#")[0]) &&
+      (!genericJapaneseTesting || c.language !== "en" || describesCompletedEnglishTest(c.content)) &&
       (!overview || !presentationSection.test(c.sectionTitle)) &&
       (intent !== "PERSONAL_OVERVIEW" || sourcePath === config.profilePath || allowProjectEvidence && c.projectId !== null && (sourcePath === projectPath(corpus, config, c.projectId, c.language) || sourcePath === config.publicOverviewPath));
   });
-  // An already-qualified passage from one project must not suppress the same
-  // scoped synonym retry for the other. Keep the full original question and
-  // all original topic checks; add only qualified evidence for missing sides.
-  const coveredProjects = new Set(retrieval.qualifiedMatches.filter(c => eligible.includes(c)).map(c => c.projectId));
-  if (!japaneseComparisonRetryUsed && resolved.carryComparison && !ambiguousTopic &&
-      !tooManyComparisonProjects && !tooManyComparisonTerms && !selectedChunk && /検証/u.test(query) &&
-      projects.some(id => !coveredProjects.has(id))) {
-    const retry=await retrieveEvidence(corpus,[{role:"user",content:japaneseComparisonAlternative}],config,timing,projects);
-    for (const chunk of retry.qualifiedMatches) {
-      if (!chunk.projectId || coveredProjects.has(chunk.projectId) || !eligible.includes(chunk)) continue;
-      retrieval.qualifiedMatches.push(chunk);
-      const score=retry.scores.get(chunk.chunkId);
-      if (score !== undefined) retrieval.scores.set(chunk.chunkId,score);
+  // Use one equivalent query for missing comparison sides. Translate only a
+  // complete generic question when those sides have English-only candidates.
+  // Specific questions keep all their terms and original eligibility checks.
+  const eligibleSet = new Set(eligible);
+  const coveredProjects = new Set(retrieval.qualifiedMatches.filter(c => eligibleSet.has(c)).map(c => c.projectId));
+  const missingProjects = projects.filter(id => !coveredProjects.has(id));
+  if (resolved.carryComparison && !ambiguousTopic && !tooManyComparisonProjects && !tooManyComparisonTerms &&
+      !selectedChunk && missingProjects.length && (genericJapaneseTesting || /検証/u.test(query))) {
+    const englishOnly = genericJapaneseTesting && missingProjects.every(id =>
+      eligible.some(c => c.projectId === id && c.language === "en") &&
+      !eligible.some(c => c.projectId === id && c.language !== "en"));
+    const alternative = englishOnly ? "How were the projects tested?" :
+      /(?:何人|几人|幾人|多少人)/u.test(query) ? query + " testing participants" : query.replace(/検証/gu, "テスト");
+    if (alternative !== query) {
+      const retry = await retrieveEvidence(corpus, [{ role: "user", content: alternative }], config, timing, projects);
+      for (const chunk of retry.qualifiedMatches) {
+        if (!chunk.projectId || coveredProjects.has(chunk.projectId) || !eligibleSet.has(chunk)) continue;
+        retrieval.qualifiedMatches.push(chunk);
+        const score = retry.scores.get(chunk.chunkId);
+        if (score !== undefined) retrieval.scores.set(chunk.chunkId, score);
+        retrieval.fallback = false;
+      }
     }
   }
   const retrievalDuration = timing ? performance.now() - retrievalStarted : 0;
   timing?.("retrieval", retrievalDuration);
-  const ranked = retrieval.qualifiedMatches.filter(chunk => eligible.includes(chunk));
+  const ranked = retrieval.qualifiedMatches.filter(chunk => eligibleSet.has(chunk));
   const supplements = new Map<string, string>();
   const seen = new Set<string>();
   const result: PortfolioChunk[] = [];
