@@ -1,12 +1,9 @@
-import { generateText, Output } from "ai";
-import { z } from "zod";
 import type { PortfolioCorpus } from "../portfolio-knowledge";
-import { b2Prompt, b2Schema, parsePageContext, validateB2, type buildB2Pack } from "./b2";
+import { parsePageContext } from "./b2";
+import { generateAnswer, prepareAnswer } from "./answer-engine";
 import { validateAnswer, validateMessages, type ChatMessage } from "./core";
-import { defaultPortfolioChatConfig } from "./engine-config";
-import { validateFollowUpQuestions } from "./followups";
 import { resolveGuardianReply } from "./guardian";
-import { clearlyWrongLanguage, type ResponseLanguage } from "./language";
+import type { ResponseLanguage } from "./language";
 import { configureModel } from "./provider";
 import { isSubstantivePassage, retrieveEvidence } from "./retrieval";
 import { verifySelection } from "./selection";
@@ -31,60 +28,35 @@ export function validateWidgetQuestion(body: unknown, corpus: PortfolioCorpus) {
   return { messages, quote: verifySelection(selection, corpus, page) };
 }
 
-const jsonObjectSchema = b2Schema.extend({
-  recommendedProjectIds: b2Schema.shape.recommendedProjectIds.default([]),
-  followUpQuestions: b2Schema.shape.followUpQuestions.default([]),
-});
+export class WidgetQuotaError extends Error {
+  constructor(readonly status: 429 | 503) { super("Widget quota reservation failed"); }
+}
 
 export function createModelReply(corpus: PortfolioCorpus, env: NodeJS.ProcessEnv = process.env) {
   const provider = configureModel(env);
   if (!provider) throw new Error("Configure a supported model provider before enabling model replies");
-  const jsonObjectMode = provider.provider === "qwen" && env.QWEN_JSON_MODE?.trim() === "object";
-  const responseInstructions = jsonObjectMode
-    ? `Return exactly one JSON object matching this schema.\n${JSON.stringify(z.toJSONSchema(jsonObjectSchema, { io: "input" }))}`
-    : "Return a JSON object matching the requested response shape.";
+  const objectMode = env.QWEN_JSON_MODE?.trim() === "object";
 
-  return async (messages: ChatMessage[], language: ResponseLanguage, quote?: VerifiedQuote) => {
+  return async (messages: ChatMessage[], language: ResponseLanguage, quote?: VerifiedQuote,
+    options: { signal?: AbortSignal; reserve?: () => Promise<boolean> } = {}) => {
     const guardian = resolveGuardianReply(messages.at(-1)!.content, language);
     if (guardian) return { answer: guardian.answer, sources: [] };
-    const insufficient = () => validateAnswer({
-      answer: "", language, insufficient: true, sourceIds: [], recommendedProjectIds: [],
-    }, corpus);
-    const { scores, fallback } = await retrieveEvidence(corpus, messages);
-    const ranked = corpus.chunks.filter(isSubstantivePassage)
-      .sort((a, b) => (scores.get(b.chunkId) ?? 0) - (scores.get(a.chunkId) ?? 0));
-    const candidates = quote ? [quote.chunk, ...ranked.filter(chunk => chunk.chunkId !== quote.chunk.chunkId)] : ranked;
-    const entries: Awaited<ReturnType<typeof buildB2Pack>>["entries"] = [];
-    let bytes = 0;
-    for (const chunk of candidates) {
-      if (entries.length === 18) break;
-      const size = Buffer.byteLength(chunk.content);
-      if (size > 3000 || bytes + size > 18000) continue;
-      bytes += size;
-      entries.push({ key: `E${entries.length + 1}`, chunk });
+    const input = { corpus, messages, language, selection: quote };
+    const { pack, answer } = await prepareAnswer(input);
+    if (answer) return answer;
+    options.signal?.throwIfAborted();
+    if (options.reserve) {
+      let allowed: boolean;
+      try { allowed = await options.reserve(); } catch { throw new WidgetQuotaError(503); }
+      if (allowed !== true) throw new WidgetQuotaError(429);
     }
-    if (!entries.length) return insufficient();
-
-    // Site capture provides public passages without project-specific manifest metadata.
-    const pack: Awaited<ReturnType<typeof buildB2Pack>> = {
-      config: defaultPortfolioChatConfig, intent: "OTHER", projects: [], ambiguous: false,
-      catalog: null, topic: null, topicQualified: false, allowProjectEvidence: false, entries, bytes, fallback,
-    };
-    const result = await generateText({
-      model: provider.model, providerOptions: provider.providerOptions,
-      system: `${responseInstructions}\n${b2Prompt(corpus, pack, language)}${quote ? "\nThe visitor selected text from E1. Use that evidence for questions about the selected text." : ""}`, messages,
-      maxOutputTokens: 700, maxRetries: 0, abortSignal: AbortSignal.timeout(45_000),
-      output: jsonObjectMode ? Output.json() : Output.object({ schema: b2Schema }),
-    });
-    const output = (jsonObjectMode ? jsonObjectSchema : b2Schema).parse(result.output);
-    if (output.language !== language || output.claims.some(claim => clearlyWrongLanguage(claim.text, language))) return insufficient();
-    const answer = validateB2(output, corpus, pack);
-    if (answer.insufficient) return answer;
-    return { ...answer, followUpQuestions: validateFollowUpQuestions(output.followUpQuestions, messages, [], corpus, false, language) };
+    return (await generateAnswer(input, pack, provider, objectMode, options.signal)).answer;
   };
 }
 
 export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessage[], language: ResponseLanguage, quote?: VerifiedQuote) {
+  const guardian = resolveGuardianReply(messages.at(-1)!.content, language);
+  if (guardian) return { answer: guardian.answer, sources: [], recommendations: [] };
   const retrieval = quote ? undefined : await retrieveEvidence(corpus, messages);
   const match = quote?.chunk ?? retrieval?.chunks[0];
   const result = validateAnswer({

@@ -34,10 +34,15 @@ test("timing is opt-in and logs only aggregate numeric fields", async () => {
     on.record("retrieval", 2);
     on.record("assembly", 3);
     on.record("model", 4);
+    on.record("keyword", 0.3);
+    on.record("corpusEmbedding", 0.4);
+    on.record("queryEmbedding", 0.5);
+    on.record("semantic", 0.2);
     on.usage(12, 5);
     on.finish();
     const event = JSON.parse(messages[0]);
-    assert.deepEqual(Object.keys(event).sort(), ["apiOverheadMs", "event", "evidenceAssemblyMs", "inputTokens", "knowledgeMs", "modelMs", "outputTokens", "retrievalMs", "totalMs"].sort());
+    assert.deepEqual(Object.keys(event).sort(), ["apiOverheadMs", "corpusEmbeddingMs", "event", "evidenceAssemblyMs", "inputTokens", "keywordMs", "knowledgeMs",
+      "modelMs", "outputTokens", "queryEmbeddingMs", "retrievalMs", "semanticMs", "totalMs"].sort());
     assert.equal(event.event, "portfolio_ai_timing");
     assert.equal(event.inputTokens, 12);
     assert.equal(event.outputTokens, 5);

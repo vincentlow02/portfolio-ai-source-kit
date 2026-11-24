@@ -9,6 +9,7 @@ import test, { type TestContext } from "node:test";
 import { fileURLToPath } from "node:url";
 import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
 import { embeddingModelDirectory } from "../../lib/portfolio-chat/embedding-model.mjs";
+import { launchBrowser } from "../portfolio-knowledge/anonymous-browser.mjs";
 import { excerptReply } from "../../lib/portfolio-chat/source-reply";
 
 const portfolioOrigin = "http://127.0.0.1:5173";
@@ -90,6 +91,33 @@ test("local chat returns a source excerpt and links only to an approved portfoli
   assert.equal((await fetch(new URL(".portfolio-knowledge/local-preview.json", chatUrl))).status, 404);
 });
 
+test("the iframe widget sends bounded conversation history and clears it on reset", async t => {
+  const { chatUrl } = await startPreview(t);
+  const browser = await launchBrowser();
+  t.after(() => browser.close());
+  const page = await browser.newPage();
+  await page.goto(chatUrl);
+  const ask = async (text: string) => {
+    const sent = page.waitForRequest(request => new URL(request.url()).pathname === "/api/preview" && request.method() === "POST");
+    await page.type("#question", text);
+    await page.click('form button[type="submit"]');
+    const request = await sent;
+    await page.waitForSelector("#output .assistant");
+    return request.fetchPostData().then(data => JSON.parse(data!));
+  };
+  const first = await ask("recycled steel");
+  assert.deepEqual(first.messages, [{ role: "user", content: "recycled steel" }]);
+  const second = await ask("What about the frame?");
+  assert.deepEqual(second.messages, [
+    { role: "user", content: "recycled steel" },
+    { role: "assistant", content: article },
+    { role: "user", content: "What about the frame?" },
+  ]);
+  await page.click("#reset");
+  const restarted = await ask("recycled steel");
+  assert.deepEqual(restarted.messages, first.messages);
+});
+
 test("source excerpts prefer a full phrase over a number shared by another project", async () => {
   const corpus = await buildKnowledgeCorpus([
     { access: "public", format: "rendered", page: { url: "/measurements", title: "Measurements", language: "en", kind: "page" },
@@ -118,12 +146,17 @@ test("local model preview sends differently worded questions with evidence and r
     assert.match(result.answer, /does not provide enough information/);
     assert.deepEqual(result.sources, []);
   }
-  const authFailure = await request("Simulate an authentication failure.");
+  // Failure probes still ask for relevant evidence so they reach the provider.
+  // The unrelated questions above must independently abstain before generation.
+  const wrongCitation = await request("Where is the imaginary laboratory for the recycled steel frame?");
+  assert.equal(wrongCitation.status, 200);
+  assert.deepEqual((await wrongCitation.json()).sources, []);
+  const authFailure = await request("Simulate an authentication failure. What was the recycled steel frame made from?");
   assert.equal(authFailure.status, 502);
   const message = (await authFailure.json()).error;
   assert.match(message, /HTTP 401/);
   assert.doesNotMatch(message, /synthetic private provider details/);
-  const invalidResponse = await request("Simulate an answer with unexpected fields.");
+  const invalidResponse = await request("Simulate an answer with unexpected fields. What was the recycled steel frame made from?");
   assert.equal(invalidResponse.status, 502);
   const invalidMessage = (await invalidResponse.json()).error;
   assert.match(invalidMessage, /unexpected answer fields/);

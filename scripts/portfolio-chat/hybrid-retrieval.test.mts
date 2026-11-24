@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
-import { createEvidenceRetriever } from "../../lib/portfolio-chat/retrieval";
+import { buildB2Pack } from "../../lib/portfolio-chat/b2";
+import { createEvidenceRetriever, resolveContext } from "../../lib/portfolio-chat/retrieval";
 import { excerptReply, validateWidgetQuestion } from "../../lib/portfolio-chat/source-reply";
 
 const observatory = "Visitors look at the night sky using two reflecting telescopes.";
@@ -54,4 +55,27 @@ test("hybrid preserves exact terms and verified selections", async () => {
   }, corpus);
   const selected = await excerptReply(corpus, messages, "en", quote);
   assert.equal(selected.answer, garden);
+});
+
+test("context carries one topic, resolves comparisons and resets on a named project switch", async () => {
+  const projects = await buildKnowledgeCorpus([
+    { access: "public", format: "rendered", page: { url: "/work/observatory", title: "Observatory", language: "en", kind: "case-study", projectId: "observatory" },
+      sections: [{ title: "Optical visits", anchor: "optics", text: observatory }] },
+    { access: "public", format: "rendered", page: { url: "/work/garden", title: "Garden", language: "en", kind: "case-study", projectId: "garden" },
+      sections: [{ title: "Herb beds", anchor: "herbs", text: garden }] },
+  ], "fixture", async () => {});
+  const prior = [...question("Which reflecting telescopes did Observatory use?"), {role:"assistant" as const, content: "Two reflecting telescopes."}];
+  const followUp = resolveContext([...prior, ...question("Why did they do that?")], projects);
+  assert.deepEqual(followUp.projects, ["observatory"]);
+  assert.match(followUp.topic, /reflecting telescopes/u);
+  const comparison = await buildB2Pack(projects, [...prior, ...question("Compare it to Garden")], null);
+  assert.deepEqual(comparison.projects, ["observatory", "garden"]);
+  assert.deepEqual(new Set(comparison.entries.map(entry => entry.chunk.projectId)), new Set(["observatory", "garden"]));
+  const ambiguous = resolveContext([...question("Compare Garden and Observatory"), prior[1], ...question("Why did they do that?")], projects);
+  assert.equal(ambiguous.ambiguous, true);
+  assert.deepEqual(ambiguous.projects, []);
+  assert.equal(ambiguous.topic, "");
+  const switched = resolveContext([...prior, ...question("What about the herbs at Garden?")], projects);
+  assert.deepEqual(switched.projects, ["garden"]);
+  assert.equal(switched.topic, "");
 });

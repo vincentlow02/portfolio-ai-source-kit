@@ -7,10 +7,13 @@ import type { PortfolioCorpus } from "./portfolio-knowledge";
 import { b2PublicCorpus } from "./portfolio-chat/b2";
 import { resolveResponseLanguage } from "./portfolio-chat/language";
 import { readPortfolioRequest } from "./portfolio-chat/request-body";
-import { createModelReply, excerptReply, validateWidgetQuestion, widgetResponse } from "./portfolio-chat/source-reply";
+import { createModelReply, excerptReply, validateWidgetQuestion, widgetResponse, WidgetQuotaError } from "./portfolio-chat/source-reply";
 import { reserveQuota } from "./portfolio-chat/supabase";
 import { readWidgetAsset, widgetAssets, widgetFramePolicy } from "./portfolio-chat/widget-assets";
 
+import { createRequestLimiter } from "./portfolio-chat/request-limits";
+
+const enterHostedRequest = createRequestLimiter(60, 2);
 const headers = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer" };
 
 async function loadHostedAssistant() {
@@ -64,6 +67,9 @@ export async function answerHostedQuestion(request: Request) {
   if (!sameOrigin || request.headers.get("Sec-Fetch-Site") !== "same-origin") {
     return Response.json({ error: "Open the portfolio chat before asking a question." }, { status: 403, headers });
   }
+  const release = enterHostedRequest();
+  if (!release) return Response.json({ error: "The request limit has been reached. Try again later." }, { status: 429, headers });
+  try {
   let body;
   try {
     body = await readPortfolioRequest(request, 16000);
@@ -76,16 +82,12 @@ export async function answerHostedQuestion(request: Request) {
     try { question = validateWidgetQuestion(body, corpus); }
     catch { return Response.json({ error: "Enter a question or select verified public text." }, { status: 400, headers }); }
     const { messages, quote } = question;
-    if (model) {
-      let allowed: boolean;
-      try { allowed = await reserveQuota(process.env); }
-      catch { return Response.json({ error: "The model quota service is unavailable." }, { status: 503, headers }); }
-      if (!allowed) return Response.json({ error: "The request limit has been reached. Try again later." }, { status: 429, headers });
-    }
     const language = resolveResponseLanguage(messages, corpus.pages[0]?.language);
-    const result = model ? await model(messages, language, quote) : await excerptReply(corpus, messages, language, quote);
+    const result = model ? await model(messages, language, quote, { signal: request.signal, reserve: () => reserveQuota(process.env) }) : await excerptReply(corpus, messages, language, quote);
     return Response.json(widgetResponse(result, origin), { headers });
-  } catch {
+  } catch (error) {
+    if (error instanceof WidgetQuotaError) return Response.json({ error: error.status === 503 ? "The model quota service is unavailable." : "The request limit has been reached. Try again later." }, { status: error.status, headers });
     return Response.json({ error: "Portfolio AI could not answer this question." }, { status: 503, headers });
   }
+  } finally { release(); }
 }

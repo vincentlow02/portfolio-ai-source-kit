@@ -21,6 +21,7 @@ export type PortfolioChatConfig = {
   catalogParentProject?: string;
   aiProjectEvidence?: Partial<Record<ResponseLanguage, RegExp>>;
   exactClaimEvidence?: readonly RegExp[];
+  audienceEvidenceTerms?: readonly string[];
   publicOriginAliases?: Readonly<Record<string, readonly string[]>>;
   privateProjectName?: string;
   allowSelfHostedPublic?: boolean;
@@ -52,6 +53,11 @@ export function replaceOwnerMentions(text: string, config: PortfolioChatConfig) 
   }, text);
 }
 
+
+/** Keep the existing tool-specific grounding protection and allow hosts to add their own terms. */
+export function audienceEvidenceTerms(config: PortfolioChatConfig) {
+  return [...new Set(["Notion", "Miro", ...(config.audienceEvidenceTerms ?? [])].map(term => term.trim().toLowerCase()).filter(Boolean))];
+}
 
 export const defaultPortfolioChatConfig: PortfolioChatConfig = { ownerName: "the portfolio owner" };
 

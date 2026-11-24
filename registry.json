@@ -71,6 +71,11 @@
           "target": "~/lib/portfolio-knowledge.ts"
         },
         {
+          "path": "lib/portfolio-chat/answer-schema.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/answer-schema.ts"
+        },
+        {
           "path": "lib/portfolio-chat/b2.ts",
           "type": "registry:file",
           "target": "~/lib/portfolio-chat/b2.ts"
@@ -104,6 +109,11 @@
           "path": "lib/portfolio-chat/followups.ts",
           "type": "registry:file",
           "target": "~/lib/portfolio-chat/followups.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/grounding.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/grounding.ts"
         },
         {
           "path": "lib/portfolio-chat/guardian.ts",
@@ -229,6 +239,21 @@
           "path": "examples/atlas-portfolio/.env.example",
           "type": "registry:file",
           "target": "~/.portfolio-ai/templates/.env.example"
+        },
+        {
+          "path": "lib/portfolio-chat/answer-engine.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/answer-engine.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/generation.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/generation.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/request-limits.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/request-limits.ts"
         }
       ]
     }

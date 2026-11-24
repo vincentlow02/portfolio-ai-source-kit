@@ -4,8 +4,8 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { APICallError, NoObjectGeneratedError, NoOutputGeneratedError } from "ai";
-import { ZodError } from "zod";
+import { GenerationError } from "../../lib/portfolio-chat/generation";
+import { createRequestLimiter } from "../../lib/portfolio-chat/request-limits";
 import type { PortfolioCorpus } from "../../lib/portfolio-knowledge";
 import { b2PublicCorpus } from "../../lib/portfolio-chat/b2";
 import { prepareEmbeddingModel } from "../../lib/portfolio-chat/embedding-model.mjs";
@@ -64,6 +64,7 @@ async function servePreview(port: number, useModel: boolean) {
     }),
   }] as const)));
 
+  const enterRequest = createRequestLimiter(60, 2);
   const server = createServer(async (request, response) => {
     response.setHeader("Cache-Control", "no-store");
     response.setHeader("X-Content-Type-Options", "nosniff");
@@ -91,6 +92,9 @@ async function servePreview(port: number, useModel: boolean) {
       return;
     }
 
+    const release = enterRequest();
+    if (!release) { sendJson(response, 429, {error: "Too many requests. Please try again later."}); return; }
+    try {
     let question;
     try {
       question = validateWidgetQuestion(await readQuestion(request, origin), corpus);
@@ -101,13 +105,16 @@ async function servePreview(port: number, useModel: boolean) {
     try {
       const { messages, quote } = question;
       const language = resolveResponseLanguage(messages, corpus.pages[0]?.language);
-      const result = modelReply ? await modelReply(messages, language, quote) : await excerptReply(corpus, messages, language, quote);
+      const controller = new AbortController();
+      response.once("close", () => controller.abort());
+      const result = modelReply ? await modelReply(messages, language, quote, { signal: controller.signal }) : await excerptReply(corpus, messages, language, quote);
       sendJson(response, 200, widgetResponse(result, portfolioOrigin));
     } catch (error) {
       const message = modelReply ? describeModelFailure(error) : "The preview could not look up that question.";
       if (modelReply) console.warn(`Model preview: ${message}`);
-      sendJson(response, 502, { error: message });
+      if (!response.destroyed) sendJson(response, 502, { error: message });
     }
+    } finally { release(); }
   });
 
   server.listen(port, "127.0.0.1");
@@ -121,8 +128,8 @@ async function servePreview(port: number, useModel: boolean) {
 }
 
 function describeModelFailure(error: unknown): string {
-  if (APICallError.isInstance(error)) {
-    const status = error.statusCode;
+  if (error instanceof GenerationError && error.kind === "provider") {
+    const status = error.status;
     if (status === 401 || status === 403) return `Model service rejected access (HTTP ${status}). Check the API key, endpoint region, and workspace permissions.`;
     if (status === 400) return "Model service rejected the request (HTTP 400). Check the model name and supported JSON mode.";
     if (status === 404) return "Model or endpoint not found (HTTP 404). Check the base URL and model availability in your region.";
@@ -130,16 +137,11 @@ function describeModelFailure(error: unknown): string {
     if (typeof status === "number") return `Model service returned HTTP ${status}. Check the provider status and configuration.`;
     return "The model service could not be reached. Check the base URL and connection from the machine running the kit.";
   }
-  if (NoObjectGeneratedError.isInstance(error)) {
-    if (error.finishReason === "length") return "The model stopped before completing its JSON answer. Try a more focused question.";
-    return "The model response could not be read as JSON. Check the selected model and JSON mode.";
-  }
-  if (NoOutputGeneratedError.isInstance(error)) return "The model returned no answer text.";
-  if (error instanceof ZodError) {
-    return "The model returned JSON with unexpected answer fields. Check the model’s support for JSON output.";
-  }
-  if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError")) {
-    return "The model request timed out. Try again when the model service is responding.";
+  if (error instanceof GenerationError) {
+    if (error.kind === "json") return "The model response could not be read as JSON. Check the selected model and JSON mode.";
+    if (error.kind === "empty") return "The model returned no answer text.";
+    if (error.kind === "schema") return "The model returned JSON with unexpected answer fields. Check the model’s support for JSON output.";
+    if (error.kind === "timeout" || error.kind === "cancelled") return "The model request timed out or was cancelled.";
   }
   return "The preview could not process the model response. Check the kit and model configuration.";
 }

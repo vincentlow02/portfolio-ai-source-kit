@@ -11,7 +11,7 @@ globalThis.fetch = async (input, init) => {
   const schema = JSON.parse(prompt.split("\n")[1]);
   assert.deepEqual(schema.required, ["language", "insufficient", "claims"]);
   assert.deepEqual(schema.properties.claims.items.required, ["text", "evidenceKeys"]);
-  if (question === "Simulate an authentication failure.") {
+  if (question.startsWith("Simulate an authentication failure.")) {
     return Response.json({ error: { code: "invalid_api_key", message: "synthetic private provider details" } }, { status: 401 });
   }
   const passage = prompt.split("\n").flatMap(line => {
@@ -21,7 +21,7 @@ globalThis.fetch = async (input, init) => {
   const inChinese = question === "这个原型用了什么材料？";
   const answerable = inChinese || /(?:frame made from|material did the team choose)/u.test(question);
   const invalid = question.includes("imaginary laboratory");
-  const malformed = question === "Simulate an answer with unexpected fields.";
+  const malformed = question.startsWith("Simulate an answer with unexpected fields.");
   const output = malformed ? { text: "synthetic invalid answer" } : {
     language: inChinese ? "zh" : "en", insufficient: !answerable && !invalid,
     claims: answerable ? [{ text: inChinese ? "这个原型使用了再生钢框架。" : "The frame was made from recycled steel.", evidenceKeys: [passage.key] }]

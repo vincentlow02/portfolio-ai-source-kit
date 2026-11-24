@@ -13,6 +13,7 @@ const quoteText = document.querySelector("#quote-text");
 const embedded = window.parent !== window;
 let quote = null;
 let pending = null;
+let history = [];
 
 function setQuote(selection) {
   quote = selection;
@@ -102,9 +103,19 @@ async function ask(value) {
   status.textContent = "Thinking...";
   output.replaceChildren(status);
   try {
+    const prior = history.slice();
+    const requestBody = () => JSON.stringify({
+      messages: [...prior, { role: "user", content }],
+      ...(selectionContext ? { selectionContext } : {}),
+    });
+    let envelope = requestBody();
+    while (prior.length && new TextEncoder().encode(envelope).byteLength > 16_000) {
+      prior.splice(0, 2);
+      envelope = requestBody();
+    }
     const response = await fetch("/api/preview", {
       method: "POST", headers: { "Content-Type": "application/json" }, signal: request.signal,
-      body: JSON.stringify({ messages: [{ role: "user", content }], ...(selectionContext ? { selectionContext } : {}) }),
+      body: envelope,
     });
     const result = await response.json();
     if (pending !== request) return;
@@ -113,6 +124,8 @@ async function ask(value) {
         response.status === 429 ? "Too many requests. Please try again later." : "The assistant is temporarily unavailable.");
       return;
     }
+    if (typeof result.answer !== "string" || !result.answer.trim()) throw new Error("Invalid reply");
+    history = [...history, { role: "user", content }, { role: "assistant", content: result.answer.trim().slice(0, 1000) }].slice(-4);
     showAnswer(result.answer, result.sources, result.followUpQuestions);
   } catch {
     if (pending === request) showAnswer("The assistant is temporarily unavailable.");
@@ -127,6 +140,7 @@ async function ask(value) {
 document.querySelector("#reset").addEventListener("click", () => {
   pending?.abort();
   pending = null;
+  history = [];
   setQuote(null);
   input.value = "";
   asked.textContent = "";

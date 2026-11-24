@@ -1,7 +1,10 @@
 import { performance } from "node:perf_hooks";
 import { buildKnowledgeCorpus, type KnowledgeSource } from "../../lib/knowledge/contract";
 import { buildB2Pack, parsePageContext } from "../../lib/portfolio-chat/b2";
-import { retrieveEvidence } from "../../lib/portfolio-chat/retrieval";
+import { createEvidenceRetriever, defaultRetrievalProfile, retrieveEvidence, type RetrievalPhase } from "../../lib/portfolio-chat/retrieval";
+import { embedTexts } from "../../lib/portfolio-chat/embeddings";
+import { configureModel } from "../../lib/portfolio-chat/provider";
+import { executeGeneration } from "../../lib/portfolio-chat/generation";
 import type { ChatMessage } from "../../lib/portfolio-chat/core";
 
 // Authored expected sources for fictional projects. Entire project groups are held out.
@@ -50,25 +53,58 @@ const sources: KnowledgeSource[] = [...new Set(facts.map(([project]) => project)
 sources.push({ access: "protected", url: "/private" });
 const corpus = await buildKnowledgeCorpus(sources, "evaluation-fixture", async () => {});
 const config = { ownerName: "Example Portfolio" };
+const mean = (values: number[]) => values.reduce((a,b) => a+b,0)/Math.max(1,values.length);
+const percentile = (values: number[], fraction: number) => [...values].sort((a,b)=>a-b)[Math.max(0, Math.ceil(values.length*fraction)-1)];
+const profiles = [
+  ["loose", { ...defaultRetrievalProfile, cosine: 0.33, assistedCosine: 0.27, fused: 0.47 }],
+  ["default", defaultRetrievalProfile],
+  ["strict", { ...defaultRetrievalProfile, cosine: 0.41, assistedCosine: 0.34, fused: 0.55 }],
+  ["lower-keyword-weight", { ...defaultRetrievalProfile, keywordWeight: 0.10 }],
+  ["higher-keyword-weight", { ...defaultRetrievalProfile, keywordWeight: 0.30 }],
+] as const;
+
+if (process.argv.includes("--profiles")) {
+  const development = cases.filter(item => item.split === "development");
+  const results = [];
+  for (const [name, profile] of profiles) {
+    const search = createEvidenceRetriever(embedTexts, profile);
+    const evaluated = [];
+    for (const item of development) {
+      const { qualifiedMatches } = await search(corpus, item.messages, config);
+      evaluated.push({ expected: item.expected, matches: qualifiedMatches.map(chunk => chunk.sourceUrl) });
+    }
+    for (const topK of [3, 5, 8]) {
+      const supported = evaluated.filter(row => row.expected.length).map(row => {
+        const top = row.matches.slice(0, topK);
+        const hits = top.filter(url => row.expected.includes(url)).length;
+        return { recall: hits / row.expected.length, precision: hits / Math.max(1, top.length) };
+      });
+      results.push({ name, topK, recall: mean(supported.map(row => row.recall)), precision: mean(supported.map(row => row.precision)),
+        unsupportedWithMatches: evaluated.filter(row => !row.expected.length && row.matches.length).length });
+    }
+  }
+  console.log(JSON.stringify({ split: "development", cases: development.length, results }, null, 2));
+  process.exit(0);
+}
+
 const rows = [];
 for (const item of cases) {
   const started = performance.now();
-  const retrieval = await retrieveEvidence(corpus, item.messages, config);
+  const stages: Partial<Record<RetrievalPhase | "assembly", number>> = {};
+  const retrieval = await retrieveEvidence(corpus, item.messages, config, (phase, elapsed) => { stages[phase] = elapsed; });
   const retrievalMs = performance.now() - started;
   const language = /[ぁ-んァ-ン]/u.test(item.messages.at(-1)!.content) ? "ja" : /\p{Script=Han}/u.test(item.messages.at(-1)!.content) ? "zh" : "en";
-  const pack = await buildB2Pack(corpus, item.messages, parsePageContext(undefined, corpus), language, undefined, undefined, config);
+  const pack = await buildB2Pack(corpus, item.messages, parsePageContext(undefined, corpus), language, undefined, (phase, elapsed) => { if (phase === "assembly") stages.assembly = elapsed; }, config);
   const matches = retrieval.chunks.slice(0, 5).map(chunk => chunk.sourceUrl);
   const evidence = pack.entries.map(({chunk}) => chunk.sourceUrl);
   const hit = matches.findIndex(url => item.expected.includes(url));
   const retrieved = matches.filter(url => item.expected.includes(url)).length;
   const selected = evidence.filter(url => item.expected.includes(url)).length;
-  rows.push({id:item.id, split:item.split, answerable:item.expected.length > 0, matches, evidence, retrievalMs,
+  rows.push({id:item.id, split:item.split, answerable:item.expected.length > 0, matches, evidence, retrievalMs, stages,
     recall: retrieved / Math.max(1,item.expected.length), precision: retrieved / Math.max(1,matches.length),
     rr: hit < 0 ? 0 : 1/(hit+1), coverage: selected / Math.max(1,item.expected.length),
     irrelevant: evidence.length - selected, noEvidence: evidence.length===0 });
 }
-const mean = (values: number[]) => values.reduce((a,b) => a+b,0)/Math.max(1,values.length);
-const percentile = (values: number[], fraction: number) => [...values].sort((a,b)=>a-b)[Math.max(0, Math.ceil(values.length*fraction)-1)];
 const totals = ["development","holdout"].map(split => {
   const all = rows.filter(row => row.split===split);
   const supported = all.filter(row => row.answerable);
@@ -78,6 +114,29 @@ const totals = ["development","holdout"].map(split => {
     irrelevantEvidenceRate:all.reduce((n,row)=>n+row.irrelevant,0)/Math.max(1,all.reduce((n,row)=>n+row.evidence.length,0)),
     noEvidenceOnUnsupported:mean(unsupported.map(row=>Number(row.noEvidence))) };
 });
-console.log(JSON.stringify({cases:rows.length, totals, performance:{coldRetrievalMs:rows[0].retrievalMs,
-  warmP50Ms:percentile(rows.slice(1).map(row=>row.retrievalMs),.5), warmP95Ms:percentile(rows.slice(1).map(row=>row.retrievalMs),.95),
+const concurrent = createEvidenceRetriever(embedTexts);
+const concurrentRssStart = process.memoryUsage().rss;
+const concurrentStarted = performance.now();
+await Promise.all(cases.slice(0, 4).map(item => concurrent(corpus, item.messages, config)));
+const concurrentMs = performance.now() - concurrentStarted;
+const mode = configureModel({ QWEN_API_KEY: "sample-model-credential", QWEN_BASE_URL: "https://model.fixture.invalid/v1" },
+  async () => Response.json({ id: "fixture", object: "chat.completion", model: "qwen3.7-flash",
+    choices: [{ index: 0, finish_reason: "stop", message: { role: "assistant",
+      content: JSON.stringify({ language: "en", insufficient: false, claims: [{ text: "The map has a raised symbol.", evidenceKeys: ["E1"] }],
+        recommendedProjectIds: [], followUpQuestions: [] }) } }],
+    usage: { prompt_tokens: 245, completion_tokens: 52, total_tokens: 297 },
+  }))!;
+const samples = [];
+for (let sample = 0; sample < 10; sample++) {
+  const started = performance.now();
+  await executeGeneration(mode, "E1: The map has a raised symbol.", [{ role: "user", content: "What symbol does it use?" }]);
+  samples.push(performance.now() - started);
+}
+const warmStageP50Ms = Object.fromEntries(["keyword", "corpusEmbedding", "queryEmbedding", "semantic", "assembly"].map(phase => [
+  phase, percentile(rows.slice(1).map(row => row.stages[phase as keyof typeof row.stages] ?? 0), .5),
+]));
+console.log(JSON.stringify({cases:rows.length, totals, performance:{coldRetrievalMs:rows[0].retrievalMs, coldStagesMs: rows[0].stages,
+  warmP50Ms:percentile(rows.slice(1).map(row=>row.retrievalMs),.5), warmP95Ms:percentile(rows.slice(1).map(row=>row.retrievalMs),.95), warmStageP50Ms,
+  concurrentCorpusCold4Ms: concurrentMs, concurrentRssDeltaBytes: process.memoryUsage().rss - concurrentRssStart,
+  fixtureGenerationP50Ms: percentile(samples,.5), fixtureGenerationP95Ms: percentile(samples,.95),
   rssBytes:process.memoryUsage().rss}, rows},null,2));

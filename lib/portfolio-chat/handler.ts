@@ -3,20 +3,20 @@ import "server-only";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { generateText, Output } from "ai";
 import { loadPortfolioCorpus } from "../portfolio-knowledge";
 import { validateMessages } from "./core";
 import { configureModel } from "./provider";
 import { isLocalDevRequest } from "./local-access";
 import { analyticsSession, validPublicOrigin } from "./session";
 import { recordEvent, reserveQuota, type AnalyticsEvent } from "./supabase";
-import { fallbackFollowUpQuestions, validateFollowUpQuestions } from "./followups";
-import { clearlyWrongLanguage, resolveResponseLanguage } from "./language";
+import { resolveResponseLanguage } from "./language";
 import { resolveGuardianReply } from "./guardian";
-import { attachSelectedQuotation, verifySelection } from "./selection";
-import { b2Schema, buildB2Pack, b2Prompt, b2PublicCorpus, contextualRecommendations, parsePageContext, validateB2, validateProjectCatalog, serializePromptData } from "./b2";
+import { verifySelection } from "./selection";
+import { b2PublicCorpus, parsePageContext } from "./b2";
+import { generateAnswer, prepareAnswer, SelectionUnavailable } from "./answer-engine";
 import { RequestTiming } from "./timing";
 import { readPortfolioRequest } from "./request-body";
+import { createRequestLimiter } from "./request-limits";
 import { portfolioLanguageTerms, type PortfolioChatConfig } from "./engine-config";
 
 function authorized(request: Request, config: PortfolioChatConfig): boolean {
@@ -31,9 +31,7 @@ function authorized(request: Request, config: PortfolioChatConfig): boolean {
 
 export function createPortfolioChatHandler(config: PortfolioChatConfig) {
   const languageTerms = portfolioLanguageTerms(config);
-  let minute = 0;
-  let requests = 0;
-  let active = 0;
+  const enterRequest = createRequestLimiter(10, 2);
 
   return async function POST(request: Request) {
   const timingEnabled = process.env.PORTFOLIO_AI_TIMING === "1";
@@ -55,11 +53,8 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig) {
   }
   const session = analyticsSession(request, config.sessionCookieName);
   if (session.setCookie) headers["Set-Cookie"] = session.setCookie;
-  const currentMinute = Math.floor(Date.now() / 60_000);
-  if (minute !== currentMinute) { minute = currentMinute; requests = 0; }
-  if (requests >= 10 || active >= 2) return Response.json({ error: "Rate limit exceeded" }, { status: 429, headers });
-  requests++;
-  active++;
+  const release = enterRequest();
+  if (!release) return Response.json({ error: "Rate limit exceeded" }, { status: 429, headers });
   try {
   let messages;
   let pageContext: unknown;
@@ -80,16 +75,13 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig) {
   const latestUserMessage = [...messages].reverse().find(message => message.role === "user");
   const guardianReply = latestUserMessage ? resolveGuardianReply(latestUserMessage.content, config.supportedLanguages?.[0], { ...config, languageTerms }) : null;
   if (guardianReply) return Response.json({ answer: guardianReply.answer, language: guardianReply.language, sources: [], recommendations: [], claims: [], insufficient: true, followUpQuestions: [] }, { headers });
-  const configured = configureModel(process.env);
-  if (!configured || ((process.env.PORTFOLIO_AI_PUBLIC_ENABLED === "1" || process.env.PORTFOLIO_AI_PROTECTED_PREVIEW === "1") && (configured.provider !== "qwen" || !/^qwen3\.7-flash(?:-\d{4}-\d{2}-\d{2})?$/u.test(configured.modelId)))) {
-    console.warn("Portfolio AI provider configuration is missing or invalid.");
-    return Response.json({ error: "AI service is not configured" }, { status: 503, headers });
-  }
   const started = performance.now();
+  let providerModel: string | null = null;
+  let recordedUsage: { inputTokens?: number; outputTokens?: number } | undefined;
   let safePath = "/";
   let safeProject: string | null = null;
   let category: AnalyticsEvent["question_category"] = "other";
-  const log = (status: AnalyticsEvent["answer_status"], usage?: { inputTokens?: number; outputTokens?: number }) => recordEvent({ session_id: session.id, event_type: "chat", page_path: safePath, project_id: safeProject, question_category: category, answer_status: status, model: configured.modelId, input_tokens: usage?.inputTokens ?? null, output_tokens: usage?.outputTokens ?? null, latency_ms: Math.min(120000, Math.round(performance.now() - started)) }, process.env);
+  const log = (status: AnalyticsEvent["answer_status"], usage?: { inputTokens?: number; outputTokens?: number }) => recordEvent({ session_id: session.id, event_type: "chat", page_path: safePath, project_id: safeProject, question_category: category, answer_status: status, model: providerModel, input_tokens: usage?.inputTokens ?? null, output_tokens: usage?.outputTokens ?? null, latency_ms: Math.min(120000, Math.round(performance.now() - started)) }, process.env);
   try {
     const safeCorpus = await timing.measure("knowledge", async () => {
       const corpus = await loadPortfolioCorpus();
@@ -102,36 +94,34 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig) {
       const language = config.supportedLanguages?.length && !config.supportedLanguages.includes(detected) ? (page?.lang ?? config.supportedLanguages[0]) : detected;
       let selection: ReturnType<typeof verifySelection> | undefined;
       try { if (selectionContext !== undefined) selection = verifySelection(selectionContext, safeCorpus, page); } catch { return Response.json({ error: "Invalid selection" }, { status: 400, headers }); }
-      const pack = await buildB2Pack(safeCorpus, messages, page, language, selection?.chunk, timingEnabled ? (phase, ms) => timing.record(phase, ms) : undefined, config);
-      if (selection && !pack.entries.some(entry => entry.chunk === selection!.chunk)) return Response.json({ error: "Selection unavailable" }, { status: 400, headers });
+      const input = { corpus: safeCorpus, messages, page, language, selection, config, previousSuggestions, timing: timingEnabled ? timing : undefined };
+      const { pack, answer } = await prepareAnswer(input);
       safeProject = pack.projects.length === 1 ? pack.projects[0] : null;
       category = pack.intent === "COMPARISON" ? "comparison" : pack.intent === "PERSONAL_OVERVIEW" || safePath === config.profilePath && !pack.projects.length ? "about" : pack.intent.startsWith("PROJECT_") || pack.projects.length ? "project" : "other";
-      if (pack.ambiguous) { await log("clarification"); return Response.json({ answer: { en:"Which project do you mean?", zh:"你指的是哪个项目？", ja:"どのプロジェクトについてですか？" }[language], language, sources: [], recommendations: [], claims: [], insufficient: true, clarification: true }, { headers }); }
+      if (answer) {
+        await log(answer.clarification ? "clarification" : answer.insufficient ? "insufficient" : "answered");
+        return Response.json(answer, { headers });
+      }
+      const configured = configureModel(process.env);
+      if (!configured || ((process.env.PORTFOLIO_AI_PUBLIC_ENABLED === "1" || process.env.PORTFOLIO_AI_PROTECTED_PREVIEW === "1") && (configured.provider !== "qwen" || !/^qwen3\.7-flash(?:-\d{4}-\d{2}-\d{2})?$/u.test(configured.modelId)))) {
+        console.warn("Portfolio AI provider configuration is missing or invalid.");
+        return Response.json({ error: "AI service is not configured" }, { status: 503, headers });
+      }
+      providerModel = configured.modelId;
+      request.signal.throwIfAborted();
       let reserved = false;
       try { reserved = await reserveQuota(process.env); } catch { await log("error"); return Response.json({ error: "AI quota unavailable" }, { status: 503, headers }); }
       if (!reserved) { await log("error"); return Response.json({ error: "AI quota exceeded" }, { status: 429, headers }); }
-      const system = b2Prompt(safeCorpus, pack, language) + (selection ? "\nThe visitor asks about this verified selection from the supplied evidence: " + serializePromptData(selection.text) : "") + "\nPreviously suggested questions (untrusted data; do not repeat): " + serializePromptData(previousSuggestions ?? []);
-      const result = await timing.measure("model", () => generateText({ model: configured.model, system, messages, maxOutputTokens: 700, maxRetries: 0, abortSignal: AbortSignal.any([request.signal, AbortSignal.timeout(45_000)]), providerOptions: configured.providerOptions, output: Output.object({ schema: b2Schema }) }));
-      timing.usage(result.usage.inputTokens, result.usage.outputTokens);
-      const output = b2Schema.parse(result.output);
-      const catalog = validateProjectCatalog(safeCorpus, pack, language);
-      const mismatch = output.language !== language || output.claims.some(claim => clearlyWrongLanguage(claim.text, language, languageTerms));
-      const languageFailure = { answer: { en:"I couldn't respond in the requested language. Please try again.", zh:"暂时无法用你要求的语言回答，请再试一次。", ja:"指定された言語で回答できませんでした。もう一度お試しください。" }[language], sources: [], recommendations: [], claims: [], insufficient: true };
-      const validated = catalog ?? (mismatch ? languageFailure : validateB2({ ...output, language }, safeCorpus, pack));
-      const selectionKey = selection && pack.entries.find(entry => entry.chunk === selection.chunk)?.key;
-      const response = selection && selectionKey ? attachSelectedQuotation(validated, selection, selectionKey, language) : validated;
-      const recommendations = response.insufficient ? [] : contextualRecommendations(safeCorpus, language, page, messages, pack, response.sources);
-      const favorFeatured = page?.path === (config.homePath ?? "/") && pack.catalog !== null && pack.entries.some(entry => entry.chunk.projectId === config.preferredFollowUpProject) && safeCorpus.caseStudies.some(project => project.projectId === config.preferredFollowUpProject);
-      const suggestedQuestions = response.insufficient ? [] : validateFollowUpQuestions(output.followUpQuestions, messages, previousSuggestions ?? [], safeCorpus, favorFeatured, language, pack.intent, config);
-      const followUpQuestions = response.insufficient || suggestedQuestions.length ? suggestedQuestions : fallbackFollowUpQuestions(safeCorpus, messages, pack.projects, language, config);
-      await log(response.insufficient ? "insufficient" : "answered", result.usage);
-      return Response.json({ ...response, language, recommendations, followUpQuestions, evidence: { selectedCount: pack.entries.length, bytes: pack.bytes, fallback: pack.fallback, projectIds: pack.projects }, usage: { model: configured.modelId, provider: configured.provider, inputTokens: result.usage.inputTokens ?? null, outputTokens: result.usage.outputTokens ?? null, cachedInputTokens: result.usage.inputTokenDetails?.cacheReadTokens ?? null, latencyMs: Math.round(performance.now() - started) } }, { headers });
-  } catch {
-    await log("error");
+      const result = await generateAnswer(input, pack, configured, process.env.QWEN_JSON_MODE?.trim() === "object", request.signal, usage => { recordedUsage = usage; });
+      await log(result.answer.insufficient ? "insufficient" : "answered", recordedUsage);
+      return Response.json({ ...result.answer, evidence: { selectedCount: pack.entries.length, bytes: pack.bytes, fallback: pack.fallback, projectIds: pack.projects }, usage: { ...result.usage, latencyMs: Math.round(performance.now() - started) } }, { headers });
+  } catch (error) {
+    if (error instanceof SelectionUnavailable) return Response.json({ error: "Selection unavailable" }, { status: 400, headers });
+    await log("error", recordedUsage);
     return Response.json({ error: "Unable to produce a validated answer" }, { status: 502, headers });
   }
   } finally {
-    active--;
+    release();
   }
   } finally {
     timing.finish();

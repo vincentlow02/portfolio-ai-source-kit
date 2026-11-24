@@ -29,6 +29,7 @@ function names(text: string, corpus: PortfolioCorpus, config: PortfolioChatConfi
     const terms = [...(config.projectAliases?.[id] ?? []), id, id.replaceAll("-", " "),
       ...corpus.caseStudies.filter((project) => project.projectId === id).map((project) => project.title.toLocaleLowerCase())];
     return terms.some((term) => {
+    term = term.toLocaleLowerCase();
     const escaped = term.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
     return /[a-z]/u.test(term)
       ? new RegExp("(?<![a-z0-9])" + escaped + "(?![a-z0-9])", "iu").test(lower)
@@ -37,32 +38,43 @@ function names(text: string, corpus: PortfolioCorpus, config: PortfolioChatConfi
   });
 }
 
-export function resolveProjects(messages: ChatMessage[], corpus: PortfolioCorpus, config = defaultPortfolioChatConfig): string[] {
-  const last = messages.at(-1)?.content ?? "";
-  const current = names(last, corpus, config);
-  if (current.length) {
-    if (current.length === 1 && reference.test(last)) {
-      const prior = [...messages.slice(0, -1)].reverse().filter((message) => message.role === "user")
-        .map((message) => names(message.content, corpus, config)).find((ids) => ids.length > 0);
-      if (prior?.length === 1 && prior[0] !== current[0]) return [prior[0], current[0]];
-    }
-    return current;
-  }
-  if (!reference.test(last)) return [];
-  const previous = [...messages.slice(0, -1)].reverse().filter((message) => message.role === "user")
-    .map((message) => names(message.content, corpus, config)).find((ids) => ids.length > 0);
-  return previous?.length === 1 ? previous : [];
+function isContextualFollowUp(query: string) {
+  return reference.test(query) || /\b(?:how (?:did|was|were) (?:the team|they|he|she|that)|why (?:did|was|were) (?:they|he|she|that)|(?:validate|test|design|choose) that|what about|tell me more)\b|为什么(?:这么做|这样做)|それはなぜ|(?:团队|他们).{0,10}(?:如何验证|如何测试)|どうやって(?:検証|テスト)/iu.test(query);
 }
 
 export function resolveContext(messages: ChatMessage[], corpus: PortfolioCorpus, config = defaultPortfolioChatConfig) {
   const query = messages.at(-1)?.content ?? "";
-  const prior = [...messages.slice(0, -1)].reverse().filter((message) => message.role === "user")
-    .map((message) => names(message.content, corpus, config)).find((ids) => ids.length > 0) ?? [];
-  return {
-    projects: resolveProjects(messages, corpus, config),
-    ambiguous: reference.test(query) && names(query, corpus, config).length <= 1 && prior.length > 1,
-  };
+  const explicit = names(query, corpus, config);
+  const contextual = isContextualFollowUp(query);
+  const priorQuestions = contextual ? messages.slice(0, -1).reverse().filter(message => message.role === "user") : [];
+  const prior = priorQuestions.map(message => names(message.content, corpus, config)).find(ids => ids.length > 0) ?? [];
+  const comparesPrior = explicit.length === 1 && prior.length === 1 && prior[0] !== explicit[0] &&
+    /compare|difference|相比|比较|比較|違い/iu.test(query) && reference.test(query);
+  const projects = comparesPrior ? [prior[0], explicit[0]] : explicit.length ? explicit : prior.length === 1 ? prior : [];
+  const ambiguous = contextual && !explicit.length && prior.length > 1;
+  const previous = priorQuestions[0]?.content;
+  // Carry a small topic hint only for elliptical questions. A fresh named
+  // project or a specific follow-up can be retrieved from its own wording.
+  const topic = previous && !explicit.length && !ambiguous &&
+    /\b(?:why (?:was|were|did) (?:it|that|they)|tell me more|what about (?:it|that))\b|为什么(?:这么做|这样做)|それはなぜ/iu.test(query)
+    ? searchTerms(previous, projects, corpus, config).slice(0, 120) : "";
+  return { projects, explicit, ambiguous, topic };
 }
+
+export function resolveProjects(messages: ChatMessage[], corpus: PortfolioCorpus, config = defaultPortfolioChatConfig): string[] {
+  return resolveContext(messages, corpus, config).projects;
+}
+
+export type RetrievalResult = {
+  projects: string[];
+  candidates: PortfolioChunk[];
+  qualifiedMatches: PortfolioChunk[];
+  /** Only qualified matches have scoring priority. */
+  scores: Map<string, number>;
+  /** Compatibility alias for callers using the original result shape. */
+  chunks: PortfolioChunk[];
+  fallback: boolean;
+};
 
 function searchTerms(query: string, projects: string[], corpus: PortfolioCorpus, config: PortfolioChatConfig): string {
   let terms = query;
@@ -140,11 +152,16 @@ function exactMatch(candidates: PortfolioChunk[], terms: string, question: strin
     .sort((a, b) => (keywords.get(b.chunkId) ?? 0) - (keywords.get(a.chunkId) ?? 0))[0];
 }
 
-export function createEvidenceRetriever(embed: EmbedTexts) {
+export type RetrievalPhase = "keyword" | "corpusEmbedding" | "queryEmbedding" | "semantic";
+export type RetrievalTiming = (phase: RetrievalPhase, milliseconds: number) => void;
+export const defaultRetrievalProfile = { cosine: 0.365, assistedCosine: 0.30, fused: 0.50, keywordWeight: 0.20 };
+
+export function createEvidenceRetriever(embed: EmbedTexts, profile = defaultRetrievalProfile) {
   let cache: { key: string; vectors: ReturnType<typeof embedPassages> } | undefined;
-  return async (corpus: PortfolioCorpus, messages: ChatMessage[], config = defaultPortfolioChatConfig) => {
-    const projects = resolveProjects(messages, corpus, config);
-    const question = messages.at(-1)?.content ?? "";
+  return async (corpus: PortfolioCorpus, messages: ChatMessage[], config = defaultPortfolioChatConfig, timing?: RetrievalTiming): Promise<RetrievalResult> => {
+    const { projects, topic } = resolveContext(messages, corpus, config);
+    const currentQuestion = messages.at(-1)?.content ?? "";
+    const question = topic ? currentQuestion + " " + topic : currentQuestion;
     const terms = searchTerms(question, projects, corpus, config);
     const pages = new Set(corpus.pages.map(page => page.url));
     const approved = corpus.chunks.filter(chunk => chunk.accessLevel === "public" &&
@@ -153,9 +170,12 @@ export function createEvidenceRetriever(embed: EmbedTexts) {
     const passages = approved.filter(isSubstantivePassage);
     const candidates = passages.filter(chunk => !projects.length || projects.includes(chunk.projectId ?? ""));
     const scores = new Map<string, number>();
-    if (!question || !candidates.length) return { projects, scores, chunks: [], fallback: true };
+    if (!question || !candidates.length) return { projects, candidates, scores, chunks: [], qualifiedMatches: [], fallback: true };
 
+    const keywordStarted = timing ? performance.now() : 0;
     const keywords = await scoreKeywords(keywordIndexes(approved, key), terms, projects, approved.length);
+    timing?.("keyword", performance.now() - keywordStarted);
+    const corpusStarted = timing ? performance.now() : 0;
     if (cache?.key !== key) {
       const vectors = embedPassages(passages, embed).catch(error => {
         if (cache?.vectors === vectors) cache = undefined;
@@ -164,21 +184,26 @@ export function createEvidenceRetriever(embed: EmbedTexts) {
       cache = { key, vectors };
     }
     const vectors = await cache.vectors;
+    timing?.("corpusEmbedding", performance.now() - corpusStarted);
+    const queryStarted = timing ? performance.now() : 0;
     const [query] = await embed([question]);
+    timing?.("queryEmbedding", performance.now() - queryStarted);
+    const semanticStarted = timing ? performance.now() : 0;
     if (!query?.length) throw new Error("Invalid question embedding");
     for (const { chunkId } of candidates) {
       const vector = vectors.get(chunkId)!;
       if (vector.length !== query.length) throw new Error("Inconsistent embedding dimensions");
       const similarity = vector.reduce((sum, component, index) => sum + component * query[index], 0);
-      const score = similarity + 0.20 * (keywords.get(chunkId) ?? 0);
+      const score = similarity + profile.keywordWeight * (keywords.get(chunkId) ?? 0);
       // Full-text support can admit a match just below the semantic cutoff.
-      if (similarity >= 0.365 || (similarity >= 0.30 && score >= 0.50)) scores.set(chunkId, score);
+      if (similarity >= profile.cosine || (similarity >= profile.assistedCosine && score >= profile.fused)) scores.set(chunkId, score);
     }
     const exact = exactMatch(candidates, terms, question, keywords);
     if (exact) scores.set(exact.chunkId, 2);
     const chunks = candidates.filter(chunk => scores.has(chunk.chunkId))
       .sort((a, b) => scores.get(b.chunkId)! - scores.get(a.chunkId)!);
-    return { projects, scores, chunks, fallback: !chunks.length };
+    timing?.("semantic", performance.now() - semanticStarted);
+    return { projects, candidates, scores, chunks, qualifiedMatches: chunks, fallback: !chunks.length };
   };
 }
 

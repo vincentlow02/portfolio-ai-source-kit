@@ -29,11 +29,13 @@ globalThis.fetch = async (input, init) => {
     try { const item = JSON.parse(line); return item.key && item.text ? [item] : []; } catch { return []; }
   });
   const lantern = entries.find(entry => entry.project === "lantern" && /six libraries/u.test(entry.text));
+  const lanternOverview = entries.find(entry => entry.project === "lantern" && /step-free routes/u.test(entry.text));
   const signal = entries.find(entry => entry.project === "signal" && /colored arrival indicators/u.test(entry.text));
   if (query.includes("Cancellation fixture")) await new Promise(resolve => setTimeout(resolve, 2200));
   const claim = (text, evidence) => ({ text, evidenceKeys: [evidence.key] });
   const claims = [];
-  if (/lantern|tactile|libraries|compare/u.test(query.toLowerCase()) && lantern) claims.push(claim("The Lantern team tested tactile signs at six libraries.", lantern));
+  if (/compare/iu.test(query) && lanternOverview) claims.push(claim("Lantern helps people find step-free routes through public buildings.", lanternOverview));
+  else if (/lantern|tactile|libraries/u.test(query.toLowerCase()) && lantern) claims.push(claim("The Lantern team tested tactile signs at six libraries.", lantern));
   if (/signal/u.test(query.toLowerCase()) && signal) claims.push(claim("Signal uses colored arrival indicators.", signal));
   const output = { language: "en", insufficient: claims.length === 0, claims, recommendedProjectIds: [],
     followUpQuestions: claims.length ? ["What did the Lantern team test?"] : [] };

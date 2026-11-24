@@ -1,26 +1,22 @@
-import { z } from "zod";
 import type { PortfolioChunk, PortfolioCorpus } from "../portfolio-knowledge";
 import { resolveRecommendations, validateAnswer, type B2Intent, type ChatMessage } from "./core";
-import { isSubstantivePassage, resolveContext, resolveProjects, retrieveEvidence } from "./retrieval";
+import { isSubstantivePassage, resolveContext, resolveProjects, retrieveEvidence, type RetrievalPhase, type RetrievalResult } from "./retrieval";
 import { languageInstruction, type ResponseLanguage } from "./language";
-import { defaultPortfolioChatConfig } from "./engine-config";
-import { projectPath, replaceOwnerMentions, sourcePath as pathnameOf, isInternalSource, type PortfolioChatConfig } from "./engine-config";
+import { audienceStatement, personalRoleLabel } from "./grounding";
+import { defaultPortfolioChatConfig, projectPath, replaceOwnerMentions, sourcePath as pathnameOf, isInternalSource, type PortfolioChatConfig } from "./engine-config";
 
-export const b2Schema = z.object({ language: z.enum(["en", "zh", "ja"]), insufficient: z.boolean(),
-  claims: z.array(z.object({ text: z.string().min(1).max(1200), evidenceKeys: z.array(z.string()).min(1).max(3) })).max(8),
-  recommendedProjectIds: z.array(z.string()).max(2), followUpQuestions: z.array(z.string().min(3).max(180)).max(3) });
+export { b2Schema } from "./answer-schema";
+export { validateB2 } from "./grounding";
+
 export type PageContext = { pathname: string; lang?: "en" | "zh" | "ja"; sectionId?: string };
 const overviewQuestion = /(?:\bwhat is\b|\bwhat's\b|\btell me about\b|是什么|什么产品|介绍|どんな|とは)/iu;
 const audienceQuestion = /(?:\b(?:target audience|target users?|who (?:is|was) .{0,60} for|who uses)\b|目标用户|目标人群|适合谁|対象ユーザー|対象者|誰のため)/iu;
-const audienceStatement = /(?:\b(?:designed|built|intended)\s+for\b|\bfor\s+(?:students?|researchers?|designers?|users?|people|teams?)\b|対象(?:ユーザー|者|として|に)|(?:学生|研究者|利用者|ユーザー).{0,12}(?:のため|向け)|(?:面向|针对).{0,12}(?:用户|使用者|学生|研究者))/iu;
 const presentationQuestion = /(?:website|web\s?page|landing page|presentation|marketing|网站|网页|介绍页|展示页面|ウェブ|サイト|紹介ページ)/iu;
 const presentationSection = /(?:landing page|product (?:introduction|presentation) page|website|产品介绍页|产品展示页|紹介ページ|ランディングページ)/iu;
 const roleQuestion = /(?:\b(?:role|responsibilit(?:y|ies)|contribut(?:e|ed|ion|ions))\b|\bwhat did (?:portfolioowner|he|you) do\b|职责|责任|负责|贡献|担当|役割|貢献|何を(?:担当|した))/iu;
 const researchQuestion = /(?:\b(?:research|study|studies|interview|interviews|participants?|findings?|insights?|survey|usability test|research method)\b|研究|调研|調研|访谈|訪談|采访|インタビュー|参加者|調査|調査方法|研究方法|研究結果|发现|發現|结果|結果)/iu;
 const personalOverviewQuestion = /(?:\bwho\s+(?:is|was)\s+portfolioowner\b|\blearn\s+(?:more\s+)?about\s+portfolioowner\b|\btell\s+me(?:\s+more)?\s+about\s+(?:portfolioowner|him)\b|\bwhat\s+(?:kind|type)\s+of\s+(?:product\s+)?designer\s+is\s+portfolioowner\b|\bhow\s+(?:does|do)\s+(?:portfolioowner|he)\s+(?:approach|think about)\s+(?:product\s+)?design\b|\bportfolioowner(?:'s)?\s+(?:background|profile|design(?:er)?(?:\s+approach|\s+philosophy)?)\b|\btell\s+me(?:\s+more)?\s+about\s+portfolioowner(?:'s)?\s+(?:design|background|work)\b|(?:告诉我|介绍|说说|了解)[^?？]{0,20}关于\s*portfolioowner|portfolioowner\s*(?:是怎样|是什么样|是谁|的背景|的设计理念|的设计方式)|portfolioowner\s*について(?:教えて|知りたい|紹介|説明|もっと)?|portfolioowner\s*はどんな(?:デザイナー|人)|portfolioowner\s*の(?:プロフィール|背景|デザインへの考え|デザイン哲学)|デザインに対するportfolioownerの考え)/iu;
 const representativeProjectQuestion = /(?:\bwhich\s+projects?\b[^?]{0,80}\b(?:demonstrat|show|reflect)[^?]{0,40}\b(?:design|approach|work)\b|\bwhich\s+project\b[^?]{0,80}\b(?:best\s+)?(?:demonstrat|show|reflect)\b|(?:哪些|哪个|哪個|どの|どんな)[^?？]{0,40}(?:项目|作品|プロジェクト)[^?？]{0,50}(?:体现|展现|示す|表す|设计|設計))/iu;
-const recentProjectReference = /(?:\bhis (?:role|responsibilities|contributions?|research|work|design|findings|methods?)\b|他的(?:职责|贡献|研究|工作|设计|发现)|彼の(?:役割|担当|研究)|その(?:研究|調査))/iu;
-const personalRoleLabel = /(?:^|\n)\s*(?:my role|我的职责|担当)\s*(?:[:：]|\n)/iu;
 const fullProjectList = /(?:\b(?:list|enumerate|show|name|all|every)\b[^?]{0,100}\b(?:projects?|portfolio)\b|\bwhat\s+are\s+(?:his|portfolioowner(?:'s|’s))\s+projects?\b|\b(?:what|which)\s+projects?\s+(?:(?:has|have|did)\b[^?]{0,60}\b(?:worked|created|designed|built|made)\b|(?:are|appear)\b[^?]{0,60}\b(?:portfolio|listed)\b)|(?:所有|全部|哪些|列出|列举|一覧|すべて|全て|どんな|どの)[^?？]{0,50}(?:项目|專案|作品|プロジェクト)|(?:项目|專案|作品|プロジェクト)[^?？]{0,30}(?:有哪些|有哪|一覧|すべて|全て))/iu;
 
 function relatedProject(chunk: PortfolioChunk, catalog: PortfolioChunk[], config: PortfolioChatConfig) {
@@ -90,32 +86,35 @@ export function parsePageContext(value: unknown, corpus: PortfolioCorpus, config
   return { path, projectId: page.kind === "case-study" || page.kind === "project-detail" ? page.projectId : null, sectionId: hint.sectionId as string | undefined, lang: hint.lang as "en" | "zh" | "ja" | undefined };
 }
 
-export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage[], page: ReturnType<typeof parsePageContext>, responseLanguage: ResponseLanguage = page?.lang ?? "en", selectedChunk?: PortfolioChunk, timing?: (phase: "retrieval" | "assembly", milliseconds: number) => void, config = defaultPortfolioChatConfig) {
+export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage[], page: ReturnType<typeof parsePageContext>, responseLanguage: ResponseLanguage = page?.lang ?? "en", selectedChunk?: PortfolioChunk, timing?: (phase: "retrieval" | "assembly" | RetrievalPhase, milliseconds: number) => void, config = defaultPortfolioChatConfig) {
   const packStarted = timing ? performance.now() : 0;
   const query = messages.at(-1)!.content;
   const ownerQuery = replaceOwnerMentions(query, config);
-  const explicit = resolveProjects([{ role: "user", content: query }], corpus, config);
   const resolved = resolveContext(messages, corpus, config);
+  const explicit = resolved.explicit;
   const comparison = /compare|different|difference|比较|区别|不同|比較|違い/iu.test(query);
   const topic = requestedTopic(query);
   const topicQualified = topic !== null || /\bprojects?\s+(?:focused on|related to|about|involving|using|with|for)\b|(?:项目|專案|作品|プロジェクト).{0,20}(?:关于|涉及|聚焦|有关|関連|について|を使)/iu.test(query);
   const listRequested = fullProjectList.test(ownerQuery) && !explicit.length && !comparison;
   const personal = !explicit.length && (personalOverviewQuestion.test(ownerQuery) || /(?:介绍|介紹|了解)(?:一下)?\s*portfolioowner\s*[?？。！!]*$|portfolioowner\s*について(?:教えて|知りたい|紹介|説明)/iu.test(ownerQuery));
-  const referencedProject = recentProjectReference.test(query) && resolved.projects.length > 0;
-  let projects = listRequested || personal ? [] : explicit.length ? explicit : referencedProject ? resolved.projects : page?.projectId ? [page.projectId] : resolved.projects;
-  if (comparison && explicit.length === 1 && page?.projectId && page.projectId !== explicit[0]) projects = [page.projectId, explicit[0]];
+  const referencedProject = !explicit.length && !resolved.ambiguous && resolved.projects.length > 0;
+  let projects = listRequested || personal ? [] : resolved.projects.length ? resolved.projects : page?.projectId ? [page.projectId] : [];
+  if (comparison && projects.length === 1 && explicit.length === 1 && page?.projectId && page.projectId !== explicit[0]) projects = [page.projectId, explicit[0]];
   const intent: B2Intent = listRequested ? "PROJECT_LIST"
     : comparison ? "COMPARISON"
     : personal ? "PERSONAL_OVERVIEW"
-    : roleQuestion.test(ownerQuery) && projects.length ? "PROJECT_ROLE"
-    : researchQuestion.test(query) && projects.length ? "PROJECT_RESEARCH"
+    : (roleQuestion.test(ownerQuery) || /\bresponsible for\b/iu.test(ownerQuery)) && projects.length ? "PROJECT_ROLE"
+    : (researchQuestion.test(query) || referencedProject && /validat|验证|検証/iu.test(query)) && projects.length ? "PROJECT_RESEARCH"
     : explicit.length && overviewQuestion.test(query) ? "PROJECT_OVERVIEW"
     : "OTHER";
   const allowProjectEvidence = personal && representativeProjectQuestion.test(query);
   const ambiguous = !page?.projectId && resolved.ambiguous;
-  const searchMessages = projects.length ? [{ role: "user" as const, content: projects.join(" ") + " " + query }] : messages;
+  const searchQuery = [...projects, query, resolved.topic].filter(Boolean).join(" ");
+  const searchMessages: ChatMessage[] = [{ role: "user", content: searchQuery }];
   const retrievalStarted = timing ? performance.now() : 0;
-  const retrieval = await retrieveEvidence(corpus, searchMessages, config);
+  const retrieval: RetrievalResult = listRequested && !selectedChunk
+    ? { projects, chunks: [], qualifiedMatches: [], candidates: [], scores: new Map(), fallback: false }
+    : await retrieveEvidence(corpus, searchMessages, config, timing);
   const retrievalDuration = timing ? performance.now() - retrievalStarted : 0;
   timing?.("retrieval", retrievalDuration);
   const overview = overviewQuestion.test(query) && !presentationQuestion.test(query);
@@ -125,14 +124,29 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
       (!projects.length || projects.includes(c.projectId ?? "")) && (!overview || !presentationSection.test(c.sectionTitle)) &&
       (intent !== "PERSONAL_OVERVIEW" || sourcePath === config.profilePath || allowProjectEvidence && c.projectId !== null && (sourcePath === projectPath(corpus, config, c.projectId, c.language) || sourcePath === config.publicOverviewPath));
   });
-  const ranked = [...eligible].sort((a,b) => (retrieval.scores.get(b.chunkId) ?? 0) - (retrieval.scores.get(a.chunkId) ?? 0));
+  const ranked = retrieval.qualifiedMatches.filter(chunk => eligible.includes(chunk));
+  const supplements = new Map<string, string>();
+  const seen = new Set<string>();
   const result: PortfolioChunk[] = [];
   let bytes = 0;
-  const add = (c: PortfolioChunk) => { const size = Buffer.byteLength(c.content); if (result.length < 18 && size <= 3000 && bytes + size <= 18000 && !result.includes(c)) { result.push(c); bytes += size; } };
-  if (selectedChunk && eligible.includes(selectedChunk)) add(selectedChunk);
+  const add = (c: PortfolioChunk, reason?: string) => {
+    const size = Buffer.byteLength(c.content);
+    if (result.length >= 18 || size > 3000 || bytes + size > 18000 || seen.has(c.chunkId)) return;
+    if (!retrieval.scores.has(c.chunkId) && !reason) return;
+    if (c.buildVersion !== corpus.contentHash || c.accessLevel !== "public" || !corpus.pages.some(page => page.url === c.sourceUrl.split("#")[0])) return;
+    result.push(c);
+    seen.add(c.chunkId);
+    bytes += size;
+    if (reason) supplements.set(c.chunkId, reason);
+  };
+  if (selectedChunk && eligible.includes(selectedChunk)) add(selectedChunk, "verified-selection");
+  if (/\b(?:which|what) materials?\b|用.{0,8}什么材料|何の素材|何で作/iu.test(query)) {
+    const materials = eligible.filter(chunk => /^(?:materials?|材质|材料|素材)$/iu.test(chunk.sectionTitle));
+    if (materials.length === 1) add(materials[0], "explicit-material-section");
+  }
   if (audienceQuestion.test(query)) for (const id of projects) {
     const direct = eligible.find(c => c.projectId === id && c.language === responseLanguage && pathnameOf(c.sourceUrl) === projectPath(corpus, config, id, responseLanguage) && c.content.split(/[。.!?\n]/u).some(sentence => audienceStatement.test(sentence)));
-    if (direct) add(direct);
+    if (direct) add(direct, "explicit-audience");
   }
   // The published project directory, not search rankings or case-study access,
   // owns the enumeration. A public card is distinct from a protected case study.
@@ -141,25 +155,25 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   // AI requests are exhaustive only when public project evidence demonstrates AI as a product capability.
   // Unknown topic filters fail closed below instead of silently falling back to top-k retrieval.
   const catalog = topicQualified ? topic ? directory.filter(item => matchesTopic(corpus, item, topic, language, config)) : [] : directory;
-  for (const chunk of catalog) add(chunk);
+  for (const chunk of catalog) add(chunk, "public-project-catalog");
   if (listRequested) for (const item of catalog) {
     if (!item.projectId) continue;
     if (topic === "ai") {
       const support = aiFocusEvidence(corpus, item, language, config);
-      if (support) add(support);
+      if (support) add(support, "catalog-topic-evidence");
     }
     const path = projectPath(corpus, config, item.projectId, language);
     const candidates = corpus.chunks.filter(c => c.projectId === item.projectId && c.language === language && c.accessLevel === "public" && corpus.pages.some(p => p.url === c.sourceUrl.split("#")[0]) && (pathnameOf(c.sourceUrl) === path || (corpus.report.exclusions.some(e => e.pathname === path && e.reason === "protected") && pathnameOf(c.sourceUrl) === config.publicOverviewPath)));
     const overview = candidates.find(c => catalogExcerpt(c));
-    if (overview) add(overview);
+    if (overview) add(overview, "catalog-project-overview");
   }
-  if (intent === "PROJECT_LIST" && topicQualified) {
-    // The topic-specific directory and its direct public support are the complete evidence pack.
+  if (intent === "PROJECT_LIST") {
+    // The directory and its direct public support are the complete evidence pack.
   } else if (intent === "PERSONAL_OVERVIEW") {
-    const profile = ranked.filter(c => pathnameOf(c.sourceUrl) === config.profilePath && c.language === language && c.sectionId !== config.excludeProfileSection);
+    const profile = eligible.filter(c => pathnameOf(c.sourceUrl) === config.profilePath && c.language === language && c.sectionId !== config.excludeProfileSection);
     const primary = profile.find(c => c.sectionId === null);
-    if (primary) add(primary);
-    else if (profile[0]) add(profile[0]);
+    if (primary) add(primary, "owner-profile");
+    else if (profile[0]) add(profile[0], "owner-profile");
     if (allowProjectEvidence) {
       const example = ranked.find(c => c.projectId && c.language === language &&
         pathnameOf(c.sourceUrl) === projectPath(corpus, config, c.projectId, language));
@@ -167,14 +181,14 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
     }
   } else if (intent === "PROJECT_OVERVIEW") {
     for (const id of projects) {
-      const projectChunks = ranked.filter(c => c.projectId === id && c.language === language &&
+      const projectChunks = [...new Set([...ranked, ...eligible])].filter(c => c.projectId === id && c.language === language &&
         pathnameOf(c.sourceUrl) === projectPath(corpus, config, id, language));
       const summaries = projectChunks.filter(c => c.sectionId === null).slice(0, 2);
       const intro = projectChunks.find(c => c.sectionId?.endsWith("-0") &&
         /(?:helps|enables|workspace|app|product|experience|concept|帮助|助け|プロダクト)/iu.test(c.content));
-      for (const chunk of [...summaries, ...(intro ? [intro] : [])]) add(chunk);
+      for (const chunk of [...summaries, ...(intro ? [intro] : [])]) add(chunk, "project-overview");
       const core = projectChunks.find(c => /(?:core experience|capture.{0,20}organize.{0,20}connect|the concept|experience)/iu.test(c.sectionTitle));
-      if (core) add(core);
+      if (core) add(core, "project-overview");
       if (!summaries.length && !intro && !core) {
         const fallback = ranked.find(c => c.projectId === id);
         if (fallback) add(fallback);
@@ -182,20 +196,39 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
     }
   } else if (intent === "PROJECT_ROLE") {
     for (const id of projects) {
-      const candidates = ranked.filter(c => c.projectId === id && personalRoleLabel.test(c.content) &&
+      const candidates = eligible.filter(c => c.projectId === id && personalRoleLabel.test(c.content) &&
         corpus.caseStudies.some(p => p.projectId === id && pathnameOf(p.url) === pathnameOf(c.sourceUrl)));
       const role = candidates.find(c => c.language === language) ?? candidates[0];
-      if (role) add(role);
-      const additionalRole = ranked.find(c => c.projectId === id && c.language === language && /\bI (?:led|imagined|envisioned|conceived|conceptualized)\b/iu.test(c.content));
-      if (additionalRole) add(additionalRole);
+      if (role) add(role, "explicit-personal-role");
+      const directContributions = eligible.filter(c => c.projectId === id && c.language === language &&
+        /\bI (?:led|imagined|envisioned|conceived|conceptualized|provided|contributed|was responsible)\b/iu.test(c.content));
+      for (const contribution of directContributions.slice(0, 3)) add(contribution, "explicit-personal-role");
+      if (role || directContributions.length) {
+        const team = eligible.find(c => c.projectId === id && c.language === language && /^(?:team work|team contributions|团队工作|チームの役割)$/iu.test(c.sectionTitle));
+        if (team) add(team, "separate-team-attribution");
+      }
     }
   } else if (intent === "PROJECT_RESEARCH") {
-    const researchEvidence = ranked.filter(c => researchQuestion.test(`${c.sectionTitle}\n${c.content}`));
+    const researchEvidence = eligible.filter(c => researchQuestion.test(`${c.sectionTitle}\n${c.content}`));
     for (const id of projects) {
       const matches = researchEvidence.filter(c => c.projectId === id);
-      for (const chunk of (matches.length ? matches : ranked.filter(c => c.projectId === id)).slice(0, 12)) add(chunk);
+      for (const chunk of matches.slice(0, 12)) add(chunk, "explicit-research");
+      for (const chunk of ranked.filter(c => c.projectId === id)) add(chunk);
     }
   } else {
+    // A broad comparison of identified projects may use their published
+    // case-study evidence when the generic comparison itself scores poorly.
+    if (intent === "COMPARISON" && projects.length > 1) {
+      const rest = projects.reduce((text, id) => {
+        const labels = [id, id.replaceAll("-", " "), ...(config.projectAliases?.[id] ?? []), ...corpus.caseStudies.filter(p => p.projectId === id).map(p => p.title)];
+        return labels.reduce((value, label) => value.replaceAll(label.toLowerCase(), " "), text);
+      }, query.toLowerCase()).replace(/\b(?:compare|how|does|do|what|are|is|the|this|that|it|to|different|difference|about|between|with|and|from|vs|versus|projects?)\b|比较|区别|不同|的作品|和|与|比較|違い|と/giu, " ").replace(/[^\p{L}\p{N}]+/gu, "");
+      if (!rest) for (const id of projects) {
+        const passages = eligible.filter(chunk => chunk.projectId === id && pathnameOf(chunk.sourceUrl) === projectPath(corpus, config, id, chunk.language));
+        const overview = passages.find(chunk => chunk.sectionId === null) ?? passages[0];
+        if (overview) add(overview, "broad-comparison-overview");
+      }
+    }
     if (!projects.length && page && page.path === config.profilePath) {
       const about = ranked.find(c => c.language === responseLanguage && pathnameOf(c.sourceUrl) === page.path);
       if (about) add(about);
@@ -210,7 +243,7 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
     for (const c of ranked) { const key = c.projectId + "|" + c.sectionTitle; if (!sections.has(key)) { add(c); sections.add(key); } }
     for (const c of ranked) add(c);
   }
-  const pack = { config, intent, projects, ambiguous, catalog: listRequested ? catalog : null, topic, topicQualified, allowProjectEvidence, entries: result.map((chunk, i) => ({ key: `E${i + 1}`, chunk })), bytes, fallback: retrieval.fallback };
+  const pack = { config, intent, projects, ambiguous, catalog: listRequested ? catalog : null, topic, topicQualified, allowProjectEvidence, entries: result.map((chunk, i) => ({ key: `E${i + 1}`, chunk, reason: supplements.get(chunk.chunkId) ?? "qualified-match" })), bytes, fallback: retrieval.fallback };
   timing?.("assembly", performance.now() - packStarted - retrievalDuration);
   return pack;
 }
@@ -320,47 +353,4 @@ export function contextualRecommendations(corpus: PortfolioCorpus, language: "en
       return project ? [{...project, type:"project" as const, url:project.caseStudyUrl}] : [];
     } catch { return []; }
   });
-}
-
-export function validateB2(output: Omit<z.infer<typeof b2Schema>, "followUpQuestions"> & { followUpQuestions?: string[] }, corpus: PortfolioCorpus, pack: Awaited<ReturnType<typeof buildB2Pack>>) {
-  const { config } = pack;
-  const valid = output.claims.filter(claim => claim.evidenceKeys.every(key => {
-    const chunk = pack.entries.find(entry => entry.key === key)?.chunk;
-    const sourcePath = chunk && pathnameOf(chunk.sourceUrl);
-    const inScope = chunk && (pack.intent !== "PERSONAL_OVERVIEW" ||
-      sourcePath === config.profilePath || pack.allowProjectEvidence && chunk.projectId !== null &&
-      (sourcePath === projectPath(corpus, config, chunk.projectId, chunk.language) || sourcePath === config.publicOverviewPath));
-    return chunk && inScope && chunk.accessLevel === "public" && corpus.chunks.some(c => c.chunkId === chunk.chunkId && c.content === chunk.content && c.sourceUrl === chunk.sourceUrl) && corpus.pages.some(p => p.url === chunk.sourceUrl.split("#")[0]) && (!pack.projects.length || pack.projects.includes(chunk.projectId ?? "") || pack.intent === "PERSONAL_OVERVIEW" && pack.allowProjectEvidence && chunk.projectId !== null);
-  }) && !/(?:https?:\/\/|www\.|\]\s*\(|\/(?:api|projects|images|private)\/)/iu.test(claim.text)).filter(claim => {
-    const citedChunks = claim.evidenceKeys.map(key => pack.entries.find(entry => entry.key === key)!.chunk);
-    const cited = citedChunks.map(chunk => chunk.content);
-    const attribution = /(?:\b(?:portfolioowner|he)\b|他|他本人)/iu.test(replaceOwnerMentions(claim.text, config)) && /(?:\b(?:responsible|created|directed|led|designed|built|developed|imagined|envisioned|conceived|conceptualized|provided|contributed)\b|负责|创作|主导|設計|担当|制作)/iu.test(claim.text);
-    const translatedPersonalRole = citedChunks.some(chunk => chunk.language === "ja" && chunk.projectId && chunk.sectionId && personalRoleLabel.test(chunk.content) && corpus.chunks.some(other => other.language === "en" && other.projectId === chunk.projectId && other.sectionId === chunk.sectionId && pathnameOf(other.sourceUrl) === pathnameOf(chunk.sourceUrl) && corpus.pages.some(page => page.url === other.sourceUrl.split("#")[0]) && personalRoleLabel.test(other.content)));
-    if (attribution && !translatedPersonalRole && !cited.some(text => /(?:\b(?:I|my)\s+(?:was responsible|led|created|designed|built|developed|imagined|envisioned|conceived|conceptualized|provided|contributed|work|role)\b|\bportfolioowner\s+(?:was responsible|led|created|designed|built|developed|imagined|envisioned|conceived|conceptualized|provided|contributed)\b|我的职责|我负责|我设计|私の役割|私が担当)/iu.test(replaceOwnerMentions(text, config)))) return false;
-    // A first-person concept statement alone does not establish other work.
-    if (attribution && /\b(?:provided|contributed)\b/iu.test(claim.text) && !cited.some(text => /\b(?:I|portfolioowner)\s+(?:provided|contributed|was responsible)\b|\bmy role\b|我的职责|我负责|私の役割|私が担当/iu.test(replaceOwnerMentions(text, config)))) return false;
-    const studentBeta = /(?:beta|ベータ|测试|测试版)/iu.test(claim.text) && /(?:students?|学生)/iu.test(claim.text);
-    if (studentBeta && !cited.some(text => text.split(/[。.!?\n]/u).some(sentence => /(?:beta|ベータ|测试|测试版)/iu.test(sentence) && /(?:students?|学生)/iu.test(sentence)))) return false;
-    // An interactive exhibit or prototype does not itself establish that
-    // visitors actually used it. Require an explicit observation in the citation.
-    const visitor = /(?:\b(?:visitors?|attendees?)\b|来場者|訪問者|观众|觀眾|参观者|參觀者)/iu;
-    const interaction = /(?:\b(?:interact(?:ed|ing)?|tried|used|touched|engaged)\b|触れ|体験し|操作し|互动|互動|体验|體驗|操作)/iu;
-    if (visitor.test(claim.text) && interaction.test(claim.text) && !cited.some(text => text.split(/[。.!?\n]/u).some(sentence => visitor.test(sentence) && interaction.test(sentence)))) return false;
-    if (config.exactClaimEvidence?.some(pattern => pattern.test(claim.text) && !cited.some(text => pattern.test(text)))) return false;
-    // Interviewees using a named tool are not automatically the product's target audience.
-    const namedTool = /(?:Notion|Miro)/giu;
-    const targetAudience = /(?:target(?:ed)?\s+(?:audience|users?|customers?)|designed\s+for|対象(?:ユーザー|者|として|に)|(?:面向|针对).{0,12}(?:用户|使用者))/iu;
-    const tools = [...new Set(claim.text.match(namedTool) ?? [])];
-    if (targetAudience.test(claim.text) && !cited.some(text => text.split(/[。.!?\n]/u).some(sentence => audienceStatement.test(sentence) && tools.every(tool => sentence.toLowerCase().includes(tool.toLowerCase()))))) return false;
-    const generalizes = /(?:\busers?\b|\bresearchers?\b|用户|使用者|ユーザー)/iu.test(claim.text) && /(?:\b(?:struggle|difficult|problem|cannot|can't)\b|难以|困难|问题|困難|課題)/iu.test(claim.text);
-    if (!generalizes) return true;
-    return !cited.every(text => /(?:\bI\b|\bmy\b|我|私)/u.test(text) && !/(?:interview|participants|survey|访谈|調査|采访|受访|インタビュー)/iu.test(text));
-  });
-  const covered = new Set(valid.flatMap(c => c.evidenceKeys.map(k => pack.entries.find(e => e.key === k)?.chunk.projectId)));
-  if (output.insufficient || !valid.length || (pack.projects.length > 1 && pack.projects.some(id => !covered.has(id)))) return { ...validateAnswer({ answer:"", language:output.language, insufficient:true, sourceIds:[], recommendedProjectIds:[] }, corpus, config.ownerName), claims:[], insufficient:true };
-  const ids = [...new Set(valid.flatMap(c => c.evidenceKeys.map(k => pack.entries.find(e => e.key === k)!.chunk.chunkId)))];
-  const base = validateAnswer({ answer:valid.map(c => c.text).join("\n\n"), language:output.language, insufficient:false, sourceIds:ids, recommendedProjectIds:[] }, corpus, config.ownerName);
-  let recommendations: ReturnType<typeof resolveRecommendations> = [];
-  try { recommendations = resolveRecommendations(output.recommendedProjectIds, corpus, output.language); } catch { /* Drop invalid recommendations. */ }
-  return { ...base, recommendations, claims: valid, insufficient:false };
 }
