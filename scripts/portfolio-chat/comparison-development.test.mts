@@ -67,3 +67,21 @@ test("explicit unsupported comparisons cannot return a one-sided excerpt",async(
    assert.deepEqual((await excerptReply(fixture,query(text),"en")).sources,[],text);
  }
 });
+
+test("a participant comparison cannot turn negated interviews into study evidence",async()=>{
+ const fixture=await buildKnowledgeCorpus([
+  {access:"public",format:"rendered",page:{url:"/work/maple",title:"Maple",language:"en",kind:"case-study",projectId:"maple"},sections:[{title:"Research",anchor:"research",text:"The team never interviewed eight gardeners about the prototype."}]},
+  {access:"public",format:"rendered",page:{url:"/work/copper",title:"Copper",language:"en",kind:"case-study",projectId:"copper"},sections:[{title:"Research",anchor:"research",text:"Researchers had not interviewed five teachers during the study."}]},
+ ],"participant-negation-development",async()=>{});
+ const messages=query("Compare Maple and Copper participants.");
+ const model=createModelReply(fixture,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
+ let reservations=0;
+ assert.deepEqual((await model(messages,"en",undefined,{reserve:async()=>{reservations++;return false;}})).sources,[]);
+ assert.equal(reservations,0);
+ assert.deepEqual((await excerptReply(fixture,messages,"en")).sources,[]);
+ const affirmative=await buildKnowledgeCorpus([
+  {access:"public",format:"rendered",page:{url:"/work/maple",title:"Maple",language:"en",kind:"case-study",projectId:"maple"},sections:[{title:"Research",anchor:"research",text:"The team not only interviewed eight gardeners but also prepared a public report."}]},
+  {access:"public",format:"rendered",page:{url:"/work/copper",title:"Copper",language:"en",kind:"case-study",projectId:"copper"},sections:[{title:"Research",anchor:"research",text:"Researchers interviewed five teachers during the study."}]},
+ ],"participant-negation-affirmative",async()=>{});
+ assert.deepEqual(new Set((await excerptReply(affirmative,messages,"en")).sources.map(source=>source.url)),new Set(["/work/maple#research","/work/copper#research"]));
+});
