@@ -116,6 +116,12 @@ try {
     const afterClarification=await askConversation(base,[...prior,{role:"user",content:"What about both projects?"},{role:"assistant",content:clarification.answer},{role:"user",content:"Testing"}]);
     assert.equal(afterClarification.status,200);
     assert.deepEqual(new Set((await afterClarification.json()).sources.map((source:{href:string})=>source.href)),new Set([origin+"/work/lantern#research",origin+"/work/spruce#research"]));
+    const japanese=await askConversation(base,[...prior,{role:"user",content:"両方のプロジェクトはどう検証されましたか？"}]);
+    assert.equal(japanese.status,200);
+    const japaneseSources=(await japanese.json()).sources.map((source:{href:string})=>source.href);
+    assert.ok(japaneseSources.length===0 || japaneseSources.length===2,"A comparison must not return one-sided evidence");
+    if(japaneseSources.length===2) assert.deepEqual(new Set(japaneseSources),new Set([origin+"/work/lantern#research",origin+"/work/spruce#research"]));
+    console.log("Hosted Japanese comparison source count:",japaneseSources.length);
   });
 
   await withHosted({ model: "1", quota: "unavailable" }, async base => {
