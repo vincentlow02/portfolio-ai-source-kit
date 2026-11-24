@@ -67,7 +67,7 @@ export function resolveContext(messages: ChatMessage[], corpus: PortfolioCorpus,
     (validationFollowUp.test(query.trim()) || /\b(?:why (?:was|were|did) (?:it|that|they)|tell me more|what about (?:it|that))\b|为什么(?:这么做|这样做)|それはなぜ/iu.test(query))
     ? searchTerms(previous, projects, corpus, config)
       .replace(/\b(?:problems?|solve|addresses?|did|use|uses)\b/giu, " ").replace(/\s+/gu, " ").trim().slice(0, 120) : "";
-  return { projects, explicit, ambiguous, topic };
+  return { projects, explicit, ambiguous, topic, multiplePriorProjects: contextual && !explicit.length && prior.length > 1 };
 }
 
 export function resolveProjects(messages: ChatMessage[], corpus: PortfolioCorpus, config = defaultPortfolioChatConfig): string[] {

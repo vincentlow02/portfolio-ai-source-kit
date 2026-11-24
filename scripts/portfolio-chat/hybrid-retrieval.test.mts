@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
-import { buildB2Pack, validateB2 } from "../../lib/portfolio-chat/b2";
+import { buildB2Pack, parsePageContext, validateB2 } from "../../lib/portfolio-chat/b2";
 import { createEvidenceRetriever, resolveContext } from "../../lib/portfolio-chat/retrieval";
-import { excerptReply, validateWidgetQuestion } from "../../lib/portfolio-chat/source-reply";
+import { createModelReply, excerptReply, validateWidgetQuestion } from "../../lib/portfolio-chat/source-reply";
 import { prepareAnswer } from "../../lib/portfolio-chat/answer-engine";
 
 const observatory = "Visitors look at the night sky using two reflecting telescopes.";
@@ -25,6 +25,31 @@ test("unresolved pronouns clarify without selecting evidence in three languages"
     const excerpt = await excerptReply(corpus, question(text), language);
     assert.deepEqual(excerpt.sources, []);
   }
+});
+
+test("clarification avoids reservation and respects explicit history and verified page context", async () => {
+  const projects = await buildKnowledgeCorpus([
+    { access:"public", format:"rendered", page:{url:"/work/alpha",title:"Alpha",language:"en",kind:"case-study",projectId:"alpha"}, sections:[{title:"Testing",anchor:"test",text:"Alpha was tested with volunteers."}] },
+    { access:"public", format:"rendered", page:{url:"/work/beta",title:"Beta",language:"en",kind:"case-study",projectId:"beta"}, sections:[{title:"Testing",anchor:"test",text:"Beta was tested with gardeners."}] },
+  ], "context-fixture", async () => {});
+  const model = createModelReply(projects, { PORTFOLIO_AI_PROVIDER:"qwen", QWEN_API_KEY:"fixture-only", QWEN_BASE_URL:"https://fixture.invalid/v1", QWEN_MODEL:"qwen3.7-flash" });
+  let reservations = 0;
+  const reply = await model(question("How was it tested?"), "en", undefined, {reserve:async () => { reservations++; return true; }});
+  assert.equal(reservations, 0);
+  assert.match(reply.answer, /Which project/);
+  const page = parsePageContext({pathname:"/work/alpha",lang:"en"}, projects);
+  for (const [text, language] of [["How was it tested?","en"], ["它是怎么测试的？","zh"], ["それはどうやってテストしましたか？","ja"]] as const) {
+    const pagePack = await buildB2Pack(projects, question(text), page, language);
+    assert.equal(pagePack.ambiguous, false);
+    assert.deepEqual(pagePack.projects, ["alpha"]);
+    const history = [...question("Tell me about Alpha"), {role:"assistant" as const,content:"Alpha is a project."}, ...question(text)];
+    assert.deepEqual(resolveContext(history, projects).projects, ["alpha"]);
+    assert.equal(resolveContext(history, projects).ambiguous, false);
+    const comparison = [...question("Compare Alpha and Beta"), {role:"assistant" as const,content:"Both were tested."}, ...question(text)];
+    assert.equal((await buildB2Pack(projects, comparison, page, language)).ambiguous, true);
+  }
+  assert.equal(resolveContext(question("List all projects"), projects).ambiguous, false);
+  assert.equal(resolveContext(question("Tell me about Alpha"), projects).ambiguous, false);
 });
 
 test("the default retrieves an approved English excerpt for a Chinese question", async () => {
