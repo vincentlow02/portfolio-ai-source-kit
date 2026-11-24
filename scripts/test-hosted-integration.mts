@@ -62,6 +62,13 @@ function ask(base: string, content: string, site = base) {
   });
 }
 
+function askConversation(base: string, messages: Array<{role: "user"|"assistant"; content: string}>) {
+  return fetch(base + "/api/preview", { method: "POST", signal: AbortSignal.timeout(20_000),
+    headers: { "Content-Type": "application/json", Origin: base, "Sec-Fetch-Site": "same-origin" },
+    body: JSON.stringify({messages}),
+  });
+}
+
 try {
   for (const path of ["app", "components", "lib", "scripts/portfolio-chat", "next.config.ts", "package.json", "tsconfig.json"]) {
     await cp(join(root, path), join(fixture, path), { recursive: true });
@@ -72,6 +79,8 @@ try {
   const corpus = await buildKnowledgeCorpus([
     { access: "public", format: "rendered", page: { url: "/work/lantern", title: "Lantern", language: "en", projectId: "lantern", kind: "case-study" },
       sections: [{ title: "Research", anchor: "research", text: article }] },
+    { access: "public", format: "rendered", page: { url: "/work/spruce", title: "Spruce", language: "en", projectId: "spruce", kind: "case-study" },
+      sections: [{ title: "Research", anchor: "research", text: "The Spruce team tested paper maps with five volunteers." }] },
     { access: "protected", url: "/private" },
   ], "hosted", async () => {});
   await writeFile(join(fixture, ".portfolio-knowledge/hosted.json"), JSON.stringify({ origin, corpus }));
@@ -89,6 +98,16 @@ try {
     assert.deepEqual(await result.json(), {
       answer: article, sources: [{ section: "Research", href: origin + "/work/lantern#research" }],
     });
+    const prior = [{role:"user" as const,content:"Compare Lantern and Spruce"},{role:"assistant" as const,content:"They are different projects."}];
+    const both = await askConversation(base,[...prior,{role:"user",content:"How were both projects tested?"}]);
+    assert.equal(both.status,200);
+    const compared=await both.json();
+    assert.deepEqual(new Set(compared.sources.map((source: {href:string})=>source.href)),new Set([origin+"/work/lantern#research",origin+"/work/spruce#research"]));
+    assert.match(compared.answer,/Lantern:/u);
+    assert.match(compared.answer,/Spruce:/u);
+    const unsupported=await askConversation(base,[...prior,{role:"user",content:"How were both projects tested in 2025?"}]);
+    assert.equal(unsupported.status,200);
+    assert.deepEqual((await unsupported.json()).sources,[]);
   });
 
   await withHosted({ model: "1", quota: "unavailable" }, async base => {
