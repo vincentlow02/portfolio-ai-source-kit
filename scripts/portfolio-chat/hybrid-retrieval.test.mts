@@ -70,6 +70,21 @@ test("evidence assembly preserves a qualified cross-language named-project match
   assert.ok(pack.entries.some(entry => entry.chunk.sourceUrl === "/work/cairn#delivery"));
 });
 
+test("label-free retry keeps named project scope and rejects unrelated material questions", async () => {
+  const fixture = await buildKnowledgeCorpus([
+    {access:"public",format:"rendered",page:{url:"/work/loom",title:"Loom",language:"en",kind:"case-study",projectId:"loom"},sections:[{title:"Workshop kit",anchor:"kit",text:"The kit contains removable panels that educators can rearrange to create different lesson plans."}]},
+    {access:"public",format:"rendered",page:{url:"/work/cove",title:"Cove",language:"en",kind:"case-study",projectId:"cove"},sections:[{title:"Workshop materials",anchor:"materials",text:"The workshop kit includes movable steel panels for a different project."}]},
+  ],"scoped-retry",async()=>{});
+  const config={ownerName:"Example"};
+  const relevant=await buildB2Pack(fixture,question("Loom の部品を別の構成に並べ替えられますか？"),null,"ja",undefined,undefined,config);
+  assert.ok(relevant.entries.some(entry=>entry.chunk.sourceUrl==="/work/loom#kit"));
+  assert.ok(relevant.entries.every(entry=>entry.chunk.projectId==="loom"));
+  for (const q of ["Loom は何年に火星で製造されましたか？", "Loom のパネルは金属ですか？"]) {
+    const unrelated=await buildB2Pack(fixture,question(q),null,"ja",undefined,undefined,config);
+    assert.deepEqual(unrelated.entries,[],q);
+  }
+});
+
 test("retrieval combines keyword and semantic scores for approved current passages", async () => {
   const optics = corpus.chunks.find(chunk => chunk.sectionId === "optics")!;
   const herbs = corpus.chunks.find(chunk => chunk.sectionId === "herbs")!;

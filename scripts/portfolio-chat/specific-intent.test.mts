@@ -19,8 +19,13 @@ test("specific factual intent requires corresponding evidence, including cross-l
   ["What is the price?","The project has a prototype.","It is free to use."],
   ["工资是多少？","护理人员参加了访谈。","护理人员的工资是每月5000元。"],
   ["購入にはいくらかかりますか？","元々この道具は紙でできています。","月額５００円です。"],
+  ["Loom のパネルは何枚ありますか？","The kit contains removable panels.","The kit includes eight panels."],
+  ["Moss の教材はいつから使われていますか？","Teachers use the kit for workshops.","The kit was launched in 2022."],
+  ["How many gardeners tested Moss?","Moss has a garden.","Moss was tested by five gardeners."],
+  ["How many gardeners tested Moss?","Moss launched in 2021.","In 2021, five gardeners tested Moss."],
  ] as const){assert.equal(sourceMatchesSpecificIntent(q,negative),false,q);assert.equal(sourceMatchesSpecificIntent(q,positive),true,q);}
  assert.equal(sourceMatchesSpecificIntent("How much experience does the team have?","The team has five years of experience."),true);
+ assert.equal(sourceMatchesSpecificIntent("When humidity falls, what happens?","When humidity falls, the sensor warns the gardener."),true);
 });
 
 test("unsupported price, salary and manufacturer questions skip quota and generation",async()=>{

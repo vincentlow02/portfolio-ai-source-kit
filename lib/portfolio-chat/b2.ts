@@ -1,6 +1,6 @@
 import type { PortfolioChunk, PortfolioCorpus } from "../portfolio-knowledge";
 import { resolveRecommendations, validateAnswer, type B2Intent, type ChatMessage } from "./core";
-import { comparisonQuestion, isSubstantivePassage, resolveContext, resolveProjects, retrieveEvidence, sourceMatchesSpecificIntent, validationFollowUp, type RetrievalPhase, type RetrievalResult } from "./retrieval";
+import { comparisonQuestion, isSubstantivePassage, removeProjectLabels, resolveContext, resolveProjects, retrieveEvidence, sourceMatchesSpecificIntent, validationFollowUp, type RetrievalPhase, type RetrievalResult } from "./retrieval";
 import { languageInstruction, type ResponseLanguage } from "./language";
 import { audienceStatement, hasEnglishEvidenceAnchor, personalRoleLabel } from "./grounding";
 import { defaultPortfolioChatConfig, projectPath, replaceOwnerMentions, sourcePath as pathnameOf, isInternalSource, type PortfolioChatConfig } from "./engine-config";
@@ -125,6 +125,15 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   if (!retrieval.qualifiedMatches.length && explicit.length && !listRequested) {
     const alternative = [...projects.filter(id => !explicit.includes(id)), query, resolved.topic].filter(Boolean).join(" ");
     if (alternative !== searchQuery) retrieval = await retrieveEvidence(corpus, [{role:"user",content:alternative}], config, timing);
+  }
+  // If one verified project is named, an additional empty-search fallback can
+  // encode the question without its label while retaining the same project
+  // scope and qualification profile. It never searches across projects.
+  if (!retrieval.qualifiedMatches.length && explicit.length === 1 && projects.length === 1 && explicit[0].length >= 3 && !listRequested && !selectedChunk) {
+    const stripped = removeProjectLabels(query, explicit, corpus, config);
+    if (stripped !== query.trim() && stripped.replace(/[^\p{L}\p{N}]/gu, "").length >= 6) {
+      retrieval = await retrieveEvidence(corpus, [{role:"user",content:stripped}], config, timing, projects);
+    }
   }
   const retrievalDuration = timing ? performance.now() - retrievalStarted : 0;
   timing?.("retrieval", retrievalDuration);

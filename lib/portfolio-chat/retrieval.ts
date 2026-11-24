@@ -35,6 +35,10 @@ export function sourceMatchesSpecificIntent(query: string, source: string): bool
       /(?:\b(?:salary|salaries|wages?|payroll|compensation|paid|payday|earn(?:ed|s)?)\b|給料|給与|賃金|工资|工資|薪水|薪资|薪資)/iu],
     [/(?:\b(?:manufacturer|manufacturers|who manufactures|which company (?:makes|manufactures|sells))\b|製造.{0,15}会社|会社.{0,15}製造|哪.{0,8}(?:公司|企业).{0,8}(?:生产|製造|制造))/iu,
       /(?:\b(?:manufacturer|manufactured|manufactures|produced by|made by|sold by|supplier|vendor)\b|製造元|製造会社|製造した|メーカー|生产商|生產商|制造商|製造商|生产厂家)/iu],
+    [/(?:\bhow many\b|(?:何|几|幾|多少)(?:人|名|个|個|枚|台|件|回|次|站|駅|所|月|日|位))/iu,
+      /(?:(?<!\d)(?!(?:19|20)\d{2}(?!\d))\d+(?!\d)|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|several|dozens?)\b|[零〇一二两兩三四五六七八九十百千万]+(?:人|名|个|個|枚|台|件|回|次|站|駅|所|月|日|位)|数(?:人|名|个|個|枚|回)|複数)/iu],
+    [/(?:いつから|何年|哪一年|哪年|\bwhen\s+(?:did|was|were)\b[^?]{0,100}\b(?:launch|launched|release|released|start|started|open|opened|complete|completed)\b)/iu,
+      /(?:\b(?:19|20)\d{2}\b|[零〇一二三四五六七八九十百千\d]{2,}年|\b(?:launched|released|opened|started|since|before|after|during|first)\b|開始|开始|開業|开业|公開|公开|发布|發布)/iu],
   ];
   const normalizedQuery = query.normalize("NFKC"), normalizedSource = source.normalize("NFKC");
   return checks.every(([intent, evidence]) => !intent.test(normalizedQuery) || evidence.test(normalizedSource));
@@ -101,7 +105,7 @@ export type RetrievalResult = {
   fallback: boolean;
 };
 
-function searchTerms(query: string, projects: string[], corpus: PortfolioCorpus, config: PortfolioChatConfig): string {
+export function removeProjectLabels(query: string, projects: readonly string[], corpus: PortfolioCorpus, config: PortfolioChatConfig): string {
   let terms = query;
   for (const id of projects) {
     const labels = [...(config.projectAliases?.[id] ?? []), id, id.replaceAll("-", " "),
@@ -112,7 +116,11 @@ function searchTerms(query: string, projects: string[], corpus: PortfolioCorpus,
         ? "(?<![a-z0-9])" + escaped + "(?![a-z0-9])" : escaped, "giu"), " ");
     }
   }
-  return terms.replace(/\b(?:what|how|why|which|did|does|the|and|about|compare|tell|project|projects|is|it)\b/giu, " ")
+  return terms.replace(/\s+/gu, " ").trim();
+}
+
+function searchTerms(query: string, projects: string[], corpus: PortfolioCorpus, config: PortfolioChatConfig): string {
+  return removeProjectLabels(query, projects, corpus, config).replace(/\b(?:what|how|why|which|did|does|the|and|about|compare|tell|project|projects|is|it)\b/giu, " ")
     .replace(/(?:什么|如何|为什么|哪些|这个项目|那个项目|比较|介绍|教えて|について|ですか|何ですか|プロジェクト|違い|比較)/gu, " ")
     .replace(/\s+/gu, " ").trim();
 }
@@ -184,8 +192,10 @@ export const defaultRetrievalProfile = { cosine: 0.365, assistedCosine: 0.30, fu
 
 export function createEvidenceRetriever(embed: EmbedTexts, profile = defaultRetrievalProfile) {
   let cache: { key: string; vectors: ReturnType<typeof embedPassages> } | undefined;
-  return async (corpus: PortfolioCorpus, messages: ChatMessage[], config = defaultPortfolioChatConfig, timing?: RetrievalTiming): Promise<RetrievalResult> => {
-    const { projects, topic } = resolveContext(messages, corpus, config);
+  return async (corpus: PortfolioCorpus, messages: ChatMessage[], config = defaultPortfolioChatConfig, timing?: RetrievalTiming, scopedProjects?: readonly string[]): Promise<RetrievalResult> => {
+    const context = resolveContext(messages, corpus, config);
+    const projects = scopedProjects ? [...scopedProjects] : context.projects;
+    const { topic } = context;
     const currentQuestion = messages.at(-1)?.content ?? "";
     const question = topic ? currentQuestion + " " + topic : currentQuestion;
     const terms = searchTerms(question, projects, corpus, config);
