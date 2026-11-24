@@ -90,7 +90,10 @@ export function comparisonTopicMatcher(query: string): { hasTopic: boolean; tooM
   const methodWords = new Set(["方法","方式","手法","手段"]);
   const queryText=query.normalize("NFKC").toLocaleLowerCase()
     .replace(/\b(?:the|these|those) two projects?\b/gu,"both projects")
-    .replace(/(?:这|這)?(?:两个|兩個|两项|兩項)(?:项目|項目|專案)/gu,"项目");
+    .replace(/(?:这|這)?(?:两个|兩個|两项|兩項)(?:项目|項目|專案)/gu,"项目")
+    // Normalise only affirmative Japanese passive endings. Negation remains
+    // in the topic terms and must never be silently removed.
+    .replace(/(検証|テスト)(?:されていました|されました|されています|されます|された)/gu,"$1");
   const asksTestingPurpose=/\bwhat\b[^?]{0,100}\btest(?:ed|ing)?\s+for\b/iu.test(queryText);
   const language=/[\u3040-\u30ff]/u.test(queryText)?"ja":/[\u3400-\u9fff]/u.test(queryText)?"zh":"en";
   const terms=[...new Set([...new Intl.Segmenter(language,{granularity:"word"}).segment(queryText)]

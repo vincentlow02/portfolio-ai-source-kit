@@ -158,6 +158,8 @@ test("comparison topic checks use source body and retain explicit attributes",()
   assert.equal(comparisonTopicMatcher("测试方法").matches("Research\nThe test methods included volunteer sessions."),true);
   assert.equal(comparisonTopicMatcher("テスト方法").matches("Research\nThe test methods included volunteer sessions."),true);
   assert.equal(comparisonTopicMatcher("测试方法费用").matches("Research\nThe test methods included volunteer sessions."),false);
+  assert.equal(comparisonTopicMatcher("それぞれのプロジェクトはどう検証されましたか？").matches("Research\nThe team tested the prototype with volunteers."),true);
+  assert.equal(comparisonTopicMatcher("それぞれのプロジェクトは検証されませんでしたか？").matches("Research\nThe team tested the prototype with volunteers."),false);
   const repeated=comparisonTopicMatcher(Array(100).fill("testing").join(" "));
   assert.equal(repeated.matches("Testing\nThe prototype was tested with volunteers."),true);
   const manyTerms=Array.from({length:33},(_,i)=>`term${i}`);
@@ -182,6 +184,27 @@ test("oversized multi-project comparison fails closed before retrieval",async()=
   let reservations=0;
   const model=createModelReply(projects,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
   assert.deepEqual((await model(messages,"en",undefined,{reserve:async()=>{reservations++;return false;}})).sources,[]);
+  assert.equal(reservations,0);
+});
+
+test("Japanese passive verification preserves project scope and requested attributes",async()=>{
+  const projects=await buildKnowledgeCorpus([
+    {access:"public",format:"rendered",page:{url:"/work/harvest",title:"Harvest",language:"en",kind:"case-study",projectId:"harvest"},sections:[{title:"Evaluation",anchor:"study",text:"The team tested a portable reading prototype with six archivists."},{title:"Outcome",anchor:"outcome",text:"The reader displays documents with adjustable type sizes."}]},
+    {access:"public",format:"rendered",page:{url:"/work/signal",title:"Signal",language:"en",kind:"case-study",projectId:"signal"},sections:[{title:"Field work",anchor:"study",text:"Researchers tested an audio guide prototype with eight volunteers."},{title:"Outcome",anchor:"outcome",text:"Visitors can adjust volume using physical buttons."}]},
+    {access:"public",format:"rendered",page:{url:"/work/delta",title:"Delta",language:"en",kind:"case-study",projectId:"delta"},sections:[{title:"Trial",anchor:"trial",text:"A separate team tested a classroom journal with teachers."}]},
+  ],"japanese-verification-development",async()=>{});
+  const prior=[...question("Compare Harvest and Signal"),{role:"assistant" as const,content:"Two projects."}];
+  const supported=[...prior,...question("両方のプロジェクトはどのように検証されましたか？")];
+  const result=await prepareAnswer({corpus:projects,messages:supported,language:"ja",config:{ownerName:"Example"}});
+  assert.equal(result.answer,null);
+  assert.deepEqual(new Set(result.pack.entries.map(entry=>entry.chunk.sourceUrl)),new Set(["/work/harvest#study","/work/signal#study"]));
+  const model=createModelReply(projects,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
+  let reservations=0;
+  for(const text of ["両方のプロジェクトは火星でどのように検証されましたか？","両方のプロジェクトの検証費用はいくらですか？","両方のプロジェクトはどこで検証されましたか？","両方のプロジェクトは検証されませんでしたか？"]){
+    const messages=[...prior,...question(text)];
+    assert.deepEqual((await model(messages,"ja",undefined,{reserve:async()=>{reservations++;return false;}})).sources,[],text);
+    assert.deepEqual((await excerptReply(projects,messages,"ja")).sources,[],text);
+  }
   assert.equal(reservations,0);
 });
 

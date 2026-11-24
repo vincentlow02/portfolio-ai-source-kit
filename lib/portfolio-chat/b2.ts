@@ -139,6 +139,15 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
       retrieval = await retrieveEvidence(corpus, [{role:"user",content:stripped}], config, timing, projects);
     }
   }
+  // Japanese verification and testing are common paraphrases. If a carried
+  // comparison has no qualified evidence, retry once with only this synonym
+  // substituted, preserving every other query word, project scope and score
+  // threshold. The original query still governs evidence eligibility below.
+  if (!retrieval.qualifiedMatches.length && resolved.carryComparison && !ambiguousTopic &&
+      !tooManyComparisonProjects && !tooManyComparisonTerms && !selectedChunk && /検証/u.test(query)) {
+    const alternative=query.replace(/検証/gu,"テスト");
+    retrieval=await retrieveEvidence(corpus,[{role:"user",content:alternative}],config,timing,projects);
+  }
   const retrievalDuration = timing ? performance.now() - retrievalStarted : 0;
   timing?.("retrieval", retrievalDuration);
   const overview = overviewQuestion.test(query) && !presentationQuestion.test(query);
