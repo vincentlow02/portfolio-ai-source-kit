@@ -1,7 +1,8 @@
 import { performance } from "node:perf_hooks";
 import { buildKnowledgeCorpus, type KnowledgeSource } from "../../lib/knowledge/contract";
 import { retrieveEvidence } from "../../lib/portfolio-chat/retrieval";
-import { prepareAnswer } from "../../lib/portfolio-chat/answer-engine";
+import { generateAnswer, prepareAnswer } from "../../lib/portfolio-chat/answer-engine";
+import { configureModel } from "../../lib/portfolio-chat/provider";
 import type { ChatMessage } from "../../lib/portfolio-chat/core";
 
 // Fictional portfolio, independently authored for V2.1. Holdout questions are
@@ -41,9 +42,18 @@ const corpus=await buildKnowledgeCorpus(sources,"v21-independent-evaluation",asy
 const rows=[];
 for(const item of cases){
  const t=performance.now(); const retrieval=await retrieveEvidence(corpus,item.messages,{ownerName:"Example"}); const retrievalMs=performance.now()-t;
- const start=performance.now(); const result=await prepareAnswer({corpus,messages:item.messages,language:item.language,config:{ownerName:"Example"}}); const preparationMs=performance.now()-start;
+ const input={corpus,messages:item.messages,language:item.language,config:{ownerName:"Example"}};
+ const start=performance.now(); const result=await prepareAnswer(input); const preparationMs=performance.now()-start;
+ let modelCalls=0;
+ const model=configureModel({QWEN_API_KEY:"fixture-key",QWEN_BASE_URL:"https://evaluation.fixture.invalid/v1",QWEN_JSON_MODE:"object"},async () => {
+   modelCalls++;
+   return Response.json({id:"fixture",object:"chat.completion",created:1,model:"qwen3.7-flash",choices:[{index:0,finish_reason:"stop",message:{role:"assistant",content:JSON.stringify({language:item.language,insufficient:true,claims:[],recommendedProjectIds:[],followUpQuestions:[]})}}],usage:{prompt_tokens:50,completion_tokens:10,total_tokens:60}});
+ })!;
+ let generationError: string|null=null;
+ if (!result.answer) try { await generateAnswer(input,result.pack,model,true); } catch(error) { generationError=error instanceof Error?error.name:"unknown"; }
+ const answerPathMs=performance.now()-start;
  const top=retrieval.chunks.slice(0,5).map(c=>c.sourceUrl), evidence=result.pack.entries.map(e=>e.chunk.sourceUrl);
- rows.push({...item,top,evidence,clarification:!!result.answer?.clarification,insufficient:!!result.answer?.insufficient,needsGeneration:result.answer===null,
+ rows.push({...item,top,evidence,clarification:!!result.answer?.clarification,insufficient:!!result.answer?.insufficient,needsGeneration:result.answer===null,modelCalls,generationError,answerPathMs,
  recall:item.expected.length?top.filter(x=>item.expected.includes(x)).length/item.expected.length:null,coverage:item.expected.length?evidence.filter(x=>item.expected.includes(x)).length/item.expected.length:null,
  irrelevant:evidence.filter(x=>!item.expected.includes(x)).length,retrievalMs,preparationMs});
 }

@@ -42,11 +42,14 @@
       "clarification": false,
       "insufficient": false,
       "needsGeneration": true,
+      "modelCalls": 1,
+      "generationError": null,
+      "answerPathMs": 111.02480000000014,
       "recall": 1,
       "coverage": 1,
       "irrelevant": 0,
-      "retrievalMs": 1046.6858000000002,
-      "preparationMs": 13.083499999999958
+      "retrievalMs": 1523.1411,
+      "preparationMs": 20.281800000000203
     },
     {
       "id": "d2",
@@ -69,11 +72,14 @@
       "clarification": false,
       "insufficient": false,
       "needsGeneration": true,
+      "modelCalls": 1,
+      "generationError": null,
+      "answerPathMs": 15.849899999999707,
       "recall": 0,
       "coverage": 1,
       "irrelevant": 0,
-      "retrievalMs": 6.807399999999916,
-      "preparationMs": 7.154499999999871
+      "retrievalMs": 31.706900000000132,
+      "preparationMs": 11.308399999999892
     },
     {
       "id": "d3",
@@ -94,11 +100,14 @@
       "clarification": false,
       "insufficient": true,
       "needsGeneration": false,
+      "modelCalls": 0,
+      "generationError": null,
+      "answerPathMs": 13.547199999999975,
       "recall": 0,
       "coverage": 0,
       "irrelevant": 0,
-      "retrievalMs": 4.83219999999983,
-      "preparationMs": 7.31860000000006
+      "retrievalMs": 7.701499999999669,
+      "preparationMs": 12.516500000000178
     },
     {
       "id": "d4",
@@ -120,11 +129,14 @@
       "clarification": false,
       "insufficient": true,
       "needsGeneration": false,
+      "modelCalls": 0,
+      "generationError": null,
+      "answerPathMs": 9.327299999999923,
       "recall": 0,
       "coverage": 0,
       "irrelevant": 0,
-      "retrievalMs": 6.034700000000157,
-      "preparationMs": 7.321300000000065
+      "retrievalMs": 9.127899999999954,
+      "preparationMs": 8.741199999999935
     },
     {
       "id": "d5",
@@ -143,11 +155,14 @@
       "clarification": false,
       "insufficient": true,
       "needsGeneration": false,
+      "modelCalls": 0,
+      "generationError": null,
+      "answerPathMs": 7.661699999999655,
       "recall": null,
       "coverage": null,
       "irrelevant": 0,
-      "retrievalMs": 5.143199999999979,
-      "preparationMs": 5.693899999999758
+      "retrievalMs": 6.370100000000093,
+      "preparationMs": 7.004599999999755
     },
     {
       "id": "d6",
@@ -170,11 +185,14 @@
       "clarification": true,
       "insufficient": true,
       "needsGeneration": false,
+      "modelCalls": 0,
+      "generationError": null,
+      "answerPathMs": 6.540899999999965,
       "recall": null,
       "coverage": null,
       "irrelevant": 1,
-      "retrievalMs": 4.645599999999831,
-      "preparationMs": 3.8502000000003136
+      "retrievalMs": 5.536399999999958,
+      "preparationMs": 5.841499999999996
     },
     {
       "id": "h1",
@@ -199,11 +217,14 @@
       "clarification": false,
       "insufficient": false,
       "needsGeneration": true,
+      "modelCalls": 1,
+      "generationError": null,
+      "answerPathMs": 11.605199999999968,
       "recall": 1,
       "coverage": 1,
       "irrelevant": 0,
-      "retrievalMs": 4.601000000000113,
-      "preparationMs": 4.783800000000156
+      "retrievalMs": 6.515699999999924,
+      "preparationMs": 8.279699999999593
     },
     {
       "id": "h2",
@@ -226,11 +247,14 @@
       "clarification": false,
       "insufficient": true,
       "needsGeneration": false,
+      "modelCalls": 0,
+      "generationError": null,
+      "answerPathMs": 11.84840000000031,
       "recall": 1,
       "coverage": 0,
       "irrelevant": 0,
-      "retrievalMs": 6.20239999999967,
-      "preparationMs": 6.87480000000005
+      "retrievalMs": 10.322700000000168,
+      "preparationMs": 11.054700000000139
     },
     {
       "id": "h3",
@@ -263,11 +287,14 @@
       "clarification": false,
       "insufficient": false,
       "needsGeneration": true,
+      "modelCalls": 1,
+      "generationError": null,
+      "answerPathMs": 13.79320000000007,
       "recall": 1,
       "coverage": 1,
       "irrelevant": 4,
-      "retrievalMs": 6.447000000000116,
-      "preparationMs": 6.428300000000036
+      "retrievalMs": 9.6533000000004,
+      "preparationMs": 10.36239999999998
     },
     {
       "id": "h4",
@@ -300,11 +327,14 @@
       "clarification": false,
       "insufficient": false,
       "needsGeneration": true,
+      "modelCalls": 1,
+      "generationError": null,
+      "answerPathMs": 9.999900000000252,
       "recall": 1,
       "coverage": 1,
       "irrelevant": 0,
-      "retrievalMs": 4.7719999999999345,
-      "preparationMs": 5.780099999999948
+      "retrievalMs": 5.148599999999988,
+      "preparationMs": 6.142100000000028
     },
     {
       "id": "h5",
@@ -335,11 +365,14 @@
       "clarification": true,
       "insufficient": true,
       "needsGeneration": false,
+      "modelCalls": 0,
+      "generationError": null,
+      "answerPathMs": 4.965599999999995,
       "recall": null,
       "coverage": null,
       "irrelevant": 1,
-      "retrievalMs": 17.91930000000002,
-      "preparationMs": 3.834600000000137
+      "retrievalMs": 4.7246000000000095,
+      "preparationMs": 4.451399999999921
     },
     {
       "id": "h6",
@@ -358,11 +391,14 @@
       "clarification": false,
       "insufficient": true,
       "needsGeneration": false,
+      "modelCalls": 0,
+      "generationError": null,
+      "answerPathMs": 5.867400000000089,
       "recall": null,
       "coverage": null,
       "irrelevant": 0,
-      "retrievalMs": 4.592000000000098,
-      "preparationMs": 4.496999999999844
+      "retrievalMs": 5.817300000000159,
+      "preparationMs": 5.410199999999804
     }
   ]
 }
