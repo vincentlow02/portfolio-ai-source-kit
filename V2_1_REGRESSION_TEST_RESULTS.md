@@ -2,10 +2,10 @@
 
 | Check | Result and scope |
 |---|---|
-| Original offline + added tests | `npm run test:offline` passed 65/65 at `bca2817`, with Node 24, installed Chrome and `--test-concurrency=1`; full existing assertions retained. A parallel attempt failed due to ONNX memory allocation and revealed a Chinese overbroad clarification; the rule was narrowed and the sequential full run passed. |
+| Original offline + added tests | `npm run test:offline` passed 67/67 at `b85b1fe`, with Node 24, installed Chrome and `--test-concurrency=1`; full existing assertions retained. A parallel attempt failed due to ONNX memory allocation and revealed a Chinese overbroad clarification; the rule was narrowed and the sequential full run passed. |
 | Atlas integration | Passed at `1eeefe6` using mock provider, fixture quota and a D: temporary directory; authorization, privacy, selections, citations, follow-up, cancellation and concurrency were exercised. |
-| Hosted integration | Passed at `437bd50` with default cross-drive temp; reruns at `5623571`, `9f32942` and `bca2817` passed webpack, excerpt/model, origin and fail-closed quota. |
-| Local registry / two portfolios | Passed at `bca2817` via local registry, fresh install, builds, type checks and mock/browser integration in both hosts, after an intervening failed run. Exact remote GitHub installation is separate and remains unverified. |
+| Hosted integration | Passed at `437bd50` with default cross-drive temp; reruns at `5623571`, `9f32942`, `bca2817` and `e022f38` passed webpack, excerpt/model, origin and fail-closed quota. At `e022f38` an initial run failed with JavaScript heap allocation; a sequential retry passed. |
+| Local registry / two portfolios | Passed at `e022f38` via local registry, fresh install, builds, type checks and mock/browser integration in both hosts using a 512 MB npm child-process heap setting. Exact remote GitHub installation is separate and remains unverified. |
 | PostgreSQL | Passed on fresh 16.16 instance; 12 concurrent, 5 accepted/7 rejected; rollback lock test passed. See security report. |
 | Original 100-question benchmark | Aggregate V2 figures preserved after search fallback; per-case JSON retained. |
 | Independent dataset | Frozen initial and fresh cases recorded; several cross-language/comparison misses remain. |
@@ -21,4 +21,4 @@ Additional development check: `npx tsx --test scripts/portfolio-chat/comparison-
 
 One local-registry run after the interviewee change passed Atlas but the second host's Next build failed while another ONNX test was running; an ONNX allocation error was also observed during that period, but its relationship to the build failure is not established. A subsequent isolated run at `bca2817` passed both hosts.
 
-**Additional local test:** `npm run test:offline` passed 67/67 at `b85b1fe`. The newly added fixture checks that unsupported price, wage and manufacturer requests, including verified selections, do not reserve model quota and that supported examples can pass the evidence gate. Final integration and archive checks need rerunning after these source changes.
+**Additional local test:** `npm run test:offline` passed 67/67 at `b85b1fe`. The newly added fixture checks that unsupported price, wage and manufacturer requests, including verified selections, do not reserve model quota and that supported examples can pass the evidence gate. Hosted passed at `e022f38` after one heap-allocation failure; both local registry hosts passed after retries with the 512 MB test-process setting. A default registry run failed with `Zone Allocation failed`; 256 MB then failed at the TypeScript heap limit. The current ZIP must be regenerated and re-audited after these source changes.

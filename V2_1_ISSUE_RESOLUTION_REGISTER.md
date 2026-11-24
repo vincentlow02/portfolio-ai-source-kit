@@ -14,6 +14,7 @@ Statuses describe evidence and do not imply user acceptance of residual risk. `A
 | IA-08 | VERIFIED | Prior report withdrew the duplicate-pipeline concern; common answer engine remains, with intentionally different entrypoint adapters and excerpt behavior. |
 | IA-09 | ACCEPTED_WITH_LIMITATION | English/Chinese/Japanese unresolved reference, prior history, multiple projects, verified page, selection and zero reservation have regression cases. Rules are bounded patterns, not a general coreference model. |
 | IA-10 | RESOLVED | Hosted fixture now uses the checkout volume on Windows; Hosted webpack/excerpt/model/origin/fail-closed suite passed with default cross-drive temp configuration. |
+| IA-11 | ACCEPTED_WITH_LIMITATION | New P1 risk discovered during V2.1: three Japanese development questions about price, salary and manufacturer qualified unrelated passages and would reach generation. `retrieval.ts` now requires relevant fact-type evidence for a narrow set of explicit intents; `specific-intent.test.mts` verifies no reservation for those cases, including a verified-selection path. This does not cover arbitrary unsupported questions and may reject valid paraphrases or admit passages that merely mention a matching term. |
 
 ## Code evidence
 
