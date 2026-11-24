@@ -14,3 +14,5 @@
 | Exact GitHub SHA / real LLM / production | NOT VERIFIED; local/mock checks cannot establish these. |
 
 System Chrome: `PUPPETEER_EXECUTABLE_PATH=C:\Program Files\Google\Chrome\Application\chrome.exe`. D: temp/cache were necessary because C: ran out of space. The initial bundled Chromium ICU error and cross-drive Hosted fixture error are environment portability findings, not confirmed application failures.
+
+Additional development check: `npx tsx --test scripts/portfolio-chat/comparison-development.test.mts` returned 2 pass / 1 fail. The failing assertion requires both project research passages for a paraphrase that currently retrieves none. The original `test:offline` command remains at 60/60; it does not include this explicitly failing diagnostic. See `docs/v2-1-evaluation/README.md`.

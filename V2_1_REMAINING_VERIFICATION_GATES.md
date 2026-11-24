@@ -8,3 +8,5 @@
 6. Re-audit the final source archive after report-only updates. The `3736ae4` source archive already passed manifest/secret checks, negative tests, clean extraction, install, 60 offline tests and Atlas integration. Confirm the final archive differs only in documented report updates if those are made after this check.
 
 The independent PostgreSQL concurrency test and local lockfile advisory checks were completed locally. They do not prove deployed database grants or prevent future dependency advisories.
+
+A further independently authored development probe (`comparison-development.test.mts`) confirmed an English multi-project paraphrase miss. The failing expected-evidence assertion remains in the diagnostic test; the original offline suite does not run this file. A naive `interviews` query expansion also retrieved results after adding an unrelated submarine term, so no expansion was adopted.

@@ -39,3 +39,6 @@ Compared with V2 commit `f370bebfb158f9a92d26502f6946d6a89ed76b44`. This registe
 | `V2_ISSUE_REGISTER.md` | Preserved V2 audit record with status update |
 | `V2_REMAINING_RISKS.md` | Preserved V2 audit record with status update |
 | `V2_REMEDIATION_PLAN.md` | Preserved V2 audit record with status update |
+
+| `scripts/portfolio-chat/comparison-development.test.mts` | Development comparison diagnostic with a retained failing case |
+
