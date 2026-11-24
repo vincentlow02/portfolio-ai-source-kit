@@ -17,8 +17,11 @@ const presentationSection = /(?:landing page|product (?:introduction|presentatio
 // human group taking part in a past study action, not audience or staff counts.
 const participantNumber=String.raw`(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)`;
 const participantPhrase=participantNumber+String.raw`\s+(?:[a-z-]+\s+){0,2}`+countedPeopleNouns+String.raw`\b`+nonHumanCountSuffix;
-const participantSubject=new RegExp(String.raw`\b`+participantPhrase+String.raw`\s+(?:tested|tried|participated|described|reported|shared)\b`,"iu");
-const participantObject=new RegExp(String.raw`\b(?:interviewed|surveyed|observed)\s+`+participantPhrase+String.raw`\b`,"iu");
+// Do not infer a study event from an embedded proposition such as "a report
+// denied/claimed that the team interviewed ...". Recognise only direct,
+// sentence-initial participant subjects or a small set of direct agents.
+const participantSubject=new RegExp(String.raw`^\s*`+participantPhrase+String.raw`\s+(?:tested|tried|participated|described|reported|shared)\b`,"iu");
+const participantObject=new RegExp(String.raw`^\s*(?:(?:the\s+)?(?:project\s+|design\s+|research\s+)?team|(?:the\s+)?researchers|we|i)\s+(?:had\s+)?(?:not\s+only\s+)?(?:interviewed|surveyed|observed)\s+`+participantPhrase+String.raw`\b`,"iu");
 function hasDirectStudyParticipants(source:string):boolean {
   return source.split("\n").slice(1).join("\n").split(/(?<=[.!?。！？])\s*|[;；]|\b(?:and|or|but|while|however)\b/iu)
     .some(sentence => (participantSubject.test(sentence) || participantObject.test(sentence)) &&
