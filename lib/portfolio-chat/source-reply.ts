@@ -68,7 +68,7 @@ export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessag
     if (matches.some(chunk => !chunk)) return validateAnswer({language,insufficient:true,answer:"",sourceIds:[],recommendedProjectIds:[]},corpus);
     const chunks = matches.filter((chunk): chunk is NonNullable<typeof chunk> => Boolean(chunk));
     const result = validateAnswer({language,insufficient:false,answer:"Matching portfolio passages.",sourceIds:chunks.map(chunk=>chunk.chunkId),recommendedProjectIds:[]},corpus);
-    return {...result,answer:chunks.map(chunk=>`${chunk.projectId}: ${chunk.content.slice(chunk.content.indexOf("\n")+1)}`).join("\n\n"),followUpQuestions:[]};
+    return {...result,answer:chunks.map(chunk=>`${chunk.pageTitle}: ${chunk.content.slice(chunk.content.indexOf("\n")+1)}`).join("\n\n"),followUpQuestions:[]};
   }
   const retrieval = quote ? undefined : await retrieveEvidence(corpus, messages);
   const match = quote && sourceMatchesSpecificIntent(messages.at(-1)!.content, quote.chunk.content) ? quote.chunk : quote ? undefined : retrieval?.chunks[0];

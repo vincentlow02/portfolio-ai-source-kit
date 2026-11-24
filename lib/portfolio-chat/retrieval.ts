@@ -76,13 +76,15 @@ function pluralProjectReference(query: string) {
 // each source body. Unknown terms are matched literally; a small multilingual
 // map covers common testing vocabulary. This is conservative, not entailment.
 export function comparisonTopicMatcher(query: string): (source: string) => boolean {
-  const stop = new Set(["what","how","were","was","are","is","did","do","does","both","the","these","those","two","projects","project","of","them","they","their","about","and","or","in","on","for","with","each","respectively","这","這","两","兩","个","個","项","項","项目","項目","專案","两者","兩者","分别","分別","的","如何","怎么","怎麼","什么","什麼","両方","両者","それぞれ","プロジェクト","作品","の","は","が","を","に","どう","どの","よう","し","しま","まし","した","です","ます","か"]);
+  const stop = new Set(["what","how","were","was","are","is","did","do","does","both","the","these","those","projects","project","of","them","they","their","about","and","or","in","on","for","with","each","respectively","这","這","个","個","项","項","项目","項目","專案","两者","兩者","分别","分別","的","如何","怎么","怎麼","什么","什麼","両方","両者","それぞれ","プロジェクト","作品","の","は","が","を","に","どう","どの","よう","し","しま","まし","した","です","ます","か"]);
   const testWords = new Set(["test","tests","tested","testing","validate","validated","validation","验证","驗證","测试","測試","検証","テスト"]);
   const locationWords = new Set(["where","哪里","哪裡","何处","何處","地点","地點","どこ","場所"]);
   const timeWords = new Set(["when","何时","何時","何年","什么时候","什麼時候","いつ"]);
   const personWords = new Set(["who","谁","誰"]);
   const reasonWords = new Set(["why","为什么","為什麼","为何","為何","なぜ"]);
-  const queryText=query.normalize("NFKC").toLocaleLowerCase();
+  const queryText=query.normalize("NFKC").toLocaleLowerCase()
+    .replace(/\b(?:the|these|those) two projects?\b/gu,"both projects")
+    .replace(/(?:这|這)?(?:两个|兩個|两项|兩項)(?:项目|項目|專案)/gu,"项目");
   const language=/[\u3040-\u30ff]/u.test(queryText)?"ja":/[\u3400-\u9fff]/u.test(queryText)?"zh":"en";
   const terms=[...new Intl.Segmenter(language,{granularity:"word"}).segment(queryText)]
     .filter(part=>part.isWordLike).map(part=>part.segment).filter(term=>!stop.has(term));
