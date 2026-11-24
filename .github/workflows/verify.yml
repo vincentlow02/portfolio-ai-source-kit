@@ -56,6 +56,7 @@ jobs:
           python3 scripts/test-audit-release-zip.py "$RUNNER_TEMP/source.zip" HEAD
       - run: npm run test:offline
       - run: npm run test:integration
+      - run: node --import tsx scripts/test-hosted-integration.mts
       - name: Install GitHub registry item into two portfolios
         env:
           PORTFOLIO_AI_REGISTRY_REF: ${{ github.event.pull_request.head.sha || github.sha }}
