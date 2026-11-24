@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
-import { buildB2Pack } from "../../lib/portfolio-chat/b2";
+import { buildB2Pack, validateB2 } from "../../lib/portfolio-chat/b2";
 import { createEvidenceRetriever, resolveContext } from "../../lib/portfolio-chat/retrieval";
 import { excerptReply, validateWidgetQuestion } from "../../lib/portfolio-chat/source-reply";
 
@@ -70,6 +70,7 @@ test("context carries one topic, resolves comparisons and resets on a named proj
   assert.match(followUp.topic, /reflecting telescopes/u);
   const comparison = await buildB2Pack(projects, [...prior, ...question("Compare it to Garden")], null);
   assert.deepEqual(comparison.projects, ["observatory", "garden"]);
+  assert.deepEqual(resolveContext([...prior, ...question("How is it different from Garden?")], projects).projects, ["observatory", "garden"]);
   assert.deepEqual(new Set(comparison.entries.map(entry => entry.chunk.projectId)), new Set(["observatory", "garden"]));
   const ambiguous = resolveContext([...question("Compare Garden and Observatory"), prior[1], ...question("Why did they do that?")], projects);
   assert.equal(ambiguous.ambiguous, true);
@@ -104,4 +105,58 @@ test("concurrent cold requests share embeddings and a failure falls back to uniq
   const recovered = await search(corpus, question("Which equipment did visitors use?"));
   assert.equal(corpusBatches, 2);
   assert.equal(recovered.fallback, false);
+});
+
+test("a resolved corpus embedding with invalid dimensions is rebuilt on the next request", async () => {
+  let corpusBatches = 0;
+  const search = createEvidenceRetriever(async texts => {
+    if (texts.length > 1 && ++corpusBatches === 1) return texts.map(() => [1]);
+    return texts.map(() => [1, 0]);
+  });
+  const messages = question("Which equipment did visitors use?");
+  assert.equal((await search(corpus, messages)).fallback, true);
+  assert.equal((await search(corpus, messages)).fallback, false);
+  assert.equal(corpusBatches, 2);
+});
+
+test("specific research and materials questions reject unrelated public sections and forged claims", async () => {
+  const project = await buildKnowledgeCorpus([{
+    access: "public", format: "rendered",
+    page: { url: "/work/lantern", title: "Lantern", language: "en", kind: "case-study", projectId: "lantern" },
+    sections: [
+      { title: "Research", anchor: "research", text: "The Lantern team interviewed ferry passengers to test tactile signage." },
+      { title: "Display trial", anchor: "display", text: "The team tested LED displays by counting missed departures." },
+      { title: "Materials", anchor: "materials", text: "The prototype was built from corrugated cardboard." },
+    ],
+  }], "fixture", async () => {});
+  for (const query of ["Lantern survey on Neptune's orbital period?", "Which materials form Jupiter's core?",
+    "What did the Lantern research find about Neptune's orbital period?"]) {
+    const pack = await buildB2Pack(project, question(query), null);
+    assert.deepEqual(pack.entries, [], query);
+  }
+  const followup = async (topic: string) => buildB2Pack(project, [
+    ...question(`How does Lantern use ${topic}?`), { role: "assistant", content: "The project uses that design." },
+    ...question("How did he validate that?"),
+  ], null);
+  const tactile = await followup("tactile signage");
+  const display = await followup("LED displays");
+  assert.equal(tactile.entries[0]?.chunk.sectionId, "research");
+  assert.equal(display.entries[0]?.chunk.sectionId, "display");
+  assert.notDeepEqual(tactile.entries, display.entries);
+  const result = validateB2({ language: "en", insufficient: false, recommendedProjectIds: [],
+    claims: [{ text: "Lantern found that Neptune's orbital period is 165 years.", evidenceKeys: [tactile.entries[0].key] }],
+  }, project, tactile);
+  assert.equal(result.insufficient, true);
+});
+
+test("a widget can retrieve explicitly relevant public catalog prose without structured project metadata", async () => {
+  const brochure = await buildKnowledgeCorpus([{
+    access: "public", format: "rendered",
+    page: { url: "/work", title: "Public portfolio", language: "en", kind: "page" },
+    sections: [{ title: "Projects", anchor: "projects", text: "This design portfolio lists three projects: a transit map, a library kiosk, and an accessible lighting prototype." }],
+  }], "local-preview", async () => {});
+  const messages = question("List the projects in this design portfolio.");
+  const pack = await buildB2Pack(brochure, messages, null, "en", undefined, undefined, undefined, true);
+  assert.equal(pack.catalog, null);
+  assert.equal(pack.entries[0]?.chunk.sourceUrl, "/work#projects");
 });

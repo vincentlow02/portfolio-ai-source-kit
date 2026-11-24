@@ -98,9 +98,14 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig) {
       const { pack, answer } = await prepareAnswer(input);
       safeProject = pack.projects.length === 1 ? pack.projects[0] : null;
       category = pack.intent === "COMPARISON" ? "comparison" : pack.intent === "PERSONAL_OVERVIEW" || safePath === config.profilePath && !pack.projects.length ? "about" : pack.intent.startsWith("PROJECT_") || pack.projects.length ? "project" : "other";
+      const evidence = { selectedCount: pack.entries.length, bytes: pack.bytes, fallback: pack.fallback, projectIds: pack.projects };
+      const latencyMs = () => Math.round(performance.now() - started);
       if (answer) {
         await log(answer.clarification ? "clarification" : answer.insufficient ? "insufficient" : "answered");
-        return Response.json(answer, { headers });
+        const metadata = answer.clarification ? {} : {
+          evidence, usage: { model: null, provider: null, inputTokens: 0, outputTokens: 0, cachedInputTokens: 0, latencyMs: latencyMs() },
+        };
+        return Response.json({ ...answer, ...metadata }, { headers });
       }
       const configured = configureModel(process.env);
       if (!configured || ((process.env.PORTFOLIO_AI_PUBLIC_ENABLED === "1" || process.env.PORTFOLIO_AI_PROTECTED_PREVIEW === "1") && (configured.provider !== "qwen" || !/^qwen3\.7-flash(?:-\d{4}-\d{2}-\d{2})?$/u.test(configured.modelId)))) {
@@ -114,7 +119,7 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig) {
       if (!reserved) { await log("error"); return Response.json({ error: "AI quota exceeded" }, { status: 429, headers }); }
       const result = await generateAnswer(input, pack, configured, process.env.QWEN_JSON_MODE?.trim() === "object", request.signal, usage => { recordedUsage = usage; });
       await log(result.answer.insufficient ? "insufficient" : "answered", recordedUsage);
-      return Response.json({ ...result.answer, evidence: { selectedCount: pack.entries.length, bytes: pack.bytes, fallback: pack.fallback, projectIds: pack.projects }, usage: { ...result.usage, latencyMs: Math.round(performance.now() - started) } }, { headers });
+      return Response.json({ ...result.answer, evidence, usage: { ...result.usage, latencyMs: latencyMs() } }, { headers });
   } catch (error) {
     if (error instanceof SelectionUnavailable) return Response.json({ error: "Selection unavailable" }, { status: 400, headers });
     await log("error", recordedUsage);

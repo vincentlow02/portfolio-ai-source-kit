@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { once } from "node:events";
 import { mkdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
@@ -23,6 +24,7 @@ export type KnowledgeBuildConfig = {
 const root = await realpath(process.cwd());
 const next = join(root, "node_modules", "next", "dist", "bin", "next");
 const artifact = join(root, ".portfolio-knowledge", "corpus.json");
+const candidate = join(dirname(artifact), `corpus.${randomUUID()}.tmp`);
 const idFile = join(root, ".next", "BUILD_ID");
 const childEnv = { ...process.env, PORTFOLIO_AI_PUBLIC_ENABLED: "0", PORTFOLIO_AI_PROTECTED_PREVIEW: "0", PORTFOLIO_AI_ACCESS_TOKEN: "" };
 
@@ -69,12 +71,18 @@ async function traceArtifact(route: string) {
 
 const configFile = resolve(root, process.argv[2] ?? "portfolio-knowledge.config.ts");
 const { default: config }: { default: KnowledgeBuildConfig } = await import(pathToFileURL(configFile).href);
+let placeholder = false;
 try {
   if (!Array.isArray(config?.sources) || !config.sources.length) throw new Error("Missing knowledge source configuration");
   validateSourcePlan(config.sources);
   await prepareEmbeddingModel(root);
   await mkdir(dirname(artifact), { recursive: true });
-  await writeFile(artifact, "{}\n");
+  try {
+    await writeFile(artifact, "{}\n", { flag: "wx" });
+    placeholder = true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+  }
   const compile = spawn(process.execPath, [next, "build"], { cwd: root, env: childEnv, stdio: "inherit", windowsHide: true });
   const [code] = await once(compile, "exit");
   if (code !== 0) throw new Error("Next.js build failed");
@@ -100,15 +108,28 @@ try {
       }
     }
     const corpus = await buildKnowledgeCorpus(sources, buildId, verifyInBrowser(browser, origin));
-    await writeFile(artifact + ".tmp", JSON.stringify(corpus) + "\n");
-    const response = await fetch(origin + "/.portfolio-knowledge/corpus.json", { redirect: "error", signal: AbortSignal.timeout(10_000) });
-    if (response.status !== 404) throw new Error("The corpus artifact must not be publicly served");
-    await rename(artifact + ".tmp", artifact);
+    await writeFile(candidate, JSON.stringify(corpus) + "\n", { flag: "wx" });
+    const previous = placeholder ? undefined : await readFile(artifact);
+    await rename(candidate, artifact);
+    try {
+      // Probe the real completed bytes while the build preview is bound to loopback.
+      const response = await fetch(origin + "/.portfolio-knowledge/corpus.json", { redirect: "error", signal: AbortSignal.timeout(10_000) });
+      if (response.status !== 404) throw new Error("The corpus artifact must not be publicly served");
+    } catch (error) {
+      if (previous) {
+        await writeFile(candidate, previous, { flag: "wx" });
+        await rename(candidate, artifact);
+      }
+      throw error;
+    }
+    placeholder = false;
     console.log("Portfolio knowledge:", { pages: corpus.pages.length, chunks: corpus.chunks.length, excluded: corpus.report.exclusions.length });
   } finally {
     try { await browser?.close(); } finally { server.kill(); }
   }
 } catch (error) {
-  await Promise.all([rm(artifact, { force: true }), rm(artifact + ".tmp", { force: true })]);
+  if (placeholder) await rm(artifact, { force: true });
   throw error;
+} finally {
+  await rm(candidate, { force: true });
 }

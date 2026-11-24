@@ -1,4 +1,4 @@
-import { APICallError, generateText, NoObjectGeneratedError, NoOutputGeneratedError, Output } from "ai";
+import { APICallError, generateText, NoObjectGeneratedError, NoOutputGeneratedError, Output, TypeValidationError } from "ai";
 import { z, ZodError } from "zod";
 import { b2Schema } from "./answer-schema";
 import type { ChatMessage } from "./core";
@@ -46,7 +46,10 @@ export async function executeGeneration(
     if (options.signal?.aborted) throw new GenerationError("cancelled");
     if (deadline.aborted || error instanceof Error && error.name === "TimeoutError") throw new GenerationError("timeout");
     if (APICallError.isInstance(error)) throw new GenerationError("provider", error.statusCode);
-    if (NoObjectGeneratedError.isInstance(error)) throw new GenerationError("json");
+    if (NoObjectGeneratedError.isInstance(error)) {
+      if (error.usage) options.onUsage?.(error.usage);
+      throw new GenerationError(TypeValidationError.isInstance(error.cause) ? "schema" : "json");
+    }
     if (NoOutputGeneratedError.isInstance(error)) throw new GenerationError("empty");
     if (error instanceof ZodError) throw new GenerationError("schema");
     throw new GenerationError("provider");

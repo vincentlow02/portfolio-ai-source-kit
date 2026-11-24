@@ -7,6 +7,21 @@ import { audienceEvidenceTerms, projectPath, replaceOwnerMentions, sourcePath as
 export const audienceStatement = /(?:\b(?:designed|built|intended)\s+for\b|\bfor\s+(?:students?|researchers?|designers?|users?|people|teams?)\b|対象(?:ユーザー|者|として|に)|(?:学生|研究者|利用者|ユーザー).{0,12}(?:のため|向け)|(?:面向|针对).{0,12}(?:用户|使用者|学生|研究者))/iu;
 export const personalRoleLabel = /(?:^|\n)\s*(?:my role|我的职责|担当)\s*(?:[:：]|\n)/iu;
 
+const genericTerms = new Set("about also been being came could design does during from found have having helped interviews interview just made more most much project research same said show take team testing that their them then there these they this those through tool used uses using very were what when where which will with work would your".split(" "));
+
+function evidenceWords(text: string) {
+  return (text.toLowerCase().match(/[a-z]{4,}/gu) ?? []).map(word => word.replace(/ies$/u, "y").replace(/s$/u, ""));
+}
+
+/** Conservative lexical check for English claims and explicitly named research subjects. */
+export function hasEnglishEvidenceAnchor(text: string, sources: string[], ignored: string[] = []) {
+  const generic = new Set([...genericTerms, ...evidenceWords([...genericTerms, ...ignored].join(" "))]);
+  const terms = evidenceWords(text).filter(word => !generic.has(word));
+  if (!terms.length) return true;
+  const cited = new Set(sources.flatMap(evidenceWords));
+  return terms.some(word => cited.has(word));
+}
+
 export function validateB2(output: ModelClaims, corpus: PortfolioCorpus, pack: Awaited<ReturnType<typeof buildB2Pack>>) {
   const { config } = pack;
   const approvedChunks = new Map(corpus.chunks.map(chunk => [chunk.chunkId, chunk]));
@@ -27,6 +42,10 @@ export function validateB2(output: ModelClaims, corpus: PortfolioCorpus, pack: A
   }) && !/(?:https?:\/\/|www\.|\]\s*\(|\/(?:api|projects|images|private)\/)/iu.test(claim.text)).filter(claim => {
     const citedChunks = claim.evidenceKeys.map(key => evidence.get(key)!);
     const cited = citedChunks.map(chunk => chunk.content);
+    if (output.language === "en" && citedChunks.every(chunk => chunk.language === "en")) {
+      const projectLabels = citedChunks.flatMap(chunk => [chunk.pageTitle, chunk.projectId ?? "", ...(chunk.projectId ? config.projectAliases?.[chunk.projectId] ?? [] : [])]);
+      if (!hasEnglishEvidenceAnchor(claim.text, cited, [config.ownerName, ...(config.ownerAliases ?? []), ...projectLabels])) return false;
+    }
     const attribution = /(?:\b(?:portfolioowner|he)\b|他|他本人)/iu.test(replaceOwnerMentions(claim.text, config)) && /(?:\b(?:responsible|created|directed|led|designed|built|developed|imagined|envisioned|conceived|conceptualized|provided|contributed)\b|负责|创作|主导|設計|担当|制作)/iu.test(claim.text);
     const translatedPersonalRole = citedChunks.some(chunk => chunk.language === "ja" && chunk.projectId && chunk.sectionId && personalRoleLabel.test(chunk.content) && corpus.chunks.some(other => other.language === "en" && other.projectId === chunk.projectId && other.sectionId === chunk.sectionId && pathnameOf(other.sourceUrl) === pathnameOf(chunk.sourceUrl) && corpus.pages.some(page => page.url === other.sourceUrl.split("#")[0]) && personalRoleLabel.test(other.content)));
     if (attribution && !translatedPersonalRole && !cited.some(text => /(?:\b(?:I|my)\s+(?:was responsible|led|created|designed|built|developed|imagined|envisioned|conceived|conceptualized|provided|contributed|work|role)\b|\bportfolioowner\s+(?:was responsible|led|created|designed|built|developed|imagined|envisioned|conceived|conceptualized|provided|contributed)\b|我的职责|我负责|我设计|私の役割|私が担当)/iu.test(replaceOwnerMentions(text, config)))) return false;

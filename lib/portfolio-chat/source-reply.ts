@@ -41,7 +41,7 @@ export function createModelReply(corpus: PortfolioCorpus, env: NodeJS.ProcessEnv
     options: { signal?: AbortSignal; reserve?: () => Promise<boolean> } = {}) => {
     const guardian = resolveGuardianReply(messages.at(-1)!.content, language);
     if (guardian) return { answer: guardian.answer, sources: [] };
-    const input = { corpus, messages, language, selection: quote };
+    const input = { corpus, messages, language, selection: quote, allowUnstructuredCatalog: true };
     const { pack, answer } = await prepareAnswer(input);
     if (answer) return answer;
     options.signal?.throwIfAborted();

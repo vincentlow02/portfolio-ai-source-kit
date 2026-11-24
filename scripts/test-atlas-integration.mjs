@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
-import { cp, lstat, mkdtemp, readFile, rm } from "node:fs/promises";
+import { cp, lstat, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -102,6 +102,23 @@ try {
   assert.ok(!JSON.stringify(corpus.chunks).includes("undisclosed"));
   assert.deepEqual(corpus.report.exclusions, [{ pathname: "/work/undisclosed", reason: "protected" }]);
 
+  const rejectedPlan = join(host, "invalid-source-plan.ts");
+  await writeFile(rejectedPlan, 'export default { sources: [{ access: "protected", url: "/work" }, { access: "public", format: "markdown", file: "missing.md", page: { url: "/work/lantern", title: "Lantern", language: "en", kind: "case-study", projectId: "lantern" } }] };');
+  const safePath = join(host, ".portfolio-knowledge", "corpus.json");
+  const safeSnapshot = await readFile(safePath, "utf8");
+  const safeBuild = await readFile(join(host, ".next", "BUILD_ID"), "utf8");
+  try {
+    const task = spawn(process.execPath, ["--import", "tsx", "scripts/portfolio-knowledge/publish.mts", rejectedPlan], {
+      cwd: host, env, stdio: ["ignore", "ignore", "pipe"], windowsHide: true,
+    });
+    let diagnostic = "";
+    task.stderr.setEncoding("utf8").on("data", chunk => { diagnostic += chunk; });
+    assert.notEqual((await once(task, "close"))[0], 0);
+    assert.match(diagnostic, /overlaps a protected route/u);
+    assert.equal(await readFile(safePath, "utf8"), safeSnapshot);
+    assert.equal(await readFile(join(host, ".next", "BUILD_ID"), "utf8"), safeBuild);
+  } finally { await rm(rejectedPlan, { force: true }); }
+
   const production = await start("start");
   try {
     const origin = production.origin;
@@ -123,11 +140,15 @@ try {
     assert.deepEqual(new Set(compared.sources.map(source => source.projectId)), new Set(["lantern", "signal"]));
     const listed = await (await call(origin, "What projects has Morgan worked on?", {})).json();
     assert.equal(listed.insufficient, false);
+    assert.deepEqual([listed.usage.model, listed.usage.inputTokens, listed.usage.outputTokens], [null, 0, 0]);
+    assert.ok(listed.evidence.selectedCount >= 2);
     assert.deepEqual(new Set(listed.sources.map(source => source.projectId)), new Set(["lantern", "signal"]));
     assert.equal((await fetch(origin + "/.portfolio-knowledge/corpus.json")).status, 404);
     const declined = await (await call(origin, "Tell me about waterfalls in Antarctica", { pageContext: { pathname: "/", lang: "en" } })).json();
     assert.equal(declined.insufficient, true);
     assert.equal(declined.sources.length, 0);
+    assert.equal(declined.evidence.selectedCount, 0);
+    assert.equal(declined.usage.inputTokens, 0);
     console.log("Independent production route passed authorization, privacy, highlight validation, two-project citations and insufficient-evidence checks.");
   } finally { await stop(production.app); }
 

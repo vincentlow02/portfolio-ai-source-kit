@@ -1,5 +1,6 @@
+import { createHash } from "node:crypto";
 import { z } from "zod";
-import type { PortfolioCorpus } from "../portfolio-knowledge";
+import type { PortfolioChunk, PortfolioCorpus } from "../portfolio-knowledge";
 
 const language = z.enum(["en", "zh", "ja"]);
 const identity = z.string().min(1);
@@ -22,6 +23,12 @@ const corpusSchema = z.object({
   })).min(1),
 });
 
+type CorpusIdentity = Pick<PortfolioCorpus, "pages" | "caseStudies" | "report"> & { chunks: Omit<PortfolioChunk, "buildVersion">[] };
+
+export function corpusContentHash({ pages, caseStudies, chunks, report }: CorpusIdentity): string {
+  return createHash("sha256").update(JSON.stringify({ pages, caseStudies, chunks, report })).digest("hex");
+}
+
 export function parsePortfolioCorpus(data: unknown): PortfolioCorpus {
   const parsed = corpusSchema.safeParse(data);
   if (!parsed.success) throw new Error("Portfolio knowledge artifact is missing or invalid. Rebuild the knowledge corpus.");
@@ -39,5 +46,9 @@ export function parsePortfolioCorpus(data: unknown): PortfolioCorpus {
     }
     ids.add(chunk.chunkId);
   }
+  // Hash the validated wire representation in schema v1 field order.
+  const stored = data as PortfolioCorpus;
+  const chunks = stored.chunks.map(({ buildVersion: _version, ...chunk }) => chunk);
+  if (corpusContentHash({ ...stored, chunks }) !== corpus.contentHash) throw new Error("Portfolio knowledge artifact content hash does not match");
   return corpus;
 }

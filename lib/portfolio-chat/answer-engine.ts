@@ -18,6 +18,7 @@ type AnswerInput = {
   selection?: ReturnType<typeof verifySelection>;
   previousSuggestions?: string[];
   timing?: RequestTiming;
+  allowUnstructuredCatalog?: boolean;
 };
 
 export class SelectionUnavailable extends Error {}
@@ -30,7 +31,7 @@ export type CanonicalAnswer = ReturnType<typeof validateB2> & {
 
 export async function prepareAnswer(input: AnswerInput) {
   const { corpus, messages, language, page = null, selection, timing, config = defaultPortfolioChatConfig } = input;
-  const pack = await buildB2Pack(corpus, messages, page, language, selection?.chunk, timing?.record.bind(timing), config);
+  const pack = await buildB2Pack(corpus, messages, page, language, selection?.chunk, timing?.record.bind(timing), config, input.allowUnstructuredCatalog);
   if (selection && !pack.entries.some(entry => entry.chunk === selection.chunk)) throw new SelectionUnavailable();
   const insufficient = (): CanonicalAnswer => ({
     ...validateAnswer({ answer: "", language, insufficient: true, sourceIds: [], recommendedProjectIds: [] }, corpus, config.ownerName),

@@ -5,6 +5,7 @@ import remarkMdx from "remark-mdx";
 import remarkGfm from "remark-gfm";
 import { z } from "zod";
 import type { PortfolioCorpus, PortfolioChunk } from "../portfolio-knowledge";
+import { corpusContentHash } from "./corpus";
 
 export const knowledgeLanguage = z.enum(["en", "zh", "ja"]);
 const projectId = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u).max(80);
@@ -270,7 +271,7 @@ export async function buildKnowledgeCorpus(
   }
   if (new Set(chunks.map(chunk => chunk.chunkId)).size !== chunks.length) throw new Error("Duplicate chunk ID");
   const report = { exclusions: excluded.map(pathname => ({ pathname, reason: "protected" as const })) };
-  const contentHash = hash({ pages, caseStudies, chunks, report });
+  const contentHash = corpusContentHash({ pages, caseStudies, chunks, report });
   return {
     schemaVersion: 1, siteBuildId: buildId, contentHash, pages, caseStudies, media: [], report,
     chunks: chunks.map(chunk => ({ ...chunk, buildVersion: contentHash })),

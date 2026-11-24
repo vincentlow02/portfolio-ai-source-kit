@@ -1,8 +1,8 @@
 import type { PortfolioChunk, PortfolioCorpus } from "../portfolio-knowledge";
 import { resolveRecommendations, validateAnswer, type B2Intent, type ChatMessage } from "./core";
-import { isSubstantivePassage, resolveContext, resolveProjects, retrieveEvidence, type RetrievalPhase, type RetrievalResult } from "./retrieval";
+import { comparisonQuestion, isSubstantivePassage, resolveContext, resolveProjects, retrieveEvidence, validationFollowUp, type RetrievalPhase, type RetrievalResult } from "./retrieval";
 import { languageInstruction, type ResponseLanguage } from "./language";
-import { audienceStatement, personalRoleLabel } from "./grounding";
+import { audienceStatement, hasEnglishEvidenceAnchor, personalRoleLabel } from "./grounding";
 import { defaultPortfolioChatConfig, projectPath, replaceOwnerMentions, sourcePath as pathnameOf, isInternalSource, type PortfolioChatConfig } from "./engine-config";
 
 export { b2Schema } from "./answer-schema";
@@ -86,16 +86,18 @@ export function parsePageContext(value: unknown, corpus: PortfolioCorpus, config
   return { path, projectId: page.kind === "case-study" || page.kind === "project-detail" ? page.projectId : null, sectionId: hint.sectionId as string | undefined, lang: hint.lang as "en" | "zh" | "ja" | undefined };
 }
 
-export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage[], page: ReturnType<typeof parsePageContext>, responseLanguage: ResponseLanguage = page?.lang ?? "en", selectedChunk?: PortfolioChunk, timing?: (phase: "retrieval" | "assembly" | RetrievalPhase, milliseconds: number) => void, config = defaultPortfolioChatConfig) {
+export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage[], page: ReturnType<typeof parsePageContext>, responseLanguage: ResponseLanguage = page?.lang ?? "en", selectedChunk?: PortfolioChunk, timing?: (phase: "retrieval" | "assembly" | RetrievalPhase, milliseconds: number) => void, config = defaultPortfolioChatConfig, allowUnstructuredCatalog = false) {
   const packStarted = timing ? performance.now() : 0;
   const query = messages.at(-1)!.content;
   const ownerQuery = replaceOwnerMentions(query, config);
   const resolved = resolveContext(messages, corpus, config);
   const explicit = resolved.explicit;
-  const comparison = /compare|different|difference|比较|区别|不同|比較|違い/iu.test(query);
+  const comparison = comparisonQuestion.test(query);
   const topic = requestedTopic(query);
   const topicQualified = topic !== null || /\bprojects?\s+(?:focused on|related to|about|involving|using|with|for)\b|(?:项目|專案|作品|プロジェクト).{0,20}(?:关于|涉及|聚焦|有关|関連|について|を使)/iu.test(query);
-  const listRequested = fullProjectList.test(ownerQuery) && !explicit.length && !comparison;
+  const hasCatalog = Boolean(config.projectDirectoryPath || corpus.caseStudies.length);
+  const listRequested = fullProjectList.test(ownerQuery) && !explicit.length && !comparison &&
+    (!allowUnstructuredCatalog || hasCatalog || topicQualified);
   const personal = !explicit.length && (personalOverviewQuestion.test(ownerQuery) || /(?:介绍|介紹|了解)(?:一下)?\s*portfolioowner\s*[?？。！!]*$|portfolioowner\s*について(?:教えて|知りたい|紹介|説明)/iu.test(ownerQuery));
   const referencedProject = !explicit.length && !resolved.ambiguous && resolved.projects.length > 0;
   let projects = listRequested || personal ? [] : resolved.projects.length ? resolved.projects : page?.projectId ? [page.projectId] : [];
@@ -140,7 +142,8 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
     if (reason) supplements.set(c.chunkId, reason);
   };
   if (selectedChunk && eligible.includes(selectedChunk)) add(selectedChunk, "verified-selection");
-  if (/\b(?:which|what) materials?\b|用.{0,8}什么材料|何の素材|何で作/iu.test(query)) {
+  const genericMaterialQuestion = /^(?:(?:which|what) materials? did (?:the team|they) (?:choose|use)|(?:这个|该)?原型用了什么材料|(?:この)?試作品は何の素材ですか)[?？。]?$/iu.test(query.trim());
+  if (genericMaterialQuestion && (projects.length === 1 || (!projects.length && corpus.pages.length === 1))) {
     const materials = eligible.filter(chunk => /^(?:materials?|材质|材料|素材)$/iu.test(chunk.sectionTitle));
     if (materials.length === 1) add(materials[0], "explicit-material-section");
   }
@@ -209,11 +212,19 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
       }
     }
   } else if (intent === "PROJECT_RESEARCH") {
-    const researchEvidence = eligible.filter(c => researchQuestion.test(`${c.sectionTitle}\n${c.content}`));
+    const genericValidationQuestion = validationFollowUp.test(query.trim());
+    const subject = /^.*\b(?:find|learn|discover|research) about (.+?)[?!.]*$/iu.exec(query)?.[1] ?? resolved.topic;
     for (const id of projects) {
-      const matches = researchEvidence.filter(c => c.projectId === id);
-      for (const chunk of matches.slice(0, 12)) add(chunk, "explicit-research");
-      for (const chunk of ranked.filter(c => c.projectId === id)) add(chunk);
+      const matches = ranked.filter(chunk => chunk.projectId === id &&
+        (!subject || language !== "en" || chunk.language !== "en" || hasEnglishEvidenceAnchor(subject, [chunk.content])));
+
+      for (const chunk of matches) add(chunk);
+      if (genericValidationQuestion && referencedProject && !matches.length) {
+        const corroboration = eligible.find(chunk => chunk.projectId === id &&
+          chunk.language === language && researchQuestion.test(chunk.content) &&
+          (!subject || language !== "en" || hasEnglishEvidenceAnchor(subject, [chunk.content])));
+        if (corroboration) add(corroboration, "referenced-project-validation");
+      }
     }
   } else {
     // A broad comparison of identified projects may use their published

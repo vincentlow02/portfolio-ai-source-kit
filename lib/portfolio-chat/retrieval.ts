@@ -6,6 +6,8 @@ import type { ChatMessage } from "./core";
 import { defaultPortfolioChatConfig } from "./engine-config";
 
 import type { PortfolioChatConfig } from "./engine-config";
+export const comparisonQuestion = /compare|different|difference|相比|比较|区别|不同|比較|違い/iu;
+export const validationFollowUp = /^(?:how did (?:the team|they|he|she) (?:validate|test) (?:that|it)|(?:团队|他们)(?:是)?如何(?:验证|测试)(?:的)?|どうやって(?:検証|テスト)しましたか)[?？。]?$/iu;
 const reference = /(?:\bit\b|\bthat project\b|\bthe project\b|\bthat decision\b|\bthe other\b|\bhis (?:role|responsibilities|contributions?|research|work|design|findings|methods?)\b|\bwhat did he do\b|这个项目|该项目|它|那个项目|那个决定|他的职责|他的贡献|他的研究|他的工作|他的设计|他的发现|他的研究方法|そのプロジェクト|それ|このプロジェクト|その設計|その決定|彼の役割|彼の担当|彼の研究|その研究|その調査)/iu;
 
 // Search may include labels to find their section; citation eligibility is
@@ -39,7 +41,7 @@ function names(text: string, corpus: PortfolioCorpus, config: PortfolioChatConfi
 }
 
 function isContextualFollowUp(query: string) {
-  return reference.test(query) || /\b(?:how (?:did|was|were) (?:the team|they|he|she|that)|why (?:did|was|were) (?:they|he|she|that)|(?:validate|test|design|choose) that|what about|tell me more)\b|为什么(?:这么做|这样做)|それはなぜ|(?:团队|他们).{0,10}(?:如何验证|如何测试)|どうやって(?:検証|テスト)/iu.test(query);
+  return reference.test(query) || validationFollowUp.test(query.trim()) || /\b(?:how (?:did|was|were) (?:the team|they|he|she|that)|why (?:did|was|were) (?:they|he|she|that)|(?:validate|test|design|choose) that|what about|tell me more)\b|为什么(?:这么做|这样做)|それはなぜ|(?:团队|他们).{0,10}(?:如何验证|如何测试)|どうやって(?:検証|テスト)/iu.test(query);
 }
 
 export function resolveContext(messages: ChatMessage[], corpus: PortfolioCorpus, config = defaultPortfolioChatConfig) {
@@ -49,15 +51,16 @@ export function resolveContext(messages: ChatMessage[], corpus: PortfolioCorpus,
   const priorQuestions = contextual ? messages.slice(0, -1).reverse().filter(message => message.role === "user") : [];
   const prior = priorQuestions.map(message => names(message.content, corpus, config)).find(ids => ids.length > 0) ?? [];
   const comparesPrior = explicit.length === 1 && prior.length === 1 && prior[0] !== explicit[0] &&
-    /compare|difference|相比|比较|比較|違い/iu.test(query) && reference.test(query);
+    comparisonQuestion.test(query) && reference.test(query);
   const projects = comparesPrior ? [prior[0], explicit[0]] : explicit.length ? explicit : prior.length === 1 ? prior : [];
   const ambiguous = contextual && !explicit.length && prior.length > 1;
   const previous = priorQuestions[0]?.content;
   // Carry a small topic hint only for elliptical questions. A fresh named
   // project or a specific follow-up can be retrieved from its own wording.
   const topic = previous && !explicit.length && !ambiguous &&
-    /\b(?:why (?:was|were|did) (?:it|that|they)|tell me more|what about (?:it|that))\b|为什么(?:这么做|这样做)|それはなぜ/iu.test(query)
-    ? searchTerms(previous, projects, corpus, config).slice(0, 120) : "";
+    (validationFollowUp.test(query.trim()) || /\b(?:why (?:was|were|did) (?:it|that|they)|tell me more|what about (?:it|that))\b|为什么(?:这么做|这样做)|それはなぜ/iu.test(query))
+    ? searchTerms(previous, projects, corpus, config)
+      .replace(/\b(?:problems?|solve|addresses?|did|use|uses)\b/giu, " ").replace(/\s+/gu, " ").trim().slice(0, 120) : "";
   return { projects, explicit, ambiguous, topic };
 }
 
@@ -187,12 +190,14 @@ export function createEvidenceRetriever(embed: EmbedTexts, profile = defaultRetr
     let vectors: Awaited<ReturnType<typeof embedPassages>>;
     let query: number[];
     try {
-      vectors = await cache.vectors;
+      const pending = cache.vectors;
+      vectors = await pending;
       timing?.("corpusEmbedding", performance.now() - corpusStarted);
       const queryStarted = timing ? performance.now() : 0;
       [query] = await embed([question]);
       timing?.("queryEmbedding", performance.now() - queryStarted);
       if (!query?.length || candidates.some(chunk => vectors.get(chunk.chunkId)?.length !== query.length)) {
+        if (cache?.vectors === pending) cache = undefined;
         throw new Error("Invalid portfolio embedding dimensions");
       }
     } catch {

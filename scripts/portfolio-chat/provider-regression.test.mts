@@ -117,3 +117,19 @@ test("the production executor never retries provider failures or a cancelled mod
     error => error instanceof GenerationError && error.kind === "cancelled");
   assert.equal(calls, 3);
 });
+
+test("invalid JSON and invalid structure retain provider-reported usage without retries", async () => {
+  for (const objectMode of [false, true]) {
+    for (const [bad, kind] of [["not json", "json"], ["{}", "schema"]]) {
+      let calls = 0;
+      const usage: Array<number | undefined> = [];
+      const model = configureModel({ ...env, QWEN_JSON_MODE: objectMode ? "object" : "schema" },
+        async () => { calls++; return reply(bad); })!;
+      await assert.rejects(executeGeneration(model, "Evidence", [{ role: "user", content: "What is Lantern?" }], {
+        objectMode, onUsage: report => { usage.push(report.inputTokens, report.outputTokens); },
+      }), error => error instanceof GenerationError && error.kind === kind);
+      assert.deepEqual(usage, [1234, 87]);
+      assert.equal(calls, 1);
+    }
+  }
+});

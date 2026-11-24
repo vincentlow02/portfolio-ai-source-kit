@@ -76,6 +76,7 @@ test("a rebuilt snapshot removes revoked passages and rejects stale or corrupted
   assert.ok(!afterSanitized.chunks.some(chunk => chunk.sourceUrl.startsWith(revoked.url)));
   assert.ok(!afterSanitized.caseStudies.some(project => project.projectId === "lantern"));
   assert.throws(() => b2PublicCorpus(before, "next-build"), /Corpus build mismatch/);
+  assert.throws(() => parsePortfolioCorpus({ ...after, chunks: after.chunks.map(chunk => ({ ...chunk, content: chunk.content + " Altered." })) }), /content hash does not match/);
   assert.throws(() => parsePortfolioCorpus({ ...after, schemaVersion: 2 }), /missing or invalid/);
   assert.throws(() => parsePortfolioCorpus({ ...after, chunks: [...after.chunks, before.chunks[0]] }), /inconsistent passages/);
   assert.throws(() => parsePortfolioCorpus({ ...after, chunks: [{...after.chunks[0], sourceUrl: "/missing#stale"}] }), /inconsistent passages/);
