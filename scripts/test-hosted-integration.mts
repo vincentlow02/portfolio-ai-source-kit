@@ -108,6 +108,14 @@ try {
     const unsupported=await askConversation(base,[...prior,{role:"user",content:"How were both projects tested in 2025?"}]);
     assert.equal(unsupported.status,200);
     assert.deepEqual((await unsupported.json()).sources,[]);
+    const vague=await askConversation(base,[...prior,{role:"user",content:"What about both projects?"}]);
+    assert.equal(vague.status,200);
+    const clarification=await vague.json();
+    assert.deepEqual(clarification.sources,[]);
+    assert.match(clarification.answer,/what would you like to compare/iu);
+    const afterClarification=await askConversation(base,[...prior,{role:"user",content:"What about both projects?"},{role:"assistant",content:clarification.answer},{role:"user",content:"Testing"}]);
+    assert.equal(afterClarification.status,200);
+    assert.deepEqual(new Set((await afterClarification.json()).sources.map((source:{href:string})=>source.href)),new Set([origin+"/work/lantern#research",origin+"/work/spruce#research"]));
   });
 
   await withHosted({ model: "1", quota: "unavailable" }, async base => {
@@ -116,6 +124,12 @@ try {
       assert.equal(result.status, 200);
       assert.deepEqual((await result.json()).sources, []);
     }
+    const vague = await askConversation(base,[{role:"user",content:"Compare Lantern and Spruce"},{role:"assistant",content:"They are different projects."},{role:"user",content:"What about both projects?"}]);
+    assert.equal(vague.status,200);
+    const clarification=await vague.json();
+    assert.deepEqual(clarification.sources,[]);
+    const continued=await askConversation(base,[{role:"user",content:"Compare Lantern and Spruce"},{role:"assistant",content:"They are different projects."},{role:"user",content:"What about both projects?"},{role:"assistant",content:clarification.answer},{role:"user",content:"Testing"}]);
+    assert.equal(continued.status,503);
     assert.equal((await ask(base, "How did Lantern test tactile signs?")).status, 503);
   });
 
