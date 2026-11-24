@@ -34,3 +34,5 @@ The formerly observed Japanese method/count examples are now development cases a
 ## Latest retrieval and temporal gates
 
 The observed former participant-method set has been promoted to development and recovered; a new frozen confirmation still missed two of four supported participant-count questions. Diagnostic results indicate the evidence passed topic filters but failed existing semantic qualification; translating the generic question to English is only a diagnostic and cannot safely preserve arbitrary attributes without further design and independent adversarial evaluation. The earlier local Registry and archive-install checks precede the newest executable changes; revalidate the final source. Selected future-test statements now abstain, but comprehensive temporal and cross-language relation verification remains open.
+
+**Latest archive update:** The `9d60bb2` archive was extracted and reinstalled; 81/81 offline and Atlas integration passed, and local Registry testing passed both hosts. Final report-only changes require final-tree archive audit.

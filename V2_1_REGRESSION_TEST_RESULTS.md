@@ -34,3 +34,5 @@ At `d361c0e` plus the frozen test script, `npm run test:offline` passed **80/80*
 ## Latest participant/temporal source checks
 
 At `ea807c4`, the offline suite returned 81/81 with exit 0; after adding extra assertions to the same test, that test passed independently. Focused suites passed 33/33 and `tsc --noEmit` exited 0. The Hosted integration exited 0 but its Japanese comparison still had zero citations. The original benchmark aggregates are unchanged. The earlier clean archive and Registry successes precede the latest executable changes; final source must be re-archived and tested, and earlier results cannot be attributed to the new code.
+
+**Latest installation and archive update:** Local Registry installation and mock integration passed Atlas and the second host (exit 0) on the latest executable source. Candidate archive `9d60bb2` passed 276-file Git blob/manifest and negative ZIP checks; its new extraction completed `npm ci --ignore-scripts`, 81/81 offline tests and Atlas integration, each exit 0. Later changes are report-only. Final ZIP is checked against its own commit. These checks do not establish real provider or production behavior.
