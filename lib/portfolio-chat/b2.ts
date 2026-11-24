@@ -151,6 +151,28 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
     if (reason) supplements.set(c.chunkId, reason);
   };
   if (selectedChunk && eligible.includes(selectedChunk)) add(selectedChunk, "verified-selection");
+  // A broad question about who a named project spoke to during research can
+  // use explicit past-tense interview evidence even when paraphrasing scores
+  // poorly. Never use this supplement for a question naming a specific topic.
+  if (explicit.length && projects.length === explicit.length && !selectedChunk) {
+    let generic = query.toLowerCase();
+    for (const id of explicit) {
+      const labels = [id, id.replaceAll("-", " "), ...(config.projectAliases?.[id] ?? []),
+        ...corpus.caseStudies.filter(item => item.projectId === id).map(item => item.title)];
+      for (const label of labels.filter(value => value.length >= 3)) {
+        const escaped = label.toLowerCase().replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+        generic = generic.replace(new RegExp(/[a-z]/iu.test(label) ? "(?<![a-z0-9])" + escaped + "(?![a-z0-9])" : escaped, "giu"), " ");
+      }
+    }
+    generic = generic.replace(/\s+/gu, " ").trim();
+    if (/^who did (?:and )?(?:speak|talk) to (?:during|in) (?:the )?(?:discovery|research)[?!.]*$/u.test(generic)) {
+      for (const id of projects) {
+        const direct = eligible.filter(chunk => chunk.projectId === id && chunk.language === "en" &&
+          /\b(?:interviewed|spoke to|talked to)\b/iu.test(chunk.content.split("\n").slice(1).join(" ")));
+        for (const chunk of direct.slice(0, 3)) add(chunk, "explicit-generic-interviewee");
+      }
+    }
+  }
   const genericMaterialQuestion = /^(?:(?:which|what) materials? did (?:the team|they) (?:choose|use)|(?:这个|该)?原型用了什么材料|(?:この)?試作品は何の素材ですか)[?？。]?$/iu.test(query.trim());
   if (genericMaterialQuestion && (projects.length === 1 || (!projects.length && corpus.pages.length === 1))) {
     const materials = eligible.filter(chunk => /^(?:materials?|材质|材料|素材)$/iu.test(chunk.sectionTitle));

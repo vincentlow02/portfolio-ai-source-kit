@@ -21,3 +21,7 @@ test("both named projects retain evidence for a question about their interviewee
  assert.deepEqual(new Set(pack.entries.map(e=>e.chunk.projectId)),new Set(["quill","bridge"]));
  assert.ok(pack.entries.every(e=>e.chunk.sourceUrl.endsWith("#research")));
 });
+test("interviewee supplement cannot support an unrelated specific subject",async()=>{
+ const pack=await buildB2Pack(corpus,query("Who did Quill and Bridge speak to during research about submarines?"),null,"en",undefined,undefined,{ownerName:"Example"});
+ assert.deepEqual(pack.entries,[]);
+});
