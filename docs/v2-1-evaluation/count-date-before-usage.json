@@ -1,0 +1,60 @@
+{
+  "corpusHash": "aaaa4f0b756571eee08a18d05ba39c0c636f6d68869f2e9c6a904bc1334cebaf",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "Silver の試作品は何人のボランティアがテストしましたか？",
+      "expected": "/work/silver#trial",
+      "evidence": [
+        {
+          "url": "/work/silver#trial",
+          "id": "38c3e489426a42a8f0e4e5c1"
+        }
+      ],
+      "insufficient": false,
+      "needsGeneration": true
+    },
+    {
+      "id": "p2",
+      "q": "Silver はいつから公開されていますか？",
+      "expected": "/work/silver#release",
+      "evidence": [
+        {
+          "url": "/work/silver#release",
+          "id": "ff64fba4635791bd09396b10"
+        }
+      ],
+      "insufficient": false,
+      "needsGeneration": true
+    },
+    {
+      "id": "n1",
+      "q": "Oak のパネルは何枚ありますか？",
+      "expected": null,
+      "evidence": [],
+      "insufficient": true,
+      "needsGeneration": false
+    },
+    {
+      "id": "n2",
+      "q": "Oak の展示はいつから使われていますか？",
+      "expected": null,
+      "evidence": [
+        {
+          "url": "/work/oak#background",
+          "id": "d63c89a78a2709f4d11f74e0"
+        }
+      ],
+      "insufficient": false,
+      "needsGeneration": true
+    },
+    {
+      "id": "n3",
+      "q": "Oak の展示には何人が参加しましたか？",
+      "expected": null,
+      "evidence": [],
+      "insufficient": true,
+      "needsGeneration": false
+    }
+  ]
+}

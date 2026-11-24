@@ -1,0 +1,57 @@
+{
+  "corpusHash": "cff084fe2ab5f5a7bcb935d40350222fd5d4b76d6e6bf620f85132fdbb55378f",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "Maple の道具はいつから使われていますか？",
+      "expected": "/work/maple#use",
+      "evidence": [
+        {
+          "url": "/work/maple#use",
+          "id": "ea48a6b0cc88f0a6596ccba3"
+        }
+      ],
+      "insufficient": false,
+      "needsGeneration": true
+    },
+    {
+      "id": "p2",
+      "q": "Birch の試作品は何人の看護師がテストしましたか？",
+      "expected": "/work/birch#trial",
+      "evidence": [
+        {
+          "url": "/work/birch#trial",
+          "id": "bfef342a4075af31bb960a9f"
+        }
+      ],
+      "insufficient": false,
+      "needsGeneration": true
+    },
+    {
+      "id": "n1",
+      "q": "Hazel の道具はいつから使われていますか？",
+      "expected": null,
+      "evidence": [
+        {
+          "url": "/work/hazel#design",
+          "id": "8442f1ef5fa32adecbbb2a23"
+        }
+      ],
+      "insufficient": false,
+      "needsGeneration": true
+    },
+    {
+      "id": "n2",
+      "q": "Cedar の展示には何人が参加しましたか？",
+      "expected": null,
+      "evidence": [
+        {
+          "url": "/work/cedar#history",
+          "id": "a29869fe6e9748f060fdcb43"
+        }
+      ],
+      "insufficient": false,
+      "needsGeneration": true
+    }
+  ]
+}

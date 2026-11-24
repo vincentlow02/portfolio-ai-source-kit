@@ -1,0 +1,83 @@
+{
+  "corpusHash": "aee5396a1632583719e80e7e5eb46f52ecd0961c8c0bee167e64f123545d56ed",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "Reef の音声はネット接続なしでどこに保存されていますか？",
+      "expected": "/work/reef#audio",
+      "evidence": [],
+      "insufficient": true,
+      "needsGeneration": false,
+      "preparationMs": 1863.5496000000003
+    },
+    {
+      "id": "p2",
+      "q": "Slate では活動の順序を変えることができますか？",
+      "expected": "/work/slate#planning",
+      "evidence": [],
+      "insufficient": true,
+      "needsGeneration": false,
+      "preparationMs": 16.42119999999977
+    },
+    {
+      "id": "p3",
+      "q": "Haven の調査にはどんな専門職が参加しましたか？",
+      "expected": "/work/haven#study",
+      "evidence": [],
+      "insufficient": true,
+      "needsGeneration": false,
+      "preparationMs": 45.738499999999476
+    },
+    {
+      "id": "p4",
+      "q": "Oriel は土の湿り具合をどのくらいの間隔で記録しますか？",
+      "expected": "/work/oriel#monitoring",
+      "evidence": [
+        {
+          "id": "cca6714dceacdd60585826b4",
+          "url": "/work/oriel#monitoring",
+          "reason": "qualified-match"
+        }
+      ],
+      "insufficient": false,
+      "needsGeneration": true,
+      "preparationMs": 15.885800000000017
+    },
+    {
+      "id": "n1",
+      "q": "Reef の音声は月にいくらで購入できますか？",
+      "expected": null,
+      "evidence": [],
+      "insufficient": true,
+      "needsGeneration": false,
+      "preparationMs": 11.886199999999008
+    },
+    {
+      "id": "n2",
+      "q": "Slate のカードは何色ですか？",
+      "expected": null,
+      "evidence": [],
+      "insufficient": true,
+      "needsGeneration": false,
+      "preparationMs": 10.492299999999886
+    },
+    {
+      "id": "n3",
+      "q": "Haven の設計者はどこに住んでいますか？",
+      "expected": null,
+      "evidence": [],
+      "insufficient": true,
+      "needsGeneration": false,
+      "preparationMs": 11.154999999998836
+    },
+    {
+      "id": "n4",
+      "q": "Oriel は火星でいつ発売されましたか？",
+      "expected": null,
+      "evidence": [],
+      "insufficient": true,
+      "needsGeneration": false,
+      "preparationMs": 11.643199999998615
+    }
+  ]
+}

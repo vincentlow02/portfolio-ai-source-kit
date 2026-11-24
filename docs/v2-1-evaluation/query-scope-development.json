@@ -1,0 +1,307 @@
+{
+  "passage": "Workshop kit\nThe kit contains removable panels that educators can rearrange to create different lesson plans.",
+  "scope": "development-only one-project retrieval diagnostic; assembly and multiple-project scoping are not measured",
+  "corpusHash": "cf661facf44b0df2faaa2ed3c4a4fb5bcb379e88c7ac9bcbdbf23811110157cb",
+  "rows": [
+    {
+      "question": "Loom のパネルを別の順序にできますか？",
+      "label": "supported",
+      "withoutName": "のパネルを別の順序にできますか？",
+      "namedCosine": 0.4450060160376019,
+      "withoutNameCosine": 0.4929457515798983,
+      "namedQualified": [
+        "/work/loom#kit"
+      ],
+      "withoutNameQualified": [
+        "/work/loom#kit"
+      ]
+    },
+    {
+      "question": "Loom の授業キットは組み替え可能ですか？",
+      "label": "supported",
+      "withoutName": "の授業キットは組み替え可能ですか？",
+      "namedCosine": 0.5393127992160133,
+      "withoutNameCosine": 0.62969735563146,
+      "namedQualified": [
+        "/work/loom#kit"
+      ],
+      "withoutNameQualified": [
+        "/work/loom#kit"
+      ]
+    },
+    {
+      "question": "Loom のキットは授業準備にどう役立ちますか？",
+      "label": "supported",
+      "withoutName": "のキットは授業準備にどう役立ちますか？",
+      "namedCosine": 0.49469511942397015,
+      "withoutNameCosine": 0.5329654044383692,
+      "namedQualified": [
+        "/work/loom#kit"
+      ],
+      "withoutNameQualified": [
+        "/work/loom#kit"
+      ]
+    },
+    {
+      "question": "Loom の部材は自由に配置を変えられますか？",
+      "label": "supported",
+      "withoutName": "の部材は自由に配置を変えられますか？",
+      "namedCosine": 0.3765866435279545,
+      "withoutNameCosine": 0.41426483650326995,
+      "namedQualified": [
+        "/work/loom#kit"
+      ],
+      "withoutNameQualified": [
+        "/work/loom#kit"
+      ]
+    },
+    {
+      "question": "Loom では構成要素を自分で動かせますか？",
+      "label": "supported",
+      "withoutName": "では構成要素を自分で動かせますか？",
+      "namedCosine": 0.31926296059273046,
+      "withoutNameCosine": 0.3340711972100458,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom では先生が学習活動を組み立て直せますか？",
+      "label": "supported",
+      "withoutName": "では先生が学習活動を組み立て直せますか？",
+      "namedCosine": 0.5084089371744316,
+      "withoutNameCosine": 0.5001039993718376,
+      "namedQualified": [
+        "/work/loom#kit"
+      ],
+      "withoutNameQualified": [
+        "/work/loom#kit"
+      ]
+    },
+    {
+      "question": "Loom の部品を別の構成に並べ替えられますか？",
+      "label": "supported",
+      "withoutName": "の部品を別の構成に並べ替えられますか？",
+      "namedCosine": 0.3601063202691454,
+      "withoutNameCosine": 0.39858795449347745,
+      "namedQualified": [],
+      "withoutNameQualified": [
+        "/work/loom#kit"
+      ]
+    },
+    {
+      "question": "Loom のツールは教師が組み合わせを変更できますか？",
+      "label": "supported",
+      "withoutName": "のツールは教師が組み合わせを変更できますか？",
+      "namedCosine": 0.5244641771201145,
+      "withoutNameCosine": 0.5753472593429506,
+      "namedQualified": [
+        "/work/loom#kit"
+      ],
+      "withoutNameQualified": [
+        "/work/loom#kit"
+      ]
+    },
+    {
+      "question": "Loom のパネルは金属ですか？",
+      "label": "unsupported",
+      "withoutName": "のパネルは金属ですか？",
+      "namedCosine": 0.3154048510068393,
+      "withoutNameCosine": 0.33651653513582613,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom の教材は何年に発売されましたか？",
+      "label": "unsupported",
+      "withoutName": "の教材は何年に発売されましたか？",
+      "namedCosine": 0.2690214171932839,
+      "withoutNameCosine": 0.25833757546147534,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom の部材は何色ですか？",
+      "label": "unsupported",
+      "withoutName": "の部材は何色ですか？",
+      "namedCosine": 0.2314335125130745,
+      "withoutNameCosine": 0.16871421567454703,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom は小学生によってテストされましたか？",
+      "label": "unsupported",
+      "withoutName": "は小学生によってテストされましたか？",
+      "namedCosine": 0.2867051898330337,
+      "withoutNameCosine": 0.22666834946965053,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom の設計者はどこの大学を卒業しましたか？",
+      "label": "unsupported",
+      "withoutName": "の設計者はどこの大学を卒業しましたか？",
+      "namedCosine": 0.22933352497593726,
+      "withoutNameCosine": 0.23148144256448508,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom はオンラインで販売されていますか？",
+      "label": "unsupported",
+      "withoutName": "はオンラインで販売されていますか？",
+      "namedCosine": 0.19054702682407476,
+      "withoutNameCosine": 0.09328458515202065,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom の教材は故障しやすいですか？",
+      "label": "unsupported",
+      "withoutName": "の教材は故障しやすいですか？",
+      "namedCosine": 0.40150390969007155,
+      "withoutNameCosine": 0.40471587550786553,
+      "namedQualified": [
+        "/work/loom#kit"
+      ],
+      "withoutNameQualified": [
+        "/work/loom#kit"
+      ]
+    },
+    {
+      "question": "Loom の授業キットはいつから使われていますか？",
+      "label": "unsupported",
+      "withoutName": "の授業キットはいつから使われていますか？",
+      "namedCosine": 0.4312305697860759,
+      "withoutNameCosine": 0.4709360275489286,
+      "namedQualified": [
+        "/work/loom#kit"
+      ],
+      "withoutNameQualified": [
+        "/work/loom#kit"
+      ]
+    },
+    {
+      "question": "Loom には何枚のパネルが入っていますか？",
+      "label": "unsupported",
+      "withoutName": "には何枚のパネルが入っていますか？",
+      "namedCosine": 0.4112547286020366,
+      "withoutNameCosine": 0.41336246806855526,
+      "namedQualified": [
+        "/work/loom#kit"
+      ],
+      "withoutNameQualified": [
+        "/work/loom#kit"
+      ]
+    },
+    {
+      "question": "Loom の授業は何分かかりますか？",
+      "label": "unsupported",
+      "withoutName": "の授業は何分かかりますか？",
+      "namedCosine": 0.3341909403946289,
+      "withoutNameCosine": 0.30123263413268264,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom のパネルは洗濯機で洗えますか？",
+      "label": "unsupported",
+      "withoutName": "のパネルは洗濯機で洗えますか？",
+      "namedCosine": 0.25308326858608826,
+      "withoutNameCosine": 0.25622852200746604,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom のパネルは水に溶けますか？",
+      "label": "unsupported",
+      "withoutName": "のパネルは水に溶けますか？",
+      "namedCosine": 0.19142142882967497,
+      "withoutNameCosine": 0.16224257320163563,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom の教材はどこで作られましたか？",
+      "label": "unsupported",
+      "withoutName": "の教材はどこで作られましたか？",
+      "namedCosine": 0.38011143379771206,
+      "withoutNameCosine": 0.42941157264302776,
+      "namedQualified": [
+        "/work/loom#kit"
+      ],
+      "withoutNameQualified": [
+        "/work/loom#kit"
+      ]
+    },
+    {
+      "question": "Loom のパネルを積み重ねると何センチですか？",
+      "label": "unsupported",
+      "withoutName": "のパネルを積み重ねると何センチですか？",
+      "namedCosine": 0.27378326633631145,
+      "withoutNameCosine": 0.28969405822605926,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom の教材は何歳から使えますか？",
+      "label": "unsupported",
+      "withoutName": "の教材は何歳から使えますか？",
+      "namedCosine": 0.3179110635798502,
+      "withoutNameCosine": 0.3580994772919495,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom の部品を毎月取り替える必要がありますか？",
+      "label": "unsupported",
+      "withoutName": "の部品を毎月取り替える必要がありますか？",
+      "namedCosine": 0.2532809094157021,
+      "withoutNameCosine": 0.20689806481710363,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom の教材は音を出せますか？",
+      "label": "unsupported",
+      "withoutName": "の教材は音を出せますか？",
+      "namedCosine": 0.3678244295784054,
+      "withoutNameCosine": 0.3534715857198788,
+      "namedQualified": [
+        "/work/loom#kit"
+      ],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom の授業キットは屋外で使えますか？",
+      "label": "unsupported",
+      "withoutName": "の授業キットは屋外で使えますか？",
+      "namedCosine": 0.484880396774028,
+      "withoutNameCosine": 0.5174068179013672,
+      "namedQualified": [
+        "/work/loom#kit"
+      ],
+      "withoutNameQualified": [
+        "/work/loom#kit"
+      ]
+    },
+    {
+      "question": "Loom は計画を自動的に印刷できますか？",
+      "label": "unsupported",
+      "withoutName": "は計画を自動的に印刷できますか？",
+      "namedCosine": 0.24604236511307326,
+      "withoutNameCosine": 0.19493020950371767,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    },
+    {
+      "question": "Loom の授業計画は英語と日本語に対応しますか？",
+      "label": "unsupported",
+      "withoutName": "の授業計画は英語と日本語に対応しますか？",
+      "namedCosine": 0.2298602517288435,
+      "withoutNameCosine": 0.22983109014224923,
+      "namedQualified": [],
+      "withoutNameQualified": []
+    }
+  ]
+}

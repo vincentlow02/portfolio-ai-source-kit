@@ -1,0 +1,95 @@
+{
+  "corpusHash": "aee5396a1632583719e80e7e5eb46f52ecd0961c8c0bee167e64f123545d56ed",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "Reef の音声はネット接続なしでどこに保存されていますか？",
+      "expected": "/work/reef#audio",
+      "evidence": [
+        {
+          "id": "625e24f5c6963d40e2f19d37",
+          "url": "/work/reef#audio",
+          "reason": "qualified-match"
+        }
+      ],
+      "insufficient": false,
+      "needsGeneration": true,
+      "preparationMs": 1478.8794
+    },
+    {
+      "id": "p2",
+      "q": "Slate では活動の順序を変えることができますか？",
+      "expected": "/work/slate#planning",
+      "evidence": [
+        {
+          "id": "4172426d50f5e8a894955a4b",
+          "url": "/work/slate#planning",
+          "reason": "qualified-match"
+        }
+      ],
+      "insufficient": false,
+      "needsGeneration": true,
+      "preparationMs": 25.41379999999981
+    },
+    {
+      "id": "p3",
+      "q": "Haven の調査にはどんな専門職が参加しましたか？",
+      "expected": "/work/haven#study",
+      "evidence": [],
+      "insufficient": true,
+      "needsGeneration": false,
+      "preparationMs": 35.07380000000012
+    },
+    {
+      "id": "p4",
+      "q": "Oriel は土の湿り具合をどのくらいの間隔で記録しますか？",
+      "expected": "/work/oriel#monitoring",
+      "evidence": [
+        {
+          "id": "cca6714dceacdd60585826b4",
+          "url": "/work/oriel#monitoring",
+          "reason": "qualified-match"
+        }
+      ],
+      "insufficient": false,
+      "needsGeneration": true,
+      "preparationMs": 13.550900000000183
+    },
+    {
+      "id": "n1",
+      "q": "Reef の音声は月にいくらで購入できますか？",
+      "expected": null,
+      "evidence": [],
+      "insufficient": true,
+      "needsGeneration": false,
+      "preparationMs": 1.5922999999997955
+    },
+    {
+      "id": "n2",
+      "q": "Slate のカードは何色ですか？",
+      "expected": null,
+      "evidence": [],
+      "insufficient": true,
+      "needsGeneration": false,
+      "preparationMs": 23.51469999999972
+    },
+    {
+      "id": "n3",
+      "q": "Haven の設計者はどこに住んでいますか？",
+      "expected": null,
+      "evidence": [],
+      "insufficient": true,
+      "needsGeneration": false,
+      "preparationMs": 24.933100000000195
+    },
+    {
+      "id": "n4",
+      "q": "Oriel は火星でいつ発売されましたか？",
+      "expected": null,
+      "evidence": [],
+      "insufficient": true,
+      "needsGeneration": false,
+      "preparationMs": 27.65020000000004
+    }
+  ]
+}

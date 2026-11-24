@@ -1,0 +1,65 @@
+{
+  "corpusHash": "a847609698bd0ed8b70481f129317d118cca667f35edfb8e4ee5c406ea291555",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "Nimbus の音声はネット接続がない時どこに保存されますか？",
+      "expected": "/work/nimbus#offline",
+      "evidence": [
+        {
+          "url": "/work/nimbus#offline",
+          "id": "ce3c84d106cf07f7a1b7630c",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "p2",
+      "q": "Quartz の試作品の骨組みにはどんな素材が使われていますか？",
+      "expected": "/work/quartz#frame",
+      "evidence": [
+        {
+          "url": "/work/quartz#frame",
+          "id": "9fb3def98d7fa5f4ddf29805",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "p3",
+      "q": "Bramble は地域の人たちに何を聞きましたか？",
+      "expected": "/work/bramble#research",
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true
+    },
+    {
+      "id": "n1",
+      "q": "Nimbus のパネルは何色の金属でできていますか？",
+      "expected": null,
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true
+    },
+    {
+      "id": "n2",
+      "q": "Quartz の授業キットはいつから使われていますか？",
+      "expected": null,
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true
+    },
+    {
+      "id": "n3",
+      "q": "Bramble の車輪は何個使われていますか？",
+      "expected": null,
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true
+    }
+  ]
+}
