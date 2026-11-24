@@ -32,6 +32,15 @@ test("first-person concept can be attributed but team art direction cannot", () 
   assert.equal(validate("Morgan provided the art direction and visual explorations for Lantern.",team.key).insufficient,true);
   assert.equal(validate("Morgan provided the art direction and visual explorations for Lantern.",personal.key).insufficient,true);
   assert.equal(validate("Morgan provided art direction for Lantern.",direct.key).insufficient,false);
+  assert.equal(validate("I provided art direction for Lantern.",team.key).insufficient,true);
+  assert.equal(validate("I provided art direction for Lantern.",direct.key).insufficient,false);
+  assert.equal(validate("She provided art direction for Lantern.",team.key).insufficient,true);
+  assert.equal(validate("She provided art direction for Lantern.",direct.key).insufficient,false);
+  for (const [language, text] of [["zh", "我负责了 Lantern 的艺术指导。"], ["zh", "我負責 Lantern 的藝術指導。"], ["zh", "她负责了 Lantern 的艺术指导。"], ["ja", "私は Lantern のアートディレクションを担当しました。"], ["ja", "彼女は Lantern のアートディレクションを担当しました。"]] as const) {
+    const firstPerson = (key:string) => validateB2({language,insufficient:false,claims:[{text,evidenceKeys:[key]}],recommendedProjectIds:[]},corpus,pack);
+    assert.equal(firstPerson(team.key).insufficient,true);
+    assert.equal(firstPerson(direct.key).insufficient,false);
+  }
   assert.equal(validate("An invented fact.","E999").insufficient,true);
 });
 
@@ -44,6 +53,16 @@ test("verified selections are separately attributed and private selections fail"
   assert.deepEqual(result.claims[1].evidenceKeys,[team.key]);
   assert.throws(() => verifySelection({pagePath:"/work/undisclosed",text:"private data",sectionId:null},corpus,page));
   assert.throws(() => parsePageContext({pathname:"/work/undisclosed"},corpus,config));
+});
+
+test("traditional Chinese personal-role evidence is recognized across languages", async () => {
+  const traditional = await buildKnowledgeCorpus([
+    {access:"public",format:"rendered",page:{url:"/work/lantern",title:"Lantern",language:"zh",kind:"case-study",projectId:"lantern"},sections:[{title:"我的職責",anchor:"role",text:"我負責藝術指導。"}]},
+  ],"traditional-role",async()=>{});
+  const result = await buildB2Pack(traditional,[{role:"user",content:"Lantern 的职责是什么？"}],null,"zh",undefined,undefined,config);
+  const scoped={...result,projects:["lantern"],entries:[{key:"E1",chunk:traditional.chunks[0],reason:"qualified-match"}]};
+  const answer=validateB2({language:"en",insufficient:false,claims:[{text:"Morgan provided art direction for Lantern.",evidenceKeys:["E1"]}],recommendedProjectIds:[]},traditional,scoped);
+  assert.equal(answer.insufficient,false);
 });
 
 test("Qwen configuration accepts a compatible HTTPS endpoint and rejects unsafe settings without network calls", () => {
