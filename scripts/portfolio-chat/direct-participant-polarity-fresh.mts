@@ -1,0 +1,18 @@
+import {performance} from 'node:perf_hooks';import {resolve} from 'node:path';import {pathToFileURL} from 'node:url';
+// Frozen before execution; fictional same-reviewer evidence; no provider calls.
+const root=process.env.PORTFOLIO_EVAL_ROOT??process.cwd();
+const {buildKnowledgeCorpus}=await import(pathToFileURL(resolve(root,'lib/knowledge/contract.ts')).href);
+const {prepareAnswer}=await import(pathToFileURL(resolve(root,'lib/portfolio-chat/answer-engine.ts')).href);
+const {excerptReply}=await import(pathToFileURL(resolve(root,'lib/portfolio-chat/source-reply.ts')).href);
+const corpus=await buildKnowledgeCorpus([
+ {access:'public',format:'rendered',page:{url:'/work/sail',title:'Sail',language:'en',kind:'case-study',projectId:'sail'},sections:[{title:'Research',anchor:'research',text:'The team interviewed seven librarians during the study.'}]},
+ {access:'public',format:'rendered',page:{url:'/work/ash',title:'Ash',language:'en',kind:'case-study',projectId:'ash'},sections:[{title:'Evaluation',anchor:'evaluation',text:'Four teachers tested the lesson planner during a workshop.'}]},
+ {access:'public',format:'rendered',page:{url:'/work/tide',title:'Tide',language:'en',kind:'case-study',projectId:'tide'},sections:[{title:'Research',anchor:'research',text:'The team never interviewed seven librarians during the study.'}]},
+ {access:'public',format:'rendered',page:{url:'/work/pine',title:'Pine',language:'en',kind:'case-study',projectId:'pine'},sections:[{title:'Research',anchor:'research',text:'Researchers had not interviewed four teachers during the study.'}]},
+ {access:'public',format:'rendered',page:{url:'/work/loam',title:'Loam',language:'en',kind:'case-study',projectId:'loam'},sections:[{title:'Research',anchor:'research',text:'The audit disputed that the team interviewed seven librarians during the study.'}]},
+ {access:'public',format:'rendered',page:{url:'/work/moss',title:'Moss',language:'en',kind:'case-study',projectId:'moss'},sections:[{title:'Research',anchor:'research',text:'The report falsely claimed that researchers interviewed four teachers during the study.'}]},
+ {access:'public',format:'rendered',page:{url:'/work/cape',title:'Cape',language:'en',kind:'case-study',projectId:'cape'},sections:[{title:'Research',anchor:'research',text:'The team would have interviewed seven librarians during the study.'}]},
+ {access:'public',format:'rendered',page:{url:'/work/willow',title:'Willow',language:'en',kind:'case-study',projectId:'willow'},sections:[{title:'Research',anchor:'research',text:'Researchers might have interviewed four teachers during the study.'}]},
+],'direct-participant-polarity-fresh-v1',async()=>{});
+const cases=[{id:'p1',q:'Compare Sail and Ash participants.',kind:'supported'},{id:'n1',q:'Compare Tide and Pine participants.',kind:'negated'},{id:'n2',q:'Compare Loam and Moss participants.',kind:'embedded-uncertain'},{id:'n3',q:'Compare Cape and Willow participants.',kind:'conditional'},{id:'n4',q:'Compare Sail and Tide participants.',kind:'one-sided'},{id:'n5',q:'Compare Sail and Ash participant names.',kind:'unknown-names'}];
+const rows=[];for(const item of cases){const messages=[{role:'user',content:item.q}];const start=performance.now();const result=await prepareAnswer({corpus,messages,language:'en',config:{ownerName:'Example'}});const excerpt=await excerptReply(corpus,messages,'en');rows.push({...item,projects:result.pack.projects,evidence:result.pack.entries.map(e=>({url:e.chunk.sourceUrl,id:e.chunk.chunkId})),needsGeneration:result.answer===null,excerptSources:excerpt.sources.map(s=>s.url),elapsedMs:performance.now()-start});}console.log(JSON.stringify({corpusHash:corpus.contentHash,rows},null,2));
