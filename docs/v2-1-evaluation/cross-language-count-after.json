@@ -1,0 +1,209 @@
+{
+  "corpusHash": "fa4ce9fdcf395c04755413de9e54c6a25058322a91e718970c37471448223d5a",
+  "rows": [
+    {
+      "id": "p1",
+      "prior": "Compare Willow and Coral",
+      "q": "両方のプロジェクトは何人で検証されましたか？",
+      "kind": "supported",
+      "projects": [
+        "coral",
+        "willow"
+      ],
+      "evidence": [
+        {
+          "url": "/work/coral#evaluation",
+          "id": "3bad7b5f205710af6ae6e0ce"
+        },
+        {
+          "url": "/work/willow#evaluation",
+          "id": "393422674d60e5d4844b5ea4"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/coral#evaluation",
+        "/work/willow#evaluation"
+      ],
+      "elapsedMs": 1109.0502000000001
+    },
+    {
+      "id": "p2",
+      "prior": "Willow と Coral を比べて",
+      "q": "両方のプロジェクトの検証に参加した人は何人ですか？",
+      "kind": "supported",
+      "projects": [
+        "coral",
+        "willow"
+      ],
+      "evidence": [
+        {
+          "url": "/work/coral#evaluation",
+          "id": "3bad7b5f205710af6ae6e0ce"
+        },
+        {
+          "url": "/work/willow#evaluation",
+          "id": "393422674d60e5d4844b5ea4"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/coral#evaluation",
+        "/work/willow#evaluation"
+      ],
+      "elapsedMs": 28.981199999999944
+    },
+    {
+      "id": "p3",
+      "prior": "Compare Willow and Coral",
+      "q": "それぞれのプロジェクトは何人で検証されましたか？",
+      "kind": "supported",
+      "projects": [
+        "coral",
+        "willow"
+      ],
+      "evidence": [
+        {
+          "url": "/work/coral#evaluation",
+          "id": "3bad7b5f205710af6ae6e0ce"
+        },
+        {
+          "url": "/work/willow#evaluation",
+          "id": "393422674d60e5d4844b5ea4"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/coral#evaluation",
+        "/work/willow#evaluation"
+      ],
+      "elapsedMs": 21.947999999999865
+    },
+    {
+      "id": "n1",
+      "prior": "Compare Silver and Amber",
+      "q": "両方のプロジェクトは何人で検証されましたか？",
+      "kind": "planned",
+      "projects": [
+        "amber",
+        "silver"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 23.3587
+    },
+    {
+      "id": "n2",
+      "prior": "Compare Delta and Summit",
+      "q": "両方のプロジェクトは何人で検証されましたか？",
+      "kind": "nonhuman-count",
+      "projects": [
+        "delta",
+        "summit"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 22.569600000000037
+    },
+    {
+      "id": "n3",
+      "prior": "Compare Stone and Bramble",
+      "q": "両方のプロジェクトは何人で検証されましたか？",
+      "kind": "negated",
+      "projects": [
+        "bramble",
+        "stone"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 23.358299999999872
+    },
+    {
+      "id": "n4",
+      "prior": "Compare Willow and Coral",
+      "q": "両方のプロジェクトは何人で火星で検証されましたか？",
+      "kind": "unknown-place",
+      "projects": [
+        "coral",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 25.96820000000025
+    },
+    {
+      "id": "n5",
+      "prior": "Compare Willow and Coral",
+      "q": "両方のプロジェクトの潜水艦の検証に参加した人は何人ですか？",
+      "kind": "unknown-subject",
+      "projects": [
+        "coral",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 30.759599999999864
+    },
+    {
+      "id": "n6",
+      "prior": "Compare Willow and Coral",
+      "q": "両方のプロジェクトの検証参加者の名前は何ですか？",
+      "kind": "unknown-names",
+      "projects": [
+        "coral",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 23.471599999999853
+    },
+    {
+      "id": "n7",
+      "prior": "Compare Willow and Coral",
+      "q": "両方のプロジェクトの検証に参加した子供は何人ですか？",
+      "kind": "unknown-age",
+      "projects": [
+        "coral",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 27.44670000000042
+    },
+    {
+      "id": "n8",
+      "prior": "Compare Willow and Coral",
+      "q": "両方のプロジェクトの検証に参加した人の給料はいくらですか？",
+      "kind": "unknown-salary",
+      "projects": [
+        "coral",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 1.4866000000001804
+    },
+    {
+      "id": "n9",
+      "prior": "Compare Willow and Coral",
+      "q": "両方のプロジェクトは何人で検証されませんでしたか？",
+      "kind": "opposite-polarity",
+      "projects": [
+        "coral",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 23.767199999999775
+    }
+  ]
+}

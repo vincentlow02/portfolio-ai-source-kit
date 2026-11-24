@@ -1,5 +1,5 @@
 import type { PortfolioCorpus } from "../portfolio-knowledge";
-import { buildB2Pack, parsePageContext } from "./b2";
+import { buildB2Pack, isExplicitParticipantComparison, parsePageContext } from "./b2";
 import { generateAnswer, prepareAnswer } from "./answer-engine";
 import { validateAnswer, validateMessages, type ChatMessage } from "./core";
 import { resolveGuardianReply } from "./guardian";
@@ -61,7 +61,7 @@ export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessag
   if (context?.ambiguous) return { answer: { en: "Which project do you mean?", zh: "你指的是哪个项目？", ja: "どのプロジェクトについてですか？" }[language], sources: [], recommendations: [] };
   // A plural comparison must not be answered with only one project's excerpt.
   // Assemble a bounded public passage for each subject or return insufficient.
-  if (context?.carryComparison) {
+  if (context?.carryComparison || (context && isExplicitParticipantComparison(messages.at(-1)!.content,context.explicit,corpus))) {
     if (context.projects.length > 18) return validateAnswer({language,insufficient:true,answer:"",sourceIds:[],recommendedProjectIds:[]},corpus);
     const pack = await buildB2Pack(corpus, messages, null, language, undefined, undefined, undefined, true);
     if (pack.ambiguousTopic) return {answer:comparisonTopicClarification[language],sources:[],recommendations:[]};

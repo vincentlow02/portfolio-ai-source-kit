@@ -1,6 +1,6 @@
 import type { PortfolioChunk, PortfolioCorpus } from "../portfolio-knowledge";
 import { resolveRecommendations, validateAnswer, type B2Intent, type ChatMessage } from "./core";
-import { comparisonQuestion, comparisonTopicMatcher, isSubstantivePassage, removeProjectLabels, resolveContext, resolveProjects, retrieveEvidence, sourceMatchesSpecificIntent, validationFollowUp, type RetrievalPhase, type RetrievalResult } from "./retrieval";
+import { comparisonQuestion, comparisonTopicMatcher, countedPeopleNouns, isSubstantivePassage, nonHumanCountSuffix, removeProjectLabels, resolveContext, resolveProjects, retrieveEvidence, sourceMatchesSpecificIntent, validationFollowUp, type RetrievalPhase, type RetrievalResult } from "./retrieval";
 import { languageInstruction, type ResponseLanguage } from "./language";
 import { audienceStatement, hasEnglishEvidenceAnchor, personalRoleLabel } from "./grounding";
 import { defaultPortfolioChatConfig, projectPath, replaceOwnerMentions, sourcePath as pathnameOf, isInternalSource, type PortfolioChatConfig } from "./engine-config";
@@ -13,6 +13,20 @@ const overviewQuestion = /(?:\bwhat is\b|\bwhat's\b|\btell me about\b|是什么|
 const audienceQuestion = /(?:\b(?:target audience|target users?|who (?:is|was) .{0,60} for|who uses)\b|目标用户|目标人群|适合谁|対象ユーザー|対象者|誰のため)/iu;
 const presentationQuestion = /(?:website|web\s?page|landing page|presentation|marketing|网站|网页|介绍页|展示页面|ウェブ|サイト|紹介ページ)/iu;
 const presentationSection = /(?:landing page|product (?:introduction|presentation) page|website|产品介绍页|产品展示页|紹介ページ|ランディングページ)/iu;
+// Direct participant evidence is deliberately limited to an explicit counted
+// human group taking part in a past study action, not audience or staff counts.
+const participantNumber=String.raw`(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)`;
+const participantPhrase=participantNumber+String.raw`\s+(?:[a-z-]+\s+){0,2}`+countedPeopleNouns+String.raw`\b`+nonHumanCountSuffix;
+const participantSubject=new RegExp(String.raw`\b`+participantPhrase+String.raw`\s+(?:tested|tried|participated|described|reported|shared)\b`,"iu");
+const participantObject=new RegExp(String.raw`\b(?:interviewed|surveyed|observed)\s+`+participantPhrase+String.raw`\b`,"iu");
+function hasDirectStudyParticipants(source:string):boolean {
+  return source.split("\n").slice(1).join("\n").split(/(?<=[.!?。！？])\s*|[;；]|\b(?:and|or|but|while|however)\b/iu)
+    .some(sentence => (participantSubject.test(sentence) || participantObject.test(sentence)) &&
+      /\b(?:test(?:ed|ing)?|tried|interviews?|interviewed|surveys?|surveyed|study|studies|research|workshops?)\b/iu.test(sentence));
+}
+export function isExplicitParticipantComparison(query:string,projects:string[],corpus:PortfolioCorpus,config:PortfolioChatConfig=defaultPortfolioChatConfig):boolean {
+  return projects.length === 2 && /^compare\s+(?:the\s+)?and\s+(?:the\s+)?(?:(?:research|study)\s+)?participants[?.!]*$/iu.test(removeProjectLabels(query,projects,corpus,config));
+}
 const roleQuestion = /(?:\b(?:role|responsibilit(?:y|ies)|contribut(?:e|ed|ion|ions))\b|\bwhat did (?:portfolioowner|he|you) do\b|职责|责任|负责|贡献|担当|役割|貢献|何を(?:担当|した))/iu;
 const researchQuestion = /(?:\b(?:research|study|studies|interview(?:ed|s|ing)?|participants?|findings?|insights?|survey|usability test|research method)\b|研究|调研|調研|访谈|訪談|采访|インタビュー|参加者|調査|調査方法|研究方法|研究結果|发现|發現|结果|結果)/iu;
 const personalOverviewQuestion = /(?:\bwho\s+(?:is|was)\s+portfolioowner\b|\blearn\s+(?:more\s+)?about\s+portfolioowner\b|\btell\s+me(?:\s+more)?\s+about\s+(?:portfolioowner|him)\b|\bwhat\s+(?:kind|type)\s+of\s+(?:product\s+)?designer\s+is\s+portfolioowner\b|\bhow\s+(?:does|do)\s+(?:portfolioowner|he)\s+(?:approach|think about)\s+(?:product\s+)?design\b|\bportfolioowner(?:'s)?\s+(?:background|profile|design(?:er)?(?:\s+approach|\s+philosophy)?)\b|\btell\s+me(?:\s+more)?\s+about\s+portfolioowner(?:'s)?\s+(?:design|background|work)\b|(?:告诉我|介绍|说说|了解)[^?？]{0,20}关于\s*portfolioowner|portfolioowner\s*(?:是怎样|是什么样|是谁|的背景|的设计理念|的设计方式)|portfolioowner\s*について(?:教えて|知りたい|紹介|説明|もっと)?|portfolioowner\s*はどんな(?:デザイナー|人)|portfolioowner\s*の(?:プロフィール|背景|デザインへの考え|デザイン哲学)|デザインに対するportfolioownerの考え)/iu;
@@ -114,6 +128,8 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   // that explicitly referred to several projects.
   const ambiguous = !selectedChunk && resolved.ambiguous && (resolved.multiplePriorProjects || !page?.projectId);
   const comparisonTopic = resolved.carryComparison ? comparisonTopicMatcher(query) : undefined;
+  const genericParticipantComparison = !selectedChunk && intent === "COMPARISON" && projects.length === 2 && explicit.length === 2 &&
+    isExplicitParticipantComparison(query,explicit,corpus,config);
   const ambiguousTopic = Boolean(comparisonTopic && !comparisonTopic.hasTopic && !comparisonQuestion.test(query) && !selectedChunk);
   const tooManyComparisonProjects = resolved.carryComparison && projects.length > 18;
   const tooManyComparisonTerms = comparisonTopic?.tooManyTerms === true;
@@ -154,7 +170,7 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   const overview = overviewQuestion.test(query) && !presentationQuestion.test(query);
   const eligible = corpus.chunks.filter(c => {
     const sourcePath = pathnameOf(c.sourceUrl);
-    return !tooManyComparisonProjects && !tooManyComparisonTerms && c.accessLevel === "public" && (!projects.length || projects.includes(c.projectId ?? "")) && isSubstantivePassage(c) && (!comparisonTopic?.hasTopic || comparisonTopic.matches(c.content)) && corpus.pages.some(p => p.url === c.sourceUrl.split("#")[0]) &&
+    return !tooManyComparisonProjects && !tooManyComparisonTerms && c.accessLevel === "public" && (!projects.length || projects.includes(c.projectId ?? "")) && isSubstantivePassage(c) && (!comparisonTopic?.hasTopic || comparisonTopic.matches(c.content)) && (!genericParticipantComparison || hasDirectStudyParticipants(c.content)) && corpus.pages.some(p => p.url === c.sourceUrl.split("#")[0]) &&
       (!overview || !presentationSection.test(c.sectionTitle)) &&
       (intent !== "PERSONAL_OVERVIEW" || sourcePath === config.profilePath || allowProjectEvidence && c.projectId !== null && (sourcePath === projectPath(corpus, config, c.projectId, c.language) || sourcePath === config.publicOverviewPath));
   });
@@ -299,6 +315,9 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
       }
     }
   } else {
+    if (genericParticipantComparison) for (const id of projects) {
+      for (const chunk of eligible.filter(c => c.projectId === id && c.language === "en").slice(0,3)) add(chunk,"explicit-study-participants");
+    }
     // A broad comparison of identified projects may use their published
     // case-study evidence when the generic comparison itself scores poorly.
     if (intent === "COMPARISON" && projects.length > 1) {

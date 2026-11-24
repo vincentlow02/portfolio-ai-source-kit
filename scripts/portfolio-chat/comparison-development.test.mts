@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
 import { buildB2Pack } from "../../lib/portfolio-chat/b2";
-import { createModelReply } from "../../lib/portfolio-chat/source-reply";
+import { createModelReply, excerptReply } from "../../lib/portfolio-chat/source-reply";
 const corpus=await buildKnowledgeCorpus([
  {access:"public",format:"rendered",page:{url:"/work/quill",title:"Quill",language:"en",kind:"case-study",projectId:"quill"},sections:[{title:"Research interviews",anchor:"research",text:"Researchers interviewed six archivists about describing fragile photographs."},{title:"Prototype",anchor:"prototype",text:"The interface groups photographs by collection."}]},
  {access:"public",format:"rendered",page:{url:"/work/bridge",title:"Bridge",language:"en",kind:"case-study",projectId:"bridge"},sections:[{title:"Research interviews",anchor:"research",text:"The team interviewed five museum curators about tracking loan requests."},{title:"Prototype",anchor:"prototype",text:"The interface displays a timeline of artwork loans."}]}
@@ -38,4 +38,21 @@ test("unsupported participant names do not reserve model quota",async()=>{
  const reply=await model(query("Compare Harbor and Orchard study participant names."),"en",undefined,{reserve:async()=>{reservations++;return false;}});
  assert.deepEqual(reply.sources,[]);
  assert.equal(reservations,0);
+});
+
+test("explicit participant comparison uses evidence for each project and rejects extra attributes",async()=>{
+ const fixture=await buildKnowledgeCorpus([
+  {access:"public",format:"rendered",page:{url:"/work/dune",title:"Dune",language:"en",kind:"case-study",projectId:"dune"},sections:[{title:"Interviews",anchor:"research",text:"Eight care workers described difficulty finding instructions during interviews at a clinic."}]},
+  {access:"public",format:"rendered",page:{url:"/work/cedar",title:"Cedar",language:"en",kind:"case-study",projectId:"cedar"},sections:[{title:"Trial",anchor:"research",text:"Five teachers tested a paper planner during a workshop at a community centre."}]},
+  {access:"public",format:"rendered",page:{url:"/work/canal",title:"Canal",language:"en",kind:"case-study",projectId:"canal"},sections:[{title:"Trial",anchor:"research",text:"Six librarians tested a library catalogue."}]},
+ ],"participant-comparison-development",async()=>{});
+ const pack=await buildB2Pack(fixture,query("Compare Dune and Cedar participants."),null,"en",undefined,undefined,{ownerName:"Example"});
+ assert.deepEqual(new Set(pack.entries.map(e=>e.chunk.sourceUrl)),new Set(["/work/dune#research","/work/cedar#research"]));
+ assert.deepEqual(new Set((await excerptReply(fixture,query("Compare Dune and Cedar participants."),"en")).sources.map(source=>source.url)),new Set(["/work/dune#research","/work/cedar#research"]));
+ const model=createModelReply(fixture,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
+ for(const text of ["Compare Dune and Cedar study participant names.","Compare Dune and Cedar participants from Mars.","Compare Dune and Cedar participant salaries."]){
+  let reservations=0;
+  assert.deepEqual((await model(query(text),"en",undefined,{reserve:async()=>{reservations++;return false;}})).sources,[],text);
+  assert.equal(reservations,0,text);
+ }
 });
