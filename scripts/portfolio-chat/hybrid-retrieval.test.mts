@@ -285,6 +285,13 @@ test("Japanese testing comparisons preserve participant and method relations acr
   assert.equal(method.matches("Trial\nThe team plans to test the exhibit during a workshop."),false);
   const count=comparisonTopicMatcher("両方のプロジェクトの検証に参加した人は何人ですか？");
   assert.equal(count.matches("Trial\nThe team plans to test the exhibit with six visitors."),false);
+  const planned=await make("The team plans to test the exhibit with six visitors during a workshop.","Researchers will test the prototype with four staff during an interview session.");
+  for(const text of ["両方のプロジェクトは何人で検証されましたか？","それぞれのプロジェクトはどんな方法で検証されたのですか？"]){
+    let reservations=0;
+    const reply=createModelReply(planned,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
+    assert.deepEqual((await reply([...prior,...question(text)],"ja",undefined,{reserve:async()=>{reservations++;return false;}})).sources,[]);
+    assert.equal(reservations,0,text);
+  }
 });
 
 test("the default retrieves an approved English excerpt for a Chinese question", async () => {
