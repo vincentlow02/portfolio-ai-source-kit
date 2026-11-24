@@ -52,3 +52,4 @@ Compared with V2 commit `f370bebfb158f9a92d26502f6946d6a89ed76b44`. This registe
 | `scripts/portfolio-chat/specific-intent-holdout.mts` | Specific-intent regression, evaluation, or per-case evidence |
 | `scripts/portfolio-chat/specific-intent.test.mts` | Specific-intent regression, evaluation, or per-case evidence |
 | `lib/portfolio-chat/answer-engine.ts` | Apply specific-intent evidence check before generation with verified selection |
+| `scripts/portfolio-chat/atlas-security.test.mts` | Personal/team attribution and multilingual role regressions |
