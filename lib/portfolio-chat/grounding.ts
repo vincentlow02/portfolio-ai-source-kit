@@ -3,6 +3,7 @@ import type { ModelClaims } from "./answer-schema";
 import type { buildB2Pack } from "./b2";
 import { resolveRecommendations, validateAnswer } from "./core";
 import { audienceEvidenceTerms, projectPath, replaceOwnerMentions, sourcePath as pathnameOf } from "./engine-config";
+import { resolveProjects } from "./retrieval";
 
 export const audienceStatement = /(?:\b(?:designed|built|intended)\s+for\b|\bfor\s+(?:students?|researchers?|designers?|users?|people|teams?)\b|対象(?:ユーザー|者|として|に)|(?:学生|研究者|利用者|ユーザー).{0,12}(?:のため|向け)|(?:面向|针对).{0,12}(?:用户|使用者|学生|研究者))/iu;
 export const personalRoleLabel = /(?:^|\n)\s*(?:my role|我的职责|担当)\s*(?:[:：]|\n)/iu;
@@ -11,6 +12,17 @@ const genericTerms = new Set("about also been being came could design does durin
 
 function evidenceWords(text: string) {
   return (text.toLowerCase().match(/[a-z]{4,}/gu) ?? []).map(word => word.replace(/ies$/u, "y").replace(/s$/u, ""));
+}
+
+// Digits must be present in cited prose. Normalize common written numbers so
+// a model may write "6" when the source says "six". This is a necessary
+// consistency check, not proof that a number has the same meaning or unit.
+const numberWords: Record<string, string> = { zero:"0", one:"1", two:"2", three:"3", four:"4", five:"5", six:"6", seven:"7", eight:"8", nine:"9", ten:"10", eleven:"11", twelve:"12", thirteen:"13", fourteen:"14", fifteen:"15", sixteen:"16", seventeen:"17", eighteen:"18", nineteen:"19", twenty:"20" };
+function normalizedNumbers(text: string) {
+  return text.normalize("NFKC").toLowerCase().replace(/\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b/gu, word => numberWords[word]);
+}
+function digits(text: string) {
+  return normalizedNumbers(text).match(/(?<![a-z0-9])\d+(?:[.,]\d+)*(?![0-9])/gu) ?? [];
 }
 
 /** Conservative lexical check for English claims and explicitly named research subjects. */
@@ -42,6 +54,19 @@ export function validateB2(output: ModelClaims, corpus: PortfolioCorpus, pack: A
   }) && !/(?:https?:\/\/|www\.|\]\s*\(|\/(?:api|projects|images|private)\/)/iu.test(claim.text)).filter(claim => {
     const citedChunks = claim.evidenceKeys.map(key => evidence.get(key)!);
     const cited = citedChunks.map(chunk => chunk.content);
+    const sourceNumbers = new Set(cited.flatMap(digits));
+    // Only claims containing numeric digits are checked; prose such as "one
+    // approach" is not necessarily a numeric assertion.
+    const claimNumbers = digits(claim.text.replace(/\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b/giu, ""));
+    if (claimNumbers.some(number => !sourceNumbers.has(number))) return false;
+    const namedProjects = resolveProjects([{ role: "user", content: claim.text }], corpus, config);
+    if (namedProjects.some(id => !citedChunks.some(chunk => chunk.projectId === id))) return false;
+    const negation = /\b(?:not|never|cannot|can't|didn't|doesn't|wasn't|weren't|without)\b/iu;
+    if (output.language === "en" && citedChunks.every(chunk => chunk.language === "en") && negation.test(claim.text)) {
+      const negativeSentences = cited.flatMap(text => text.split(/[.!?\n]/u)).filter(sentence => negation.test(sentence));
+      const labels = citedChunks.flatMap(chunk => [chunk.pageTitle, chunk.projectId ?? "", ...(chunk.projectId ? config.projectAliases?.[chunk.projectId] ?? [] : [])]);
+      if (!negativeSentences.length || !hasEnglishEvidenceAnchor(claim.text, negativeSentences, [config.ownerName, ...(config.ownerAliases ?? []), ...labels])) return false;
+    }
     if (output.language === "en" && citedChunks.every(chunk => chunk.language === "en")) {
       const projectLabels = citedChunks.flatMap(chunk => [chunk.pageTitle, chunk.projectId ?? "", ...(chunk.projectId ? config.projectAliases?.[chunk.projectId] ?? [] : [])]);
       if (!hasEnglishEvidenceAnchor(claim.text, cited, [config.ownerName, ...(config.ownerAliases ?? []), ...projectLabels])) return false;

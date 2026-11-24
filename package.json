@@ -11,7 +11,7 @@
     "preview:local": "tsx scripts/portfolio-knowledge/preview-local.mts",
     "preview:chat": "tsx scripts/portfolio-chat/preview-local.mts",
     "pretest:offline": "node --input-type=module -e \"import { prepareEmbeddingModel } from './lib/portfolio-chat/embedding-model.mjs'; await prepareEmbeddingModel()\"",
-    "test:offline": "tsx --test scripts/portfolio-knowledge/contract.test.mts scripts/portfolio-knowledge/rendered-review.test.mts scripts/portfolio-chat/chat-adapter.test.mts scripts/portfolio-chat/release-boundaries.test.mts scripts/portfolio-chat/atlas-security.test.mts scripts/portfolio-chat/local-access.test.mts scripts/portfolio-chat/preview-access.test.mts scripts/portfolio-chat/preview-local.test.mts scripts/portfolio-chat/boundaries.test.mts scripts/portfolio-chat/provider-regression.test.mts scripts/portfolio-chat/multilingual-safety.test.mts scripts/portfolio-chat/hybrid-retrieval.test.mts",
+    "test:offline": "tsx --test scripts/portfolio-knowledge/contract.test.mts scripts/portfolio-knowledge/rendered-review.test.mts scripts/portfolio-chat/chat-adapter.test.mts scripts/portfolio-chat/release-boundaries.test.mts scripts/portfolio-chat/atlas-security.test.mts scripts/portfolio-chat/local-access.test.mts scripts/portfolio-chat/preview-access.test.mts scripts/portfolio-chat/preview-local.test.mts scripts/portfolio-chat/boundaries.test.mts scripts/portfolio-chat/provider-regression.test.mts scripts/portfolio-chat/multilingual-safety.test.mts scripts/portfolio-chat/hybrid-retrieval.test.mts scripts/portfolio-chat/grounding-adversarial.test.mts",
     "test:integration": "node scripts/test-atlas-integration.mjs"
   },
   "dependencies": {
