@@ -52,4 +52,3 @@ async function main() {
   console.log(`PostgreSQL ${version}. RLS, roles, minute, day and budget tests passed. 12 connections, 5 accepted, 7 rejected, 5 recorded. Rollback releases the lock and reservation.`);
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
-
