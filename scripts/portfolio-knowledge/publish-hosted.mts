@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { buildKnowledgeCorpus, knowledgePath } from "../../lib/knowledge/contract";
 import { hostedPortfolioOrigin } from "../../lib/knowledge/hosted-origin";
 import { captureSiteSource, verifyInBrowser } from "../../lib/knowledge/rendered";
+import { prepareEmbeddingModel } from "../../lib/portfolio-chat/embedding-model.mjs";
 import { launchBrowser } from "./anonymous-browser.mjs";
 import { hostedResourceLoader } from "./hosted-resource.mts";
 
@@ -16,6 +17,7 @@ const paths = (process.env.PORTFOLIO_SOURCE_PATHS ?? "").split(/[,\n]/u).map(val
 if (!paths.length || new Set(paths).size !== paths.length) throw new Error("Set PORTFOLIO_SOURCE_PATHS to a comma-separated list of unique, approved public paths");
 for (const path of paths) knowledgePath(path);
 
+await prepareEmbeddingModel();
 const loadResource = await hostedResourceLoader(origin);
 // Only the pinned HTTPS loader can fetch resources for the anonymous browser.
 const browser = await launchBrowser([

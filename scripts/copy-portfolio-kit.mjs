@@ -14,7 +14,8 @@ export const kitFiles = [
   "lib/knowledge/contract.ts",
   "lib/knowledge/rendered.ts",
   "lib/portfolio-knowledge.ts",
-  ...["b2", "click-handler", "core", "engine-config", "followups", "guardian", "handler", "language",
+  "lib/portfolio-chat/embedding-model.mjs",
+  ...["b2", "click-handler", "core", "embeddings", "engine-config", "followups", "guardian", "handler", "language",
     "local-access", "origin", "provider", "request-body", "retrieval", "selection", "session", "supabase", "timing"]
     .map(file => "lib/portfolio-chat/" + file + ".ts"),
   "scripts/portfolio-chat/dev-server.mjs",

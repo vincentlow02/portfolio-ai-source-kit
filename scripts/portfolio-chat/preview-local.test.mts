@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { on, once } from "node:events";
-import { mkdir, mkdtemp, rmdir, unlink, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createInterface } from "node:readline";
 import test, { type TestContext } from "node:test";
 import { fileURLToPath } from "node:url";
 import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
+import { embeddingModelDirectory } from "../../lib/portfolio-chat/embedding-model.mjs";
 import { excerptReply } from "../../lib/portfolio-chat/source-reply";
 
 const portfolioOrigin = "http://127.0.0.1:5173";
@@ -24,6 +25,7 @@ async function startPreview(t: TestContext, model = false) {
   const file = join(directory, "local-preview.json");
   await mkdir(directory);
   await writeFile(file, JSON.stringify({ origin: portfolioOrigin, corpus }));
+  await cp(embeddingModelDirectory, join(root, embeddingModelDirectory), { recursive: true });
   const dependencies = new URL("../../node_modules/tsx/dist/loader.mjs", import.meta.url).href;
   const script = fileURLToPath(new URL("./preview-local.mts", import.meta.url));
   const fixture = fileURLToPath(new URL("./mock-local-preview.cjs", import.meta.url));
@@ -44,9 +46,7 @@ async function startPreview(t: TestContext, model = false) {
     lines.close();
     if (child.exitCode === null && child.signalCode === null) child.kill();
     await done;
-    await unlink(file);
-    await rmdir(directory);
-    await rmdir(root);
+    await rm(root, { recursive: true, force: true, maxRetries: 4 });
   });
   for await (const [line] of on(lines, "line", { close: ["close"], signal: AbortSignal.timeout(10_000) })) {
     const chatUrl = /^Local chat preview: (http:\/\/127\.0\.0\.1:\d+\/)$/u.exec(line)?.[1];
@@ -65,6 +65,7 @@ test("local chat returns a source excerpt and links only to an approved portfoli
   const { chatUrl, request } = await startPreview(t);
   const chatPage = await fetch(chatUrl);
   assert.equal(chatPage.status, 200);
+  assert.match(await chatPage.text(), /Hybrid retrieval/u);
   assert.ok(chatPage.headers.get("Content-Security-Policy")?.endsWith(`frame-ancestors ${portfolioOrigin}`));
   assert.equal((await fetch(new URL("embed.js", chatUrl))).status, 200);
   assert.equal((await fetch(new URL("widget/sparkles.svg", chatUrl))).headers.get("Content-Type"), "image/svg+xml");

@@ -8,6 +8,7 @@ import { APICallError, NoObjectGeneratedError, NoOutputGeneratedError } from "ai
 import { ZodError } from "zod";
 import type { PortfolioCorpus } from "../../lib/portfolio-knowledge";
 import { b2PublicCorpus } from "../../lib/portfolio-chat/b2";
+import { prepareEmbeddingModel } from "../../lib/portfolio-chat/embedding-model.mjs";
 import { resolveResponseLanguage } from "../../lib/portfolio-chat/language";
 import { readPortfolioRequest } from "../../lib/portfolio-chat/request-body";
 import { createModelReply, excerptReply, validateWidgetQuestion, widgetResponse } from "../../lib/portfolio-chat/source-reply";
@@ -47,17 +48,19 @@ async function servePreview(port: number, useModel: boolean) {
   corpus.chunks = corpus.chunks.filter(chunk => chunk.accessLevel === "public" &&
     chunk.buildVersion === corpus.contentHash && corpus.pages.some(page => page.url === chunk.sourceUrl.split("#")[0]));
   if (!corpus.chunks.length) throw new Error("The preview has no eligible passages");
+  await prepareEmbeddingModel();
   if (useModel) {
     try { process.loadEnvFile(".env.local"); } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     }
   }
   const modelReply = useModel ? createModelReply(corpus) : undefined;
+  const mode = modelReply ? "Model preview" : "Hybrid retrieval";
 
   const kitRoot = fileURLToPath(new URL("../../", import.meta.url));
   const assets = new Map(await Promise.all([...widgetAssets].map(async ([route, { type }]) => [route, {
     type, body: await readWidgetAsset(kitRoot, route, {
-      origin: portfolioOrigin, paths: corpus.pages.map(page => page.url), mode: modelReply ? "Model preview" : "Local preview · Finds matching passages",
+      origin: portfolioOrigin, paths: corpus.pages.map(page => page.url), mode,
     }),
   }] as const)));
 

@@ -13,6 +13,7 @@ const fixture = await mkdtemp(join(tmpdir(), "portfolio-ai-registry-"));
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
   !/^(?:PORTFOLIO_|QWEN_|SUPABASE_|OPENAI_|AI_GATEWAY_|VERCEL(?:_|$)|NEXT_PUBLIC_|POSTHOG_|NODE_OPTIONS$)/iu.test(key)));
 env.PUPPETEER_SKIP_DOWNLOAD = "true";
+env.ONNXRUNTIME_NODE_INSTALL_CUDA = "skip";
 async function run(command, args, cwd) {
   const windows = process.platform === "win32";
   const executable = windows && command !== process.execPath ? "cmd.exe" : command;

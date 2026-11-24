@@ -11,10 +11,12 @@
       "dependencies": [
         "@ai-sdk/openai@4.0.111",
         "@ai-sdk/openai-compatible@3.0.87",
+        "@huggingface/tokenizers@0.2.0",
         "@orama/orama@3.1.18",
         "@orama/tokenizers@3.1.18",
         "ai@7.0.166",
         "lucide-react@1.61.0",
+        "onnxruntime-node@1.21.0",
         "react-markdown@10.1.0",
         "remark-gfm@4.0.1",
         "remark-parse@11.0.0",
@@ -87,6 +89,16 @@
           "path": "lib/portfolio-chat/engine-config.ts",
           "type": "registry:file",
           "target": "~/lib/portfolio-chat/engine-config.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/embedding-model.mjs",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/embedding-model.mjs"
+        },
+        {
+          "path": "lib/portfolio-chat/embeddings.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/embeddings.ts"
         },
         {
           "path": "lib/portfolio-chat/followups.ts",

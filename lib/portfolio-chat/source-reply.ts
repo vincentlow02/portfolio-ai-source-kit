@@ -1,14 +1,14 @@
 import { generateText, Output } from "ai";
 import { z } from "zod";
 import type { PortfolioCorpus } from "../portfolio-knowledge";
-import { b2Prompt, b2Schema, b2Substantive, parsePageContext, validateB2, type buildB2Pack } from "./b2";
+import { b2Prompt, b2Schema, parsePageContext, validateB2, type buildB2Pack } from "./b2";
 import { validateAnswer, validateMessages, type ChatMessage } from "./core";
 import { defaultPortfolioChatConfig } from "./engine-config";
 import { validateFollowUpQuestions } from "./followups";
 import { resolveGuardianReply } from "./guardian";
 import { clearlyWrongLanguage, type ResponseLanguage } from "./language";
 import { configureModel } from "./provider";
-import { retrieveEvidence } from "./retrieval";
+import { isSubstantivePassage, retrieveEvidence } from "./retrieval";
 import { verifySelection } from "./selection";
 
 type VerifiedQuote = ReturnType<typeof verifySelection>;
@@ -51,7 +51,7 @@ export function createModelReply(corpus: PortfolioCorpus, env: NodeJS.ProcessEnv
       answer: "", language, insufficient: true, sourceIds: [], recommendedProjectIds: [],
     }, corpus);
     const { scores, fallback } = await retrieveEvidence(corpus, messages);
-    const ranked = corpus.chunks.filter(b2Substantive)
+    const ranked = corpus.chunks.filter(isSubstantivePassage)
       .sort((a, b) => (scores.get(b.chunkId) ?? 0) - (scores.get(a.chunkId) ?? 0));
     const candidates = quote ? [quote.chunk, ...ranked.filter(chunk => chunk.chunkId !== quote.chunk.chunkId)] : ranked;
     const entries: Awaited<ReturnType<typeof buildB2Pack>>["entries"] = [];
@@ -85,22 +85,16 @@ export function createModelReply(corpus: PortfolioCorpus, env: NodeJS.ProcessEnv
 }
 
 export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessage[], language: ResponseLanguage, quote?: VerifiedQuote) {
-  const { scores, terms } = await retrieveEvidence(corpus, messages);
-  const normalize = (text: string) => text.normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
-  const phrase = normalize(terms);
-  const ranked = corpus.chunks.filter(chunk => b2Substantive(chunk))
-    .sort((a, b) => (scores.get(b.chunkId) ?? 0) - (scores.get(a.chunkId) ?? 0));
-  const exact = phrase.includes(" ") && /\p{L}/u.test(phrase)
-    ? ranked.find(chunk => ` ${normalize(chunk.content)} `.includes(` ${phrase} `))
-    : undefined;
-  const match = quote?.chunk ?? exact ?? ranked.find(chunk => (scores.get(chunk.chunkId) ?? 0) > 0);
+  const retrieval = quote ? undefined : await retrieveEvidence(corpus, messages);
+  const match = quote?.chunk ?? retrieval?.chunks[0];
   const result = validateAnswer({
     language, insufficient: !match, answer: "Matching portfolio passage.",
     sourceIds: match ? [match.chunkId] : [], recommendedProjectIds: [],
   }, corpus);
   if (!match) return result;
   const page = match.sourceUrl.split("#")[0];
-  const topics = [...new Set(ranked.filter(chunk => chunk.sourceUrl.split("#")[0] === page && chunk.sectionTitle !== match.sectionTitle)
+  const topics = [...new Set(corpus.chunks.filter(chunk => chunk.sourceUrl.split("#")[0] === page && chunk.sectionTitle !== match.sectionTitle &&
+    chunk.buildVersion === corpus.contentHash && chunk.accessLevel === "public" && isSubstantivePassage(chunk))
     .map(chunk => chunk.sectionTitle))].filter(title => title.length >= 3 && title.length <= 100 && !/[<>\r\n]|https?:\/\//iu.test(title));
   const questions = topics.slice(0, 2).map(title => ({ en: `What about ${title}?`, zh: `可以介绍「${title}」吗？`, ja: `「${title}」について教えてください。` })[language]);
   return { ...result, answer: match.content.slice(match.content.indexOf("\n") + 1), followUpQuestions: questions };

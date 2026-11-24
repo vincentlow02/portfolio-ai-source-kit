@@ -5,6 +5,7 @@ import { cp, lstat, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { embeddingModelDirectory } from "../lib/portfolio-chat/embedding-model.mjs";
 import { copyPortfolioKit } from "./copy-portfolio-kit.mjs";
 import { launchBrowser } from "./portfolio-knowledge/anonymous-browser.mjs";
 
@@ -83,6 +84,8 @@ try {
       return true;
     } });
     await copyPortfolioKit(host);
+    await cp(new URL("../" + embeddingModelDirectory + "/", import.meta.url), join(host, embeddingModelDirectory), { recursive: true })
+      .catch(error => { if (error.code !== "ENOENT") throw error; });
     const isWindows = process.platform === "win32";
     const child = spawn(isWindows ? "cmd.exe" : "npm", isWindows ? ["/d", "/s", "/c", "npm ci --no-audit --no-fund"] : ["ci", "--no-audit", "--no-fund"], {
       cwd: host, env: { ...fixtureEnv, PUPPETEER_SKIP_DOWNLOAD: "true" }, stdio: "inherit", windowsHide: true,

@@ -41,7 +41,7 @@ export async function serveHostedAsset(request: Request) {
   try {
     const { origin, corpus, model } = await getAssistant();
     const body = await readWidgetAsset(process.cwd(), path, {
-      origin, paths: corpus.pages.map(page => page.url), mode: model ? "Model preview" : "Find passages in this portfolio",
+      origin, paths: corpus.pages.map(page => page.url), mode: model ? "Model preview" : "Hybrid retrieval",
     });
     return new Response(typeof body === "string" || !body ? body : new Uint8Array(body), { headers: {
       ...headers,

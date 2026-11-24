@@ -1,18 +1,18 @@
 # Portfolio AI source kit
 
-Portfolio AI adds an assistant that answers from selected pages on your own portfolio and links to its sources. Use your own public content with the kit or explore the fictional Atlas example.
+Portfolio AI adds an assistant that answers from selected pages on your own portfolio and links to its sources. Its shared retrieval engine combines keyword and multilingual semantic search.
 
 - [Hosted assistant](#hosted-assistant) deploys a separate service and adds it to a public portfolio with one script.
 - [Vite local preview](#vite-local-preview) runs the assistant on your development machine while you keep your existing Vite portfolio.
-- [Next.js App Router installation](#install-into-your-nextjs-portfolio) uses the released `v1.1.0` registry item and supports deployment through the Next.js integration.
+- [Next.js App Router installation](#install-into-your-nextjs-portfolio) adds the reusable chat UI and server routes to a Next.js portfolio.
 
 ## Hosted assistant
 
 Use this route for a public HTTPS portfolio that allows the assistant's script, stylesheet, icons, and frame. The assistant runs in its own project and uses the pages you approve.
 
-[![Deploy Portfolio AI with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvincentlow02%2Fportfolio-ai-source-kit%2Ftree%2Fhosted-assistant-template&env=PORTFOLIO_SITE_ORIGIN%2CPORTFOLIO_SOURCE_PATHS&project-name=portfolio-ai-assistant)
+Import your fork of the Kit into a Vercel project using the branch or release that contains this guide.
 
-1. Set `PORTFOLIO_SITE_ORIGIN` to your portfolio's canonical HTTPS origin, such as `https://www.example.com`. Set `PORTFOLIO_SOURCE_PATHS` to the exact paths you approve, such as `/,/projects,/projects/field-notes`. The build generates a private knowledge file from those pages. Each page needs an anonymous HTTP 200, a supported HTML language, and visible `<main>` text that renders using same-origin scripts and styles. Read the Vite preview section below for content limits.
+1. Set `PORTFOLIO_SITE_ORIGIN` to your portfolio's canonical HTTPS origin, such as `https://www.example.com`. Set `PORTFOLIO_SOURCE_PATHS` to the exact paths you approve, such as `/,/projects,/projects/field-notes`. The build prepares the retrieval model and generates a private knowledge file. Each page needs an anonymous HTTP 200, a supported HTML language, and visible `<main>` text that renders using same-origin scripts and styles.
 2. Copy the assistant's HTTPS deployment origin into this script and add it to your portfolio HTML before `</body>`. Publish your portfolio with the script in place.
 
    ```html
@@ -23,7 +23,7 @@ Use this route for a public HTTPS portfolio that allows the assistant's script, 
 
 If a Vite portfolio page opens through site navigation but its direct URL returns 404, configure your host to serve the app at that URL before selecting it. For a Vite SPA on Vercel, see [the deep-link rewrite instructions](https://vercel.com/docs/frameworks/frontend/vite#using-vite-to-make-spas).
 
-The default hosted mode returns source passages using local retrieval, with no model account required. To enable generated Qwen answers, copy the settings shown in the [environment template](.env.example) to your assistant project's environment, apply the [quota migration](supabase/migrations/202611100001_vincent_ai_analytics.sql) to a dedicated Supabase project, and set `PORTFOLIO_HOSTED_MODEL=1`. Configure the model, region, rate limits and budget using the [security and quota guide](docs/security.md). The assistant reserves shared quota before making a model call. It sends the question and selected approved passages to Qwen. Keep provider keys and quota credentials in the assistant project's server environment.
+The hosted assistant returns source excerpts without API credentials. To enable generated Qwen answers, copy the settings shown in the [environment template](.env.example) to your assistant project's environment, apply the [quota migration](supabase/migrations/202611100001_vincent_ai_analytics.sql) to a dedicated Supabase project, and set `PORTFOLIO_HOSTED_MODEL=1`. Configure the region, rate limits and budget using the [security and quota guide](docs/security.md). The assistant reserves shared quota before sending the question and selected approved passages to Qwen. Keep provider keys and quota credentials in the assistant project's server environment.
 
 ## Vite local preview
 
@@ -41,11 +41,9 @@ Open `http://127.0.0.1:5173` and check that a page you want to include, such as 
 
 ### 2. Create the knowledge base
 
-Open a second terminal and clone the **Kit** into a directory beside your portfolio:
+Open a second terminal in the **Kit** checkout. For a fresh checkout, use the branch or release that contains this guide. [Kit repository](https://github.com/vincentlow02/portfolio-ai-source-kit)
 
 ```sh
-git clone --branch feat/local-portfolio-preview https://github.com/vincentlow02/portfolio-ai-source-kit.git
-cd portfolio-ai-source-kit
 npm ci
 npm run preview:local -- --origin http://127.0.0.1:5173 --path /projects
 ```
@@ -74,7 +72,9 @@ In your **Vite portfolio's** `index.html`, add this development-only loader befo
 </script>
 ```
 
-Refresh the portfolio at `http://127.0.0.1:5173` and select the sparkle button (**Ask about this portfolio**). Enter a distinctive term from an approved page. The answer should show a matching passage. Expand **Sources** to open the corresponding page on your portfolio. A question about an unrelated topic should return an insufficient-information message. This smoke test uses local search and works without model credentials or a database.
+The first startup downloads about 135 MB of public embedding model files. The Kit caches them in the Git-ignored `.portfolio-knowledge/embedding-model/` directory. It computes embeddings on your machine and needs no API key or database.
+
+Refresh the portfolio at `http://127.0.0.1:5173` and select the sparkle button (**Ask about this portfolio**). Try asking about an approved project using your own wording. The chat shows a matching excerpt in the source language. Expand **Sources** to open the cited page.
 
 If the chat button is missing, check that both terminals are running and that your browser uses the exact `127.0.0.1` origin you captured. If you start chat with `--port`, use that port in the loader. Rebuild the knowledge base and restart chat after changing approved content or the portfolio port.
 
@@ -97,7 +97,7 @@ The URL above illustrates a Singapore workspace. Keep the key in the Git-ignored
 npm run preview:chat -- --model
 ```
 
-Refresh the portfolio. Ask a question about an approved page and check that the cited passage supports the model's answer. Model mode sends the question and selected approved passages to your provider and can incur charges. Both Vite preview modes bind to `127.0.0.1` for local testing.
+Refresh the portfolio. Ask a question about an approved page and check that the cited passage supports the model's answer. Model mode sends the question and selected approved passages to your provider and can incur charges. All Vite preview modes bind to `127.0.0.1` for local testing.
 
 ## Try the example
 
@@ -114,10 +114,10 @@ Copy `.env.example` in Atlas to `.env.local`, configure your own model and dedic
 
 ## Install into your Next.js portfolio
 
-For a Next.js App Router project, review the files and their targets in `registry.json`, then run from the project root:
+For a Next.js App Router project, review the file targets in `registry.json`. Replace `PUBLISHED_REF` with the published tag or commit of the Kit version you want to install.
 
 ```sh
-npx -y shadcn@4.23.0 add 'vincentlow02/portfolio-ai-source-kit/portfolio-ai#v1.1.0'
+npx -y shadcn@4.23.0 add 'vincentlow02/portfolio-ai-source-kit/portfolio-ai#PUBLISHED_REF'
 ```
 
 This installs the reusable code, dependencies, example templates and `.portfolio-ai/SETUP.md`. It does not automatically change your layout, choose your sources, configure credentials, apply SQL, or publish your site. The command targets project-root paths; inspect conflicts first and do not overwrite existing files without reviewing them. Node 24, Next 16 and React 19 are the tested baseline. A Figma account is not needed.
@@ -149,7 +149,7 @@ flowchart LR
   B --> C[Private corpus]
   D[Chat panel] --> E[Server route]
   C --> E
-  E --> F[Orama retrieval and B2 evidence]
+  E --> F[Hybrid retrieval and B2 evidence]
   E --> G[Shared Supabase quota]
   F --> H[Structured model response]
   G --> H

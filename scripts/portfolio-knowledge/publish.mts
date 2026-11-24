@@ -5,6 +5,7 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 import { buildKnowledgeCorpus, type KnowledgeSource } from "../../lib/knowledge/contract";
 import { capturePublishedSource, verifyInBrowser } from "../../lib/knowledge/rendered";
+import { embeddingTraceIncludes, prepareEmbeddingModel } from "../../lib/portfolio-chat/embedding-model.mjs";
 import { launchBrowser } from "./anonymous-browser.mjs";
 
 type PublicInput = Extract<KnowledgeSource, { format: "markdown" | "mdx" }>;
@@ -53,8 +54,14 @@ async function traceArtifact(route: string) {
   const file = join(root, ".next", "server", "app", route.slice(1), "route.js.nft.json");
   const trace: { files: string[] } = JSON.parse(await readFile(file, "utf8"));
   const tracePath = (target: string) => relative(dirname(file), target).split(sep).join("/");
-  if (!trace.files.includes(tracePath(artifact))) throw new Error("Add the corpus to outputFileTracingIncludes for " + route);
-  if (!trace.files.includes(tracePath(idFile))) {
+  const paths = new Set(trace.files.map(path => path.replaceAll("\\", "/")));
+  if (!paths.has(tracePath(artifact))) throw new Error("Add the corpus to outputFileTracingIncludes for " + route);
+  for (const modelFile of embeddingTraceIncludes.filter(file => file.startsWith("./.portfolio-knowledge/"))) {
+    if (!paths.has(tracePath(join(root, modelFile)))) {
+      throw new Error("Add embeddingTraceIncludes to outputFileTracingIncludes for " + route);
+    }
+  }
+  if (!paths.has(tracePath(idFile))) {
     trace.files.push(tracePath(idFile));
     await writeFile(file, JSON.stringify(trace));
   }
@@ -65,6 +72,7 @@ const { default: config }: { default: KnowledgeBuildConfig } = await import(path
 if (!Array.isArray(config?.sources) || !config.sources.length) throw new Error("Missing knowledge source configuration");
 
 try {
+  await prepareEmbeddingModel(root);
   await mkdir(dirname(artifact), { recursive: true });
   await writeFile(artifact, "{}\n");
   const compile = spawn(process.execPath, [next, "build"], { cwd: root, env: childEnv, stdio: "inherit", windowsHide: true });

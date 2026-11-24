@@ -11,27 +11,29 @@
   "dependencies": {
     "@ai-sdk/openai": "4.0.111",
     "@ai-sdk/openai-compatible": "3.0.87",
+    "@huggingface/tokenizers": "0.2.0",
     "@orama/orama": "3.1.18",
     "@orama/tokenizers": "3.1.18",
     "ai": "7.0.166",
     "lucide-react": "1.61.0",
     "next": "16.4.6",
+    "onnxruntime-node": "1.21.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-markdown": "10.1.0",
     "remark-gfm": "4.0.1",
-    "remark-parse": "11.0.0",
     "remark-mdx": "3.1.1",
+    "remark-parse": "11.0.0",
     "unified": "11.0.5",
     "zod": "4.6.7"
   },
   "devDependencies": {
     "@sparticuz/chromium": "153.0.0",
-    "puppeteer": "25.18.1",
-    "tsx": "4.23.15",
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^19",
-    "@types/react-dom": "^19"
+    "@types/react-dom": "^19",
+    "puppeteer": "25.18.1",
+    "tsx": "4.23.15",
+    "typescript": "^5"
   }
 }

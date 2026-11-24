@@ -10,9 +10,16 @@ const reference = /(?:\bit\b|\bthat project\b|\bthe project\b|\bthat decision\b|
 
 // Search may include labels to find their section; citation eligibility is
 // decided separately by the B2 evidence pack.
-export function searchable(chunk: PortfolioChunk): boolean {
+function searchable(chunk: PortfolioChunk): boolean {
   const text = chunk.content.trim();
   return Boolean(text && !/^(?:next|previous|back|menu|close|read more|view project|下一页|上一页|返回|次へ|前へ)$/iu.test(text));
+}
+
+export function isSubstantivePassage(chunk: PortfolioChunk): boolean {
+  const lines = chunk.content.trim().split("\n").map(line => line.trim()).filter(Boolean);
+  if (lines.length < 2 || chunk.content.trim() === chunk.sectionTitle.trim()) return false;
+  return lines.slice(1).some(line => searchable({ ...chunk, content: line }) &&
+    !/^(?:\d+\s*\/|solution\s*\d+\s*\/|[\p{P}\p{S}\s]+$)/iu.test(line));
 }
 
 function names(text: string, corpus: PortfolioCorpus, config: PortfolioChatConfig): string[] {
@@ -79,63 +86,100 @@ function createIndex(language: "en" | "zh" | "ja") {
     : create({ schema, components: { tokenizer: language === "zh" ? chinese() : japanese() } });
 }
 type Index = ReturnType<typeof createIndex>;
-let cache: { hash: string; indexes: Map<string, Index> } | undefined;
+let keywordCache: { key: string; indexes: Map<string, Index> } | undefined;
 
-function indexesFor(corpus: PortfolioCorpus) {
-  if (cache?.hash === corpus.contentHash) return cache.indexes;
+function keywordIndexes(chunks: PortfolioChunk[], key: string) {
+  if (keywordCache?.key === key) return keywordCache.indexes;
   const indexes = new Map<string, Index>();
-  for (const chunk of corpus.chunks) {
-    if (!searchable(chunk) || chunk.accessLevel !== "public" ||
-        !corpus.pages.some((page) => page.url === chunk.sourceUrl.split("#")[0])) continue;
-    const key = (chunk.projectId ?? "") + "|" + chunk.language;
-    if (!indexes.has(key)) indexes.set(key, createIndex(chunk.language));
-    insert(indexes.get(key)!, {
+  for (const chunk of chunks) {
+    const group = (chunk.projectId ?? "") + "|" + chunk.language;
+    if (!indexes.has(group)) indexes.set(group, createIndex(chunk.language));
+    insert(indexes.get(group)!, {
       chunkId: chunk.chunkId, text: chunk.content, title: chunk.sectionTitle, projectId: chunk.projectId ?? "",
     });
   }
-  cache = { hash: corpus.contentHash, indexes };
+  keywordCache = { key, indexes };
   return indexes;
 }
 
-export async function retrieveEvidence(corpus: PortfolioCorpus, messages: ChatMessage[], config = defaultPortfolioChatConfig) {
-  const { projects, ambiguous } = resolveContext(messages, corpus, config);
-  const query = messages.at(-1)?.content ?? "";
-  const terms = searchTerms(query, projects, corpus, config);
-  const indexes = indexesFor(corpus);
+async function scoreKeywords(indexes: Map<string, Index>, terms: string, projects: string[], limit: number) {
   const scores = new Map<string, number>();
   for (const [key, index] of indexes) {
     const projectId = key.split("|")[0];
     if (!terms || (projects.length && !projects.includes(projectId))) continue;
     const results = await search(index, {
       term: terms, mode: "fulltext", properties: ["text", "title"], boost: { title: 1.25 },
-      limit: corpus.chunks.length, threshold: 1,
+      limit, threshold: 1,
     });
     const best = results.hits[0]?.score ?? 0;
     for (const hit of results.hits) scores.set(hit.document.chunkId, best > 0 ? hit.score / best : 0);
   }
-  const relevant = corpus.chunks.filter((chunk) => !projects.length || projects.includes(chunk.projectId ?? ""));
-  const select = (chunks: PortfolioChunk[]) => {
-    const ranked = chunks.filter((chunk) => searchable(chunk) && scores.has(chunk.chunkId));
-    const peak = Math.max(0, ...ranked.map((chunk) => scores.get(chunk.chunkId) ?? 0));
-    return ranked.filter((chunk) => (scores.get(chunk.chunkId) ?? 0) >= peak * 0.3);
-  };
-  let fallback = false;
-  let selected: PortfolioChunk[];
-  const broad = /(?:\bwhat is\b|\btell me about\b|\bcompare\b|\bdifferent from\b|\bdifference between\b|是什么|介绍|比较|有什么不同|区别|違い|比較|どんな|とは)/iu.test(query);
-  if (projects.length) {
-    selected = projects.flatMap((id) => {
-      const all = relevant.filter((chunk) => chunk.projectId === id);
-      const matches = select(all);
-      if (broad || !terms || matches.length < 2) { fallback = true; return all; }
-      return matches;
-    });
-  } else {
-    selected = select(relevant);
-    if (selected.length < 3 || /(?:\bprojects?\b|项目|プロジェクト|作品)/iu.test(query)) {
-      fallback = true;
-      selected = relevant;
-    }
-  }
-  if (!selected.length) { fallback = true; selected = corpus.chunks; }
-  return { projects, fallback, chunks: selected, scores, ambiguous, terms };
+  return scores;
 }
+
+type EmbedTexts = (texts: string[]) => Promise<number[][]>;
+
+async function embedPassages(chunks: PortfolioChunk[], embed: EmbedTexts) {
+  const vectors = new Map<string, number[]>();
+  const batchSize = 8;
+  for (let offset = 0; offset < chunks.length; offset += batchSize) {
+    const batch = chunks.slice(offset, offset + batchSize);
+    const rows = await embed(batch.map(chunk => chunk.content));
+    if (rows.length !== batch.length) throw new Error("Could not embed the approved passages");
+    batch.forEach((chunk, index) => vectors.set(chunk.chunkId, rows[index]));
+  }
+  return vectors;
+}
+
+function exactMatch(candidates: PortfolioChunk[], terms: string, question: string, keywords: Map<string, number>) {
+  const normalize = (text: string) => text.normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  const phrase = normalize(terms);
+  const literal = phrase.includes(" ") || (phrase.length >= 2 && phrase === normalize(question));
+  if (!literal || !/\p{L}/u.test(phrase)) return;
+  return candidates.filter(chunk => ` ${normalize(chunk.content)} `.includes(` ${phrase} `))
+    .sort((a, b) => (keywords.get(b.chunkId) ?? 0) - (keywords.get(a.chunkId) ?? 0))[0];
+}
+
+export function createEvidenceRetriever(embed: EmbedTexts) {
+  let cache: { key: string; vectors: ReturnType<typeof embedPassages> } | undefined;
+  return async (corpus: PortfolioCorpus, messages: ChatMessage[], config = defaultPortfolioChatConfig) => {
+    const projects = resolveProjects(messages, corpus, config);
+    const question = messages.at(-1)?.content ?? "";
+    const terms = searchTerms(question, projects, corpus, config);
+    const pages = new Set(corpus.pages.map(page => page.url));
+    const approved = corpus.chunks.filter(chunk => chunk.accessLevel === "public" &&
+      chunk.buildVersion === corpus.contentHash && pages.has(chunk.sourceUrl.split("#")[0]) && searchable(chunk));
+    const key = [corpus.contentHash, ...approved.map(chunk => chunk.chunkId)].join("|");
+    const passages = approved.filter(isSubstantivePassage);
+    const candidates = passages.filter(chunk => !projects.length || projects.includes(chunk.projectId ?? ""));
+    const scores = new Map<string, number>();
+    if (!question || !candidates.length) return { projects, scores, chunks: [], fallback: true };
+
+    const keywords = await scoreKeywords(keywordIndexes(approved, key), terms, projects, approved.length);
+    if (cache?.key !== key) {
+      const vectors = embedPassages(passages, embed).catch(error => {
+        if (cache?.vectors === vectors) cache = undefined;
+        throw error;
+      });
+      cache = { key, vectors };
+    }
+    const vectors = await cache.vectors;
+    const [query] = await embed([question]);
+    if (!query?.length) throw new Error("Invalid question embedding");
+    for (const { chunkId } of candidates) {
+      const vector = vectors.get(chunkId)!;
+      if (vector.length !== query.length) throw new Error("Inconsistent embedding dimensions");
+      const similarity = vector.reduce((sum, component, index) => sum + component * query[index], 0);
+      const score = similarity + 0.20 * (keywords.get(chunkId) ?? 0);
+      // Full-text support can admit a match just below the semantic cutoff.
+      if (similarity >= 0.365 || (similarity >= 0.30 && score >= 0.50)) scores.set(chunkId, score);
+    }
+    const exact = exactMatch(candidates, terms, question, keywords);
+    if (exact) scores.set(exact.chunkId, 2);
+    const chunks = candidates.filter(chunk => scores.has(chunk.chunkId))
+      .sort((a, b) => scores.get(b.chunkId)! - scores.get(a.chunkId)!);
+    return { projects, scores, chunks, fallback: !chunks.length };
+  };
+}
+
+export const retrieveEvidence = createEvidenceRetriever(async texts => (await import("./embeddings")).embedTexts(texts));

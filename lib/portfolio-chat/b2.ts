@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { PortfolioChunk, PortfolioCorpus } from "../portfolio-knowledge";
 import { resolveRecommendations, validateAnswer, type B2Intent, type ChatMessage } from "./core";
-import { resolveContext, resolveProjects, retrieveEvidence, searchable } from "./retrieval";
+import { isSubstantivePassage, resolveContext, resolveProjects, retrieveEvidence } from "./retrieval";
 import { languageInstruction, type ResponseLanguage } from "./language";
 import { defaultPortfolioChatConfig } from "./engine-config";
 import { projectPath, replaceOwnerMentions, sourcePath as pathnameOf, isInternalSource, type PortfolioChatConfig } from "./engine-config";
@@ -9,12 +9,6 @@ import { projectPath, replaceOwnerMentions, sourcePath as pathnameOf, isInternal
 export const b2Schema = z.object({ language: z.enum(["en", "zh", "ja"]), insufficient: z.boolean(),
   claims: z.array(z.object({ text: z.string().min(1).max(1200), evidenceKeys: z.array(z.string()).min(1).max(3) })).max(8),
   recommendedProjectIds: z.array(z.string()).max(2), followUpQuestions: z.array(z.string().min(3).max(180)).max(3) });
-export function b2Substantive(chunk: PortfolioChunk): boolean {
-  const lines = chunk.content.trim().split("\n").map(s => s.trim()).filter(Boolean);
-  if (lines.length < 2 || chunk.content.trim() === chunk.sectionTitle.trim()) return false;
-  return lines.slice(1).some(line => searchable({ ...chunk, content: line }) &&
-    !/^(?:\d+\s*\/|solution\s*\d+\s*\/|[\p{P}\p{S}\s]+$)/iu.test(line));
-}
 export type PageContext = { pathname: string; lang?: "en" | "zh" | "ja"; sectionId?: string };
 const overviewQuestion = /(?:\bwhat is\b|\bwhat's\b|\btell me about\b|是什么|什么产品|介绍|どんな|とは)/iu;
 const audienceQuestion = /(?:\b(?:target audience|target users?|who (?:is|was) .{0,60} for|who uses)\b|目标用户|目标人群|适合谁|対象ユーザー|対象者|誰のため)/iu;
@@ -48,7 +42,7 @@ function aiFocusEvidence(corpus: PortfolioCorpus, item: PortfolioChunk, language
   const evidencePattern = config.aiProjectEvidence?.[language];
   if (!evidencePattern) return undefined;
   const publicPage = (chunk: PortfolioChunk) => chunk.projectId === item.projectId && chunk.language === language &&
-    chunk.accessLevel === "public" && b2Substantive(chunk) && corpus.pages.some(page => page.url === chunk.sourceUrl.split("#")[0]);
+    chunk.accessLevel === "public" && isSubstantivePassage(chunk) && corpus.pages.some(page => page.url === chunk.sourceUrl.split("#")[0]);
   return corpus.chunks.find(chunk => publicPage(chunk) && evidencePattern.test(chunk.content));
 }
 function matchesTopic(corpus: PortfolioCorpus, item: PortfolioChunk, topic: "ai", language: ResponseLanguage, config: PortfolioChatConfig): boolean {
@@ -62,7 +56,7 @@ function catalogSources(corpus: PortfolioCorpus, language: ResponseLanguage, con
   }
   return corpus.caseStudies.filter(project => project.language === language).flatMap(project => {
     const evidence = published.find(chunk => chunk.projectId === project.projectId &&
-      chunk.sourceUrl.split("#")[0] === project.url && b2Substantive(chunk));
+      chunk.sourceUrl.split("#")[0] === project.url && isSubstantivePassage(chunk));
     return evidence ? [evidence] : [];
   });
 }
@@ -127,7 +121,7 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   const overview = overviewQuestion.test(query) && !presentationQuestion.test(query);
   const eligible = corpus.chunks.filter(c => {
     const sourcePath = pathnameOf(c.sourceUrl);
-    return c.accessLevel === "public" && b2Substantive(c) && corpus.pages.some(p => p.url === c.sourceUrl.split("#")[0]) &&
+    return c.accessLevel === "public" && isSubstantivePassage(c) && corpus.pages.some(p => p.url === c.sourceUrl.split("#")[0]) &&
       (!projects.length || projects.includes(c.projectId ?? "")) && (!overview || !presentationSection.test(c.sectionTitle)) &&
       (intent !== "PERSONAL_OVERVIEW" || sourcePath === config.profilePath || allowProjectEvidence && c.projectId !== null && (sourcePath === projectPath(corpus, config, c.projectId, c.language) || sourcePath === config.publicOverviewPath));
   });

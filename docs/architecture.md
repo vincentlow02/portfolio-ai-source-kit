@@ -9,7 +9,7 @@ flowchart LR
   B --> C[Private versioned corpus]
   U[React chat panel] --> R[Node API handler]
   C --> R
-  R --> O[Orama full-text retrieval]
+  R --> O[Hybrid retrieval]
   O --> E[B2 routing and bounded evidence pack]
   R --> Q[Supabase shared quota reservation]
   E --> P[AI SDK structured model response]
@@ -20,7 +20,7 @@ flowchart LR
 
 `lib/knowledge/contract.ts` defines public and protected sources and the corpus contract. The publisher runs the host's Next build, extracts records, checks anonymously that the declared page is public and visible, and packages `.portfolio-knowledge/corpus.json` with the matching Next build ID. Its static Markdown, MDX and JSON adapters parse data rather than execute it. MDX with JSX, expressions or imports is rejected; use the rendered adapter for dynamic content. The browser adapter captures visible public text and checks source URLs, anchors, indexability and protected markers. Protected sources and descendants are excluded. Large sections are chunked; stable identifiers and content hashes connect citations to the generated corpus. The corpus must stay server-only.
 
-At request time, the server validates conversation and page context, uses Orama BM25-style full-text search, resolves project context and assembles the B2 evidence pack. A verified text selection can become an additional quoted source, but client-supplied text is not trusted until matched against an eligible public passage. The model receives bounded evidence and produces structured claims with request-local evidence keys. The server validates the keys, reconstructs source URLs and recommendations from published records, and fails closed for insufficient or invalid evidence. Follow-up turns use conversation history as context, never as source evidence.
+At request time, the server validates conversation and page context and ranks approved passages with a shared hybrid retriever. Orama supplies keyword scores and the local multilingual encoder supplies semantic similarity. The server reuses passage embeddings for the current corpus. A verified text selection can become an additional quoted source after it matches an eligible public passage. The model receives bounded evidence and produces structured claims with request-local evidence keys. The server validates those keys and reconstructs source URLs and recommendations from published records. Follow-up turns provide conversational context.
 
 The panel provides direct questions, selection, follow-ups and navigation. Shared Supabase quota is reserved before the model call; anonymous events contain only limited metadata and token/latency counts. The code keeps historical `vincent_ai` database identifiers for compatibility with existing migrations; they are names, not portfolio content.
 
