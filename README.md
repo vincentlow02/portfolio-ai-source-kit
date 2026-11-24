@@ -25,6 +25,19 @@ If a Vite portfolio page opens through site navigation but its direct URL return
 
 The default hosted mode returns source passages using local retrieval, with no model account required. To enable generated Qwen answers, copy the settings shown in the [environment template](.env.example) to your assistant project's environment, apply the [quota migration](supabase/migrations/202611100001_vincent_ai_analytics.sql) to a dedicated Supabase project, and set `PORTFOLIO_HOSTED_MODEL=1`. Configure the model, region, rate limits and budget using the [security and quota guide](docs/security.md). The assistant reserves shared quota before making a model call. It sends the question and selected approved passages to Qwen. Keep provider keys and quota credentials in the assistant project's server environment.
 
+### Refresh the knowledge base
+
+After publishing changes to your portfolio, redeploy the assistant's production deployment to refresh manually. The build rereads the exact `PORTFOLIO_SOURCE_PATHS` allowlist from the public portfolio. Update that list yourself when adding or removing a source. Vercel replaces the active assistant only after a successful production build. If capture or the build fails, check the assistant's deployment logs and retry after fixing the issue. The last successful deployment keeps serving. See [Vercel production promotions](https://vercel.com/docs/deployments/promoting-a-deployment).
+
+**Optional automatic refresh.** Connect the assistant project to a Git repository that contains the hosted Kit. Create a [Vercel Deploy Hook](https://vercel.com/docs/deploy-hooks) for the assistant project's production branch. Keep the hook URL in your publishing system's secrets. Each successful trigger queues a new assistant build with the existing source settings.
+
+- **Vercel with GitHub**. Copy the [refresh workflow](examples/refresh-portfolio-knowledge.yml) into `.github/workflows/refresh-portfolio-knowledge.yml` on the **portfolio repository's default branch**. Set the Actions repository variable `PORTFOLIO_VERCEL_PROJECT_ID` to the portfolio project's ID, and the Actions secret `PORTFOLIO_AI_DEPLOY_HOOK_URL` to the assistant's hook URL. A promotion of that portfolio project to production queues a refresh. To go back to manual refresh, disable the workflow in GitHub Actions. See [Vercel's GitHub deployment events](https://vercel.com/docs/git/vercel-for-github#repository-dispatch-events).
+- **Other hosting or CI**. In the step that runs after the new portfolio version is serving on its production URL, send one POST to the assistant's Deploy Hook. Load the URL from a CI secret and avoid logging it.
+
+  ```sh
+  curl --silent --fail --max-time 20 --output /dev/null --request POST -- "$PORTFOLIO_AI_DEPLOY_HOOK_URL"
+  ```
+
 ## Vite local preview
 
 You'll need an existing Vite portfolio, Git, Node.js 24, npm, and Chromium. On Windows PowerShell, use `npm.cmd` if the `npm` script is blocked.
