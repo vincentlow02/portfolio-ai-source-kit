@@ -1,9 +1,24 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- CommonJS preload runs before Next. */
 const assert = require("node:assert/strict");
+const { appendFileSync } = require("node:fs");
 const delegate = globalThis.fetch;
+const mark = kind => {
+  if (process.env.TEST_ATLAS_REQUEST_LOG) appendFileSync(process.env.TEST_ATLAS_REQUEST_LOG, kind + "\n");
+};
+let firewallChecks = 0;
 globalThis.fetch = async (input, init) => {
   const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
+  if (url.hostname === "assistant-fixture.vercel.app") {
+    mark("firewall");
+    assert.equal(url.pathname, "/.well-known/vercel/rate-limit-api/portfolio-ai-qwen");
+    assert.equal(init.method, "GET");
+    assert.equal(init.body, undefined);
+    assert.match(new Headers(init.headers).get("x-vercel-rate-limit-key"), /^portfolio-ai-qwen-[a-f0-9]{64}$/u);
+    const mode = process.env.TEST_ATLAS_FIREWALL_MODE;
+    return new Response(null, { status: mode === "missing" ? 404 : mode === "unavailable" ? 503 : ++firewallChecks === 1 ? 204 : 429 });
+  }
   if (url.hostname === "fixture.supabase.co") {
+    mark("supabase");
     assert.equal(init.headers.apikey, "sb_secret_atlas_fixture");
     if (url.pathname.endsWith("/rpc/vincent_ai_reserve_quota")) {
       const quota = JSON.parse(init.body);
@@ -20,7 +35,9 @@ globalThis.fetch = async (input, init) => {
     return new Response(null, { status: 201 });
   }
   if (url.hostname !== "atlas-model.invalid") return delegate(input, init);
+  mark("qwen");
   assert.ok(!process.env.TEST_ATLAS_QUOTA_MODE, "model must not be called when shared quota fails");
+  if (process.env.TEST_ATLAS_PROVIDER_UNAVAILABLE) return new Response(null, { status: 503 });
   const request = JSON.parse(init.body);
   const prompt = request.messages.find(message => message.role === "system").content;
   const query = request.messages.filter(message => message.role === "user").at(-1).content;

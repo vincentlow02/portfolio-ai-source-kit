@@ -5,6 +5,7 @@ import test from "node:test";
 import { buildKnowledgeCorpus, type KnowledgeSource } from "../../lib/knowledge/contract";
 import { captureLocalPreviewSource, capturePublishedSource, captureSiteSource, verifyInBrowser } from "../../lib/knowledge/rendered";
 import { hostedPortfolioOrigin } from "../../lib/knowledge/hosted-origin";
+import { excerptReply } from "../../lib/portfolio-chat/source-reply";
 import { launchBrowser, localPreviewOrigin } from "./anonymous-browser.mjs";
 
 test("anonymous publication validation rejects hidden DOM, protected markers and indexing exclusions", async () => {
@@ -59,12 +60,13 @@ test("hosted capture only loads an approved public page and its same-origin scri
   assert.throws(() => hostedPortfolioOrigin("https://portfolio.example.com/extra"), /public HTTPS domain/);
   const origin = hostedPortfolioOrigin("https://portfolio.example.com");
   const allowed = new Set<string>();
+  let measurements = "Public prototype measurements.";
   const load = async (url: string) => {
     allowed.add(url);
     if (url === origin + "/work/field-notes") return { status: 200, contentType: "text/html", body:
       '<!doctype html><html lang="en"><div id="app"></div><script src="/app.js"></script><script src="https://other.example.com/app.js"></script>' };
     if (url === origin + "/app.js") return { status: 200, contentType: "text/javascript", body:
-      'document.querySelector("#app").innerHTML = "<main data-portfolio-project=field-notes><p>Project introduction.</p><h1>Field notes</h1><p>Public prototype measurements.</p></main>";' };
+      `document.querySelector("#app").innerHTML = "<main data-portfolio-project=field-notes><p>Project introduction.</p><h1>Field notes</h1><p>${measurements}</p></main>";` };
     throw new Error("Unexpected fixture resource");
   };
   const browser = await launchBrowser(["--proxy-server=http://127.0.0.1:9", "--proxy-bypass-list=<-loopback>"]);
@@ -74,6 +76,17 @@ test("hosted capture only loads an approved public page and its same-origin scri
     assert.equal(corpus.chunks.length, 1);
     assert.equal(corpus.chunks[0].projectId, "field-notes");
     assert.match(corpus.chunks[0].content, /Project introduction.*Public prototype measurements/su);
+
+    measurements = "The updated public prototype used a recycled steel frame.";
+    const updated = await captureSiteSource(browser, origin, "/work/field-notes", "hosted", load);
+    const refreshed = await buildKnowledgeCorpus([updated], "hosted", verifyInBrowser(browser, origin, "hosted", load));
+    assert.notEqual(refreshed.contentHash, corpus.contentHash);
+    assert.deepEqual(refreshed.pages, corpus.pages);
+    assert.match(refreshed.chunks[0].content, /updated public prototype used a recycled steel frame/u);
+    assert.doesNotMatch(refreshed.chunks[0].content, /Public prototype measurements/u);
+    const answer = await excerptReply(refreshed, [{ role: "user", content: "recycled steel frame" }], "en");
+    assert.match(answer.answer, /recycled steel frame/u);
+    assert.deepEqual(answer.sources.map(source => source.url), ["/work/field-notes"]);
     assert.deepEqual([...allowed].sort(), [origin + "/app.js", origin + "/work/field-notes"]);
   } finally { await browser.close(); }
 });

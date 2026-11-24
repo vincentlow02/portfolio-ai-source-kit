@@ -1,6 +1,6 @@
 # Portfolio AI source kit
 
-Portfolio AI adds an assistant that answers from selected pages on your own portfolio and links to its sources. Its shared retrieval engine combines keyword and multilingual semantic search.
+Portfolio AI adds a chat box that answers from selected public pages on your portfolio and links to its sources. The hosted widget answers one question at a time. Its default Hybrid Search combines keyword and multilingual semantic search using the Kit's own embedding model. Reading pages, building the knowledge base, and retrieving excerpts use your hosting resources and have zero model API fees. Site owners can optionally enable Qwen for generated answers.
 
 - [Hosted assistant](#hosted-assistant) deploys a separate service and adds it to a public portfolio with one script.
 - [Vite local preview](#vite-local-preview) runs the assistant on your development machine while you keep your existing Vite portfolio.
@@ -19,13 +19,34 @@ Import your fork of the Kit into a Vercel project using the branch or release th
    <script src="https://your-assistant.example.com/embed.js" defer></script>
    ```
 
-3. Open your public portfolio, select the sparkle button (**Ask about this portfolio**), and ask about a distinctive term from an approved page. Expand **Sources** to check the link. On desktop, you can select a passage from an approved page and use **Ask Portfolio AI** to quote it. Redeploy the assistant to refresh the knowledge base after updating the source pages.
+3. Open your public portfolio, select the sparkle button (**Ask about this portfolio**), and ask about a distinctive term from an approved page. Expand **Sources** to check the link. On desktop, you can select a passage from an approved page and use **Ask Portfolio AI** to quote it.
 
 For both Hosted and Vite preview, the widget sends one question at a time. On an approved project page, it also sends the current path so a question like “How was it tested?” can refer to that project. The reader recognizes approved `/projects/<slug>` pages as projects. For another route such as `/work/field-notes`, use `<main data-portfolio-project="field-notes">`. The ID uses lowercase letters, digits, and hyphens. Keep one approved page per project ID and language.
 
 If a Vite portfolio page opens through site navigation but its direct URL returns 404, configure your host to serve the app at that URL before selecting it. For a Vite SPA on Vercel, see [the deep-link rewrite instructions](https://vercel.com/docs/frameworks/frontend/vite#using-vite-to-make-spas).
 
-The hosted assistant returns source excerpts without API credentials. To enable generated Qwen answers, copy the settings shown in the [environment template](.env.example) to your assistant project's environment, apply the [quota migration](supabase/migrations/202611100001_vincent_ai_analytics.sql) to a dedicated Supabase project, and set `PORTFOLIO_HOSTED_MODEL=1`. Configure the region, rate limits and budget using the [security and quota guide](docs/security.md). The assistant reserves shared quota before sending the question and selected approved passages to Qwen. Keep provider keys and quota credentials in the assistant project's server environment.
+### Refresh when your portfolio changes
+
+Redeploy the assistant to refresh manually. The assistant rebuilds its knowledge base from the same approved paths. Update `PORTFOLIO_SOURCE_PATHS` when adding or removing a source. A failed production build leaves the last successful assistant deployment serving.
+
+For automatic refresh, connect the assistant project to a Git repository and create a Deploy Hook for the assistant's production branch. Keep the hook URL in your publishing system's secrets. Send one POST to it after the portfolio's production release is live. [Vercel Deploy Hooks](https://vercel.com/docs/deploy-hooks)
+
+- **Vercel with GitHub.** Enable `repository_dispatch` in the **portfolio project's** Vercel Git settings. Copy the example to `.github/workflows/refresh-portfolio-knowledge.yml` in the **portfolio repository's default branch**. Set the Actions variable `PORTFOLIO_VERCEL_PROJECT_ID` to the portfolio project's ID and the Actions secret `PORTFOLIO_AI_DEPLOY_HOOK_URL` to the assistant's hook URL. Test by publishing a change to one approved page, waiting for the assistant build, and asking about the new text. [Workflow example](examples/refresh-portfolio-knowledge.yml) · [Vercel GitHub events](https://vercel.com/docs/git/vercel-for-github#repository-dispatch-events)
+- **Other publishing systems.** Add the POST to the step that runs after your public site has updated.
+
+  ```sh
+  curl --silent --fail --max-time 20 --output /dev/null --request POST -- "$PORTFOLIO_AI_DEPLOY_HOOK_URL"
+  ```
+
+### Optional Qwen on the hosted assistant
+
+1. In the **assistant project's** server environment, set `QWEN_API_KEY`, `QWEN_BASE_URL` for that key's region, and `PORTFOLIO_HOSTED_MODEL=1`. The default is `qwen3.7-flash` with JSON object mode. Keep the key in the server environment. [Model Studio Base URLs](https://www.alibabacloud.com/help/en/model-studio/base-url) · [Environment template](.env.example)
+2. In the **assistant project's** Vercel Firewall, add a custom rule with the `@vercel/firewall` condition and Rate Limit ID `portfolio-ai-qwen`. Select **Rate Limit**, choose a request count and window, and set the action at the limit to **Deny**. Publish the rule, enable Vercel's system environment variables, and redeploy the assistant. This uses the site's Vercel Firewall in place of Supabase. The rule counts eligible model attempts in a shared bucket within each region. [Firewall SDK configuration](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting-sdk) · [Plan limits](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting)
+3. Ask a question with a known source. Open the source link and check usage for the key in Model Studio to confirm Qwen was called. Missing credentials, a failed limit check, a full quota, or a Qwen service error falls back to Hybrid excerpts. Set `PORTFOLIO_HOSTED_MODEL=0` and redeploy to switch back to excerpt mode.
+
+Existing Supabase quota settings take precedence and can still be used for a strict site-wide daily limit across regions. Use the guide for self-hosting and the migration. [Security and quota guide](docs/security.md)
+
+The hosted widget does not persist question text or send analytics events. In Qwen mode it sends the current question and selected public passages to Model Studio, where provider data policies apply. Model Studio charges for input and output tokens on billable model calls. Set a budget for a dedicated key if you want a provider-side control. [Model Studio budgets](https://www.alibabacloud.com/help/en/model-studio/budget-management)
 
 ## Vite local preview
 

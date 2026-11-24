@@ -1,10 +1,12 @@
 import "server-only";
 
+import { checkRateLimit } from "@vercel/firewall";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { hostedPortfolioOrigin } from "./knowledge/hosted-origin";
 import { parsePortfolioCorpus } from "./knowledge/corpus";
 import { b2PublicCorpus } from "./portfolio-chat/b2";
+import { GenerationError } from "./portfolio-chat/generation";
 import { resolveResponseLanguage } from "./portfolio-chat/language";
 import { readPortfolioRequest } from "./portfolio-chat/request-body";
 import { createModelReply, excerptReply, validateWidgetQuestion, widgetResponse, WidgetQuotaError } from "./portfolio-chat/source-reply";
@@ -16,6 +18,22 @@ import { createRequestLimiter } from "./portfolio-chat/request-limits";
 const enterHostedRequest = createRequestLimiter(60, 2);
 const headers = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer" };
 
+async function reserveHostedModelQuota() {
+  if (process.env.SUPABASE_URL || process.env.SUPABASE_SECRET_KEY) return reserveQuota(process.env);
+
+  // The generated deployment URL can require Vercel authentication even in production.
+  const host = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  if (process.env.VERCEL !== "1" || process.env.VERCEL_ENV !== "production" || process.env.NODE_ENV !== "production" ||
+      !host || !/^(?:[a-z0-9-]+\.)+[a-z0-9-]+$/u.test(host)) return false;
+
+  const { rateLimited, error } = await checkRateLimit("portfolio-ai-qwen", {
+    headers: { host },
+    rateLimitKey: "portfolio-ai-qwen",
+    timeout: 2_000,
+  });
+  return rateLimited === false && error === undefined;
+}
+
 async function loadHostedAssistant() {
   const artifact = join(process.cwd(), ".portfolio-knowledge", "hosted.json");
   const stored = JSON.parse(await readFile(artifact, "utf8")) as { origin?: unknown; corpus?: unknown };
@@ -23,9 +41,14 @@ async function loadHostedAssistant() {
   if (stored.origin !== origin) throw new Error("Hosted corpus does not match the deployment");
   const corpus = b2PublicCorpus(parsePortfolioCorpus(stored.corpus), "hosted");
   if (!corpus.chunks.length) throw new Error("The hosted corpus has no eligible passages");
-  const model = process.env.PORTFOLIO_HOSTED_MODEL === "1"
-    ? createModelReply(corpus, { ...process.env, PORTFOLIO_AI_PROVIDER: "qwen", QWEN_JSON_MODE: process.env.QWEN_JSON_MODE ?? "object" })
-    : undefined;
+  let model;
+  if (process.env.PORTFOLIO_HOSTED_MODEL === "1") {
+    try {
+      model = createModelReply(corpus, { ...process.env, PORTFOLIO_AI_PROVIDER: "qwen", QWEN_JSON_MODE: process.env.QWEN_JSON_MODE ?? "object" });
+    } catch {
+      console.warn("Portfolio AI will use Hybrid retrieval. Check the hosted Qwen configuration.");
+    }
+  }
   return { origin, corpus, model };
 }
 
@@ -68,26 +91,28 @@ export async function answerHostedQuestion(request: Request) {
   const release = enterHostedRequest();
   if (!release) return Response.json({ error: "The request limit has been reached. Try again later." }, { status: 429, headers });
   try {
-  let body;
-  try {
-    body = await readPortfolioRequest(request, 16000);
-  } catch {
-    return Response.json({ error: "Enter a question of up to 2,000 characters." }, { status: 400, headers });
-  }
-  try {
+    let body;
+    try {
+      body = await readPortfolioRequest(request, 16000);
+    } catch {
+      return Response.json({ error: "Enter a question of up to 2,000 characters." }, { status: 400, headers });
+    }
     const { origin, corpus, model } = await getAssistant();
     let question;
     try { question = validateWidgetQuestion(body, corpus); }
     catch { return Response.json({ error: "Enter a question or select verified public text." }, { status: 400, headers }); }
     const { messages, page, quote } = question;
     const language = resolveResponseLanguage(messages, corpus.pages[0]?.language);
-    const result = model
-      ? await model(messages, language, quote, { page, signal: request.signal, reserve: () => reserveQuota(process.env) })
-      : await excerptReply(corpus, messages, language, quote, page);
+    let result;
+    try {
+      result = await model?.(messages, language, quote, { page, signal: request.signal, reserve: reserveHostedModelQuota });
+    } catch (error) {
+      if (!(error instanceof WidgetQuotaError || error instanceof GenerationError && error.kind !== "cancelled")) throw error;
+    }
+    request.signal.throwIfAborted();
+    result ??= await excerptReply(corpus, messages, language, quote, page);
     return Response.json(widgetResponse(result, origin), { headers });
-  } catch (error) {
-    if (error instanceof WidgetQuotaError) return Response.json({ error: error.status === 503 ? "The model quota service is unavailable." : "The request limit has been reached. Try again later." }, { status: error.status, headers });
+  } catch {
     return Response.json({ error: "Portfolio AI could not answer this question." }, { status: 503, headers });
-  }
   } finally { release(); }
 }

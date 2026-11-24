@@ -1,0 +1,38 @@
+# Enable repository_dispatch events in this portfolio project's Vercel Git settings.
+name: Refresh Portfolio AI knowledge
+
+on:
+  repository_dispatch:
+    types: [vercel.deployment.promoted]
+
+permissions: {}
+
+concurrency:
+  group: portfolio-ai-knowledge-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: >-
+      vars.PORTFOLIO_VERCEL_PROJECT_ID != '' &&
+      github.event.client_payload.project.id == vars.PORTFOLIO_VERCEL_PROJECT_ID &&
+      github.event.client_payload.environment == 'production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Queue the assistant's production build
+        shell: bash
+        env:
+          PORTFOLIO_AI_DEPLOY_HOOK_URL: ${{ secrets.PORTFOLIO_AI_DEPLOY_HOOK_URL }}
+        run: |
+          hook_pattern='^https://api[.]vercel[.]com/v1/integrations/deploy/prj_[A-Za-z0-9]+/[A-Za-z0-9_-]+([?]buildCache=(true|false))?$'
+          if [[ ! "$PORTFOLIO_AI_DEPLOY_HOOK_URL" =~ $hook_pattern ]]; then
+            echo 'Set PORTFOLIO_AI_DEPLOY_HOOK_URL to the assistant production Deploy Hook.' >&2
+            exit 1
+          fi
+
+          if ! status=$(curl --silent --fail --max-time 20 --output /dev/null --write-out '%{http_code}' --request POST -- "$PORTFOLIO_AI_DEPLOY_HOOK_URL") || [[ ! "$status" =~ ^2[0-9][0-9]$ ]]; then
+            echo 'Vercel could not queue the assistant build. Check the hook in the assistant project.' >&2
+            exit 1
+          fi
+          echo 'Requested a knowledge refresh. Check the assistant deployment for the build result.'
