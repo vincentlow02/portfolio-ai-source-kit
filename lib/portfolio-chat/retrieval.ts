@@ -47,7 +47,7 @@ function isContextualFollowUp(query: string) {
 // A bare reference cannot identify a project on its own. Keep this narrow so
 // ordinary global questions and questions with a named subject still search.
 export function unresolvedProjectReference(query: string) {
-  return /^(?:(?:what|where|when|why|how|who)\s+(?:was|is|did|does|can|will|were)\s+(?:it|that|this)(?:\s+[\p{L}\p{N}'-]+){0,8}|(?:它|这|这个|该项目)(?:是|有|被|在)?[^?？。!！]{0,30}(?:什么|什么样|怎么|如何|为什么|何时|哪里|哪儿|谁)[^?？。!！]{0,15}|(?:它|这|这个|该项目)(?:是)?(?:怎么|如何|为什么).{0,30}|(?:それ|そのプロジェクト|このプロジェクト)(?:は|を|が)?(?:どう|どのように|なぜ|何|どこ|いつ|誰).{0,30}|どうやって(?:検証|テスト)しましたか)[?？。!！\s]*$/iu.test(query.trim());
+  return /^(?:(?:what|where|when|why|how|who)\s+(?:was|is|did|does|can|will|were)\s+(?:it|that|this)(?:\s+[\p{L}\p{N}'-]+){0,8}|(?:它|该项目|这个项目|这个(?=是|有|怎么|如何|为什么|什么)|这(?=是|有|怎么|如何|为什么|什么))(?:是|有|被|在)?[^?？。!！]{0,30}(?:什么|什么样|怎么|如何|为什么|何时|哪里|哪儿|谁)[^?？。!！]{0,15}|(?:它|该项目|这个项目|这(?=是|怎么|如何|为什么))(?:是)?(?:怎么|如何|为什么).{0,30}|(?:それ|そのプロジェクト|このプロジェクト)(?:は|を|が)?(?:どう|どのように|なぜ|何|どこ|いつ|誰).{0,30}|どうやって(?:検証|テスト)しましたか)[?？。!！\s]*$/iu.test(query.trim());
 }
 
 export function resolveContext(messages: ChatMessage[], corpus: PortfolioCorpus, config = defaultPortfolioChatConfig) {

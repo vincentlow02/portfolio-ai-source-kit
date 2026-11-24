@@ -51,6 +51,7 @@ test("clarification avoids reservation and respects explicit history and verifie
   }
   assert.equal(resolveContext(question("List all projects"), projects).ambiguous, false);
   assert.equal(resolveContext(question("Tell me about Alpha"), projects).ambiguous, false);
+  assert.equal(resolveContext(question("这个原型用了什么材料？"), projects).ambiguous, false);
 });
 
 test("the default retrieves an approved English excerpt for a Chinese question", async () => {
