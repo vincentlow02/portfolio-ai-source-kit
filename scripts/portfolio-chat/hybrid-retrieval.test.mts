@@ -126,6 +126,8 @@ test("explicit plural follow-ups retain both compared projects without resolving
   assert.deepEqual(bounded.entries,[]);
   assert.equal(phases.includes("keyword"),false);
   assert.equal(phases.includes("semantic"),false);
+  assert.deepEqual((await model([...prior,...question(longQuestion)],"en",undefined,{reserve:async()=>{reservations++;return false;}})).sources,[]);
+  assert.equal(reservations,0);
   const oneSided=await buildKnowledgeCorpus([
     {access:"public",format:"rendered",page:{url:"/work/alpha",title:"Alpha",language:"en",kind:"case-study",projectId:"alpha"},sections:[{title:"Materials",anchor:"materials",text:"The Alpha prototype is made from cardboard and wood."}]},
     {access:"public",format:"rendered",page:{url:"/work/beta",title:"Beta",language:"en",kind:"case-study",projectId:"beta"},sections:[{title:"Overview",anchor:"overview",text:"Beta is a calendar for local community events."}]},
