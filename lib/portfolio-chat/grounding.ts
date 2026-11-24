@@ -59,7 +59,11 @@ export function validateB2(output: ModelClaims, corpus: PortfolioCorpus, pack: A
     // numbers and digits require matching cited evidence.
     const claimNumbers = digits(claim.text.replace(/\bone\b/giu, ""));
     if (claimNumbers.some(number => !sourceNumbers.has(number))) return false;
-    const namedProjects = resolveProjects([{ role: "user", content: claim.text }], corpus, config);
+    // Very short or generic project IDs can coincide with ordinary prose
+    // (for example, project "a" and the article "a"). Do not infer an
+    // attribution from those ambiguous names.
+    const namedProjects = resolveProjects([{ role: "user", content: claim.text }], corpus, config)
+      .filter(id => id.length >= 3 && !genericTerms.has(id.toLowerCase()));
     if (namedProjects.some(id => !citedChunks.some(chunk => chunk.projectId === id))) return false;
     const negation = /\b(?:not|never|cannot|can't|didn't|doesn't|wasn't|weren't|without)\b/iu;
     if (output.language === "en" && citedChunks.every(chunk => chunk.language === "en") && negation.test(claim.text)) {

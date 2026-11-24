@@ -7,6 +7,7 @@ const config = { ownerName: "Morgan", projectAliases: { beacon: ["Beacon"], orch
 const corpus = await buildKnowledgeCorpus([
   { access:"public", format:"rendered", page:{url:"/work/beacon",title:"Beacon",language:"en",kind:"case-study",projectId:"beacon"}, sections:[{title:"Trial",anchor:"trial",text:"The Beacon team tested the prototype with six visitors in 2021. The team did not launch the service."}] },
   { access:"public", format:"rendered", page:{url:"/work/orchard",title:"Orchard",language:"en",kind:"case-study",projectId:"orchard"}, sections:[{title:"Trial",anchor:"trial",text:"The Orchard team tested a prototype with eight gardeners in 2022."}] },
+  { access:"public", format:"rendered", page:{url:"/work/a",title:"A",language:"en",kind:"case-study",projectId:"a"}, sections:[{title:"Overview",anchor:"overview",text:"A is a fictional short project name."}] },
 ], "adversarial", async () => {});
 const initial = await buildB2Pack(corpus, [{role:"user",content:"Tell me about Beacon testing"}], null, "en", undefined, undefined, config);
 const beacon = corpus.chunks.find(chunk => chunk.projectId === "beacon")!;
@@ -17,6 +18,7 @@ function check(text:string, evidenceKeys = ["E1"], language:"en"|"zh"|"ja" = "en
 
 test("adversarial claims reject numeric and date substitutions, forged citations and wrong projects", () => {
   assert.equal(check("Beacon tested the prototype with 6 visitors in 2021.").insufficient,false);
+  assert.equal(check("Beacon tested a prototype with 6 visitors in 2021.").insufficient,false);
   for (const text of ["Beacon tested the prototype with 9 visitors in 2021.", "Beacon tested the prototype with nine visitors in 2021.", "Beacon tested the prototype with 6 visitors in 2024.", "Orchard tested the prototype with 6 visitors in 2021."]) assert.equal(check(text).insufficient,true,text);
   assert.equal(check("Beacon tested the prototype with 6 visitors.",["E999"]).insufficient,true);
   assert.equal(check("Beacon 于2024年测试了原型。",["E1"],"zh").insufficient,true);
