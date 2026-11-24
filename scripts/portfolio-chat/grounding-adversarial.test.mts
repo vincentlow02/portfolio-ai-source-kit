@@ -49,6 +49,7 @@ test("cross-language counted numbers cannot silently change", () => {
 
 test("a year cannot be swapped with the visitor count", () => {
   assert.equal(check("Beacon tested the prototype with 6 visitors in 2021.").insufficient,false);
+  assert.equal(check("Beacon tested the prototype with six participants in 2021.").insufficient,false);
   assert.equal(check("Beacon tested the prototype with 2021 visitors in year 6.").insufficient,true);
   assert.equal(check("Beacon は二千二十一人の来場者と六年に試作品をテストしました。", ["E1"], "ja").insufficient,true);
   assert.equal(check("Beacon 与二千二十一位访客在六年测试了原型。", ["E1"], "zh").insufficient,true);
