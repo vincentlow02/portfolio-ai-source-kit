@@ -110,6 +110,8 @@ test("comparison topic checks use source body and retain explicit attributes",()
   assert.equal(comparisonTopicMatcher("How were both projects tested with two participants?")("Testing\nThe prototype was tested with one participant."),false);
   assert.equal(comparisonTopicMatcher("Where were both projects tested?")("Testing\nThe prototype was tested with volunteers in 2022."),false);
   assert.equal(comparisonTopicMatcher("Where were both projects tested?")("Testing\nThe prototype was tested with volunteers. The venue hosts a calendar of events."),false);
+  assert.equal(comparisonTopicMatcher("Where were both projects tested?")("Testing\nThe prototype was tested, but the venue location for an unrelated conference is not known."),false);
+  assert.equal(comparisonTopicMatcher("Where were both projects tested?")("Testing\nThe prototype was tested and the venue location for an unrelated conference is not known."),false);
   assert.equal(comparisonTopicMatcher("When were both projects tested?")("Testing\nThe prototype was tested with volunteers. A later version launched in 2022."),false);
   assert.equal(comparisonTopicMatcher("What materials did both projects use?")("Materials\nThe calendar schedules community events."),false);
   assert.equal(comparisonTopicMatcher("这两个项目分别如何测试地点？")("Testing\nThe prototype was tested with volunteers."),false);

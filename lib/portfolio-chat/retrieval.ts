@@ -90,7 +90,9 @@ export function comparisonTopicMatcher(query: string): (source: string) => boole
     .filter(part=>part.isWordLike).map(part=>part.segment).filter(term=>!stop.has(term));
   return source=>{
     const sourceBody=source.normalize("NFKC").toLocaleLowerCase().split("\n").slice(1).join("\n");
-    const sentences=sourceBody.split(/(?<=[。！？])|(?<=[.!?])\s+|\n+/u).filter(Boolean);
+    // Avoid combining anchors across clearly distinct clauses. This still
+    // does not establish a semantic relationship within one clause.
+    const sentences=sourceBody.split(/(?<=[。！？])|(?<=[.!?])\s+|\n+|[;；]|\b(?:and|or|but|however|whereas|although|while)\b|但是|然而|一方|ただし/iu).filter(Boolean);
     return sentences.some(sentence=>terms.every(term=>{
     if(testWords.has(term)) return /\b(?:test(?:s|ed|ing)?|validat(?:e|ed|ion|ing)|evaluat(?:e|ed|ion|ing))\b|验证|驗證|测试|測試|検証|テスト/iu.test(sentence);
     if(locationWords.has(term)) return /\b(?:location|venue|located|site)\b|地点|地點|場所|位于|位於/iu.test(sentence);
