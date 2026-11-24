@@ -5,7 +5,7 @@ import { validateAnswer, validateMessages, type ChatMessage } from "./core";
 import { resolveGuardianReply } from "./guardian";
 import type { ResponseLanguage } from "./language";
 import { configureModel } from "./provider";
-import { isSubstantivePassage, resolveContext, retrieveEvidence, sourceMatchesSpecificIntent } from "./retrieval";
+import { comparisonTopicClarification, isSubstantivePassage, resolveContext, retrieveEvidence, sourceMatchesSpecificIntent } from "./retrieval";
 import { verifySelection } from "./selection";
 
 type VerifiedQuote = ReturnType<typeof verifySelection>;
@@ -64,7 +64,7 @@ export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessag
   if (context?.carryComparison) {
     if (context.projects.length > 18) return validateAnswer({language,insufficient:true,answer:"",sourceIds:[],recommendedProjectIds:[]},corpus);
     const pack = await buildB2Pack(corpus, messages, null, language, undefined, undefined, undefined, true);
-    if (pack.ambiguousTopic) return {answer:{en:"What would you like to compare about the projects?",zh:"你想比较这些项目的哪方面？",ja:"これらのプロジェクトの何を比較しますか？"}[language],sources:[],recommendations:[]};
+    if (pack.ambiguousTopic) return {answer:comparisonTopicClarification[language],sources:[],recommendations:[]};
     const matches = context.projects.map(id => pack.entries.find(entry => entry.chunk.projectId === id)?.chunk);
     if (matches.some(chunk => !chunk)) return validateAnswer({language,insufficient:true,answer:"",sourceIds:[],recommendedProjectIds:[]},corpus);
     const chunks = matches.filter((chunk): chunk is NonNullable<typeof chunk> => Boolean(chunk));

@@ -7,6 +7,11 @@ import { defaultPortfolioChatConfig } from "./engine-config";
 
 import type { PortfolioChatConfig } from "./engine-config";
 export const comparisonQuestion = /compare|different|difference|相比|比较|区别|不同|比較|違い/iu;
+export const comparisonTopicClarification = {
+  en:"What would you like to compare about the projects?",
+  zh:"你想比较这些项目的哪方面？",
+  ja:"これらのプロジェクトの何を比較しますか？",
+} as const;
 export const validationFollowUp = /^(?:how did (?:the team|they|he|she) (?:validate|test) (?:that|it)|(?:团队|他们)(?:是)?如何(?:验证|测试)(?:的)?|どうやって(?:検証|テスト)しましたか)[?？。]?$/iu;
 const reference = /(?:\bit\b|\bthat project\b|\bthe project\b|\bthat decision\b|\bthe other\b|\bhis (?:role|responsibilities|contributions?|research|work|design|findings|methods?)\b|\bwhat did he do\b|这个项目|该项目|它|那个项目|那个决定|他的职责|他的贡献|他的研究|他的工作|他的设计|他的发现|他的研究方法|そのプロジェクト|それ|このプロジェクト|その設計|その決定|彼の役割|彼の担当|彼の研究|その研究|その調査)/iu;
 
@@ -120,7 +125,11 @@ export function unresolvedProjectReference(query: string) {
 export function resolveContext(messages: ChatMessage[], corpus: PortfolioCorpus, config = defaultPortfolioChatConfig) {
   const query = messages.at(-1)?.content ?? "";
   const explicit = names(query, corpus, config);
-  const contextual = isContextualFollowUp(query);
+  const precedingAssistant = messages.at(-2), precedingUser = messages.at(-3);
+  const topicClarificationReply = precedingAssistant?.role === "assistant" &&
+    Object.values(comparisonTopicClarification).some(text => text === precedingAssistant.content.trim()) &&
+    precedingUser?.role === "user" && pluralProjectReference(precedingUser.content);
+  const contextual = isContextualFollowUp(query) || topicClarificationReply;
   const priorQuestions = contextual ? messages.slice(0, -1).reverse().filter(message => message.role === "user") : [];
   const priorQuestion = priorQuestions.find(message => names(message.content, corpus, config).length > 0);
   const prior = priorQuestion ? names(priorQuestion.content, corpus, config) : [];
@@ -128,7 +137,7 @@ export function resolveContext(messages: ChatMessage[], corpus: PortfolioCorpus,
     comparisonQuestion.test(query) && reference.test(query);
   const selectsOneProject = /\b(?:which (?:one|of)|which project|either project)\b|(?:哪一个|哪一個|哪个|哪個|哪项|哪項)|(?:どちら|どのプロジェクト)/iu.test(query);
   const carryComparison = !explicit.length && prior.length > 1 && Boolean(priorQuestion && comparisonQuestion.test(priorQuestion.content)) &&
-    pluralProjectReference(query) && !reference.test(query.replace(/それぞれ/gu, "")) && !selectsOneProject;
+    (pluralProjectReference(query) || topicClarificationReply) && !reference.test(query.replace(/それぞれ/gu, "")) && !selectsOneProject;
   const projects = comparesPrior ? [prior[0], explicit[0]] : explicit.length ? explicit : prior.length === 1 || carryComparison ? prior : [];
   const ambiguous = !explicit.length && (contextual && prior.length > 1 && !carryComparison || prior.length === 0 && unresolvedProjectReference(query));
   const previous = priorQuestions[0]?.content;

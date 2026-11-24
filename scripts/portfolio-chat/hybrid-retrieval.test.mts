@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
 import { buildB2Pack, parsePageContext, validateB2 } from "../../lib/portfolio-chat/b2";
-import { comparisonTopicMatcher, createEvidenceRetriever, resolveContext } from "../../lib/portfolio-chat/retrieval";
+import { comparisonTopicClarification, comparisonTopicMatcher, createEvidenceRetriever, resolveContext } from "../../lib/portfolio-chat/retrieval";
 import { createModelReply, excerptReply, validateWidgetQuestion } from "../../lib/portfolio-chat/source-reply";
 import { prepareAnswer } from "../../lib/portfolio-chat/answer-engine";
 import { verifySelection } from "../../lib/portfolio-chat/selection";
@@ -97,6 +97,18 @@ test("explicit plural follow-ups retain both compared projects without resolving
     assert.deepEqual(excerpt.sources,[],text);
     const clarified=await model(messages,language,undefined,{reserve:async()=>{reservations++;return false;}});
     assert.deepEqual(clarified.sources,[],text);
+  }
+  for (const [vague,topic,language] of [["What about both projects?","Testing","en"],["这两个项目呢？","测试","zh"],["両方のプロジェクトは？","テスト","ja"]] as const){
+    const messages=[...prior,...question(vague),{role:"assistant" as const,content:comparisonTopicClarification[language]},...question(topic)];
+    const context=resolveContext(messages,projects);
+    assert.deepEqual(new Set(context.projects),new Set(["alpha","beta"]),topic);
+    assert.equal(context.ambiguous,false,topic);
+    const prepared=await prepareAnswer({corpus:projects,messages,language});
+    assert.equal(prepared.answer,null,topic);
+    assert.deepEqual(new Set(prepared.pack.entries.map(entry=>entry.chunk.projectId)),new Set(["alpha","beta"]),topic);
+    assert.deepEqual(new Set((await excerptReply(projects,messages,language)).sources.map(source=>source.projectId)),new Set(["alpha","beta"]),topic);
+    const unrelated=[...prior,...question(vague),{role:"assistant" as const,content:"Unrelated reply."},...question(topic)];
+    assert.deepEqual(resolveContext(unrelated,projects).projects,[],topic);
   }
   const reply=await model([...prior,...question("What about both projects' submarine fuel capacity?")],"en",undefined,{reserve:async()=>{reservations++;return false;}});
   assert.deepEqual(reply.sources,[]);
