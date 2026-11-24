@@ -5,20 +5,13 @@ import { join } from "node:path";
 import { hostedPortfolioOrigin } from "./knowledge/hosted-origin";
 import type { PortfolioCorpus } from "./portfolio-knowledge";
 import { b2PublicCorpus } from "./portfolio-chat/b2";
-import { validateMessages } from "./portfolio-chat/core";
 import { resolveResponseLanguage } from "./portfolio-chat/language";
 import { readPortfolioRequest } from "./portfolio-chat/request-body";
-import { createModelReply, excerptReply } from "./portfolio-chat/source-reply";
+import { createModelReply, excerptReply, validateWidgetQuestion, widgetResponse } from "./portfolio-chat/source-reply";
 import { reserveQuota } from "./portfolio-chat/supabase";
+import { readWidgetAsset, widgetAssets, widgetFramePolicy } from "./portfolio-chat/widget-assets";
 
 const headers = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer" };
-const files: Record<string, { name: string; type: string }> = {
-  "/": { name: "preview.html", type: "text/html; charset=utf-8" },
-  "/preview.js": { name: "preview.js", type: "text/javascript; charset=utf-8" },
-  "/preview.css": { name: "preview.css", type: "text/css; charset=utf-8" },
-  "/embed.js": { name: "embed.js", type: "text/javascript; charset=utf-8" },
-  "/embed.css": { name: "embed.css", type: "text/css; charset=utf-8" },
-};
 
 async function loadHostedAssistant() {
   const artifact = join(process.cwd(), ".portfolio-knowledge", "hosted.json");
@@ -43,16 +36,18 @@ function getAssistant() {
 
 export async function serveHostedAsset(request: Request) {
   const path = new URL(request.url).pathname;
-  const asset = Object.hasOwn(files, path) ? files[path] : undefined;
+  const asset = widgetAssets.get(path);
   if (!asset) return new Response("Not found", { status: 404, headers });
   try {
-    const { origin, model } = await getAssistant();
-    const body = await readFile(join(process.cwd(), "scripts", "portfolio-chat", "local-preview", asset.name), "utf8");
-    if (path !== "/") return new Response(body, { headers: { ...headers, "Content-Type": asset.type } });
-    return new Response(body.replace("{{mode}}", model ? "Ask about this portfolio" : "Find passages in this portfolio"), { headers: {
+    const { origin, corpus, model } = await getAssistant();
+    const body = await readWidgetAsset(process.cwd(), path, {
+      origin, paths: corpus.pages.map(page => page.url), mode: model ? "Model preview" : "Find passages in this portfolio",
+    });
+    return new Response(typeof body === "string" || !body ? body : new Uint8Array(body), { headers: {
       ...headers,
       "Content-Type": asset.type,
-      "Content-Security-Policy": `default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors ${origin}`,
+      ...(path === "/" ? { "Content-Security-Policy": widgetFramePolicy(origin) } : {}),
+      ...(path === "/widget/geist.woff2" ? { "Access-Control-Allow-Origin": origin } : {}),
     } });
   } catch {
     return new Response("Portfolio AI is unavailable.", { status: 503, headers });
@@ -69,15 +64,18 @@ export async function answerHostedQuestion(request: Request) {
   if (!sameOrigin || request.headers.get("Sec-Fetch-Site") !== "same-origin") {
     return Response.json({ error: "Open the portfolio chat before asking a question." }, { status: 403, headers });
   }
-  let messages;
+  let body;
   try {
-    const body = await readPortfolioRequest(request, 8000) as { messages?: unknown } | null;
-    messages = validateMessages(body?.messages);
+    body = await readPortfolioRequest(request, 16000);
   } catch {
     return Response.json({ error: "Enter a question of up to 2,000 characters." }, { status: 400, headers });
   }
   try {
     const { origin, corpus, model } = await getAssistant();
+    let question;
+    try { question = validateWidgetQuestion(body, corpus); }
+    catch { return Response.json({ error: "Enter a question or select verified public text." }, { status: 400, headers }); }
+    const { messages, quote } = question;
     if (model) {
       let allowed: boolean;
       try { allowed = await reserveQuota(process.env); }
@@ -85,11 +83,8 @@ export async function answerHostedQuestion(request: Request) {
       if (!allowed) return Response.json({ error: "The request limit has been reached. Try again later." }, { status: 429, headers });
     }
     const language = resolveResponseLanguage(messages, corpus.pages[0]?.language);
-    const result = model ? await model(messages, language) : await excerptReply(corpus, messages, language);
-    return Response.json({
-      answer: result.answer,
-      sources: result.sources.map(source => ({ section: source.section, href: new URL(source.url, origin).href })),
-    }, { headers });
+    const result = model ? await model(messages, language, quote) : await excerptReply(corpus, messages, language, quote);
+    return Response.json(widgetResponse(result, origin), { headers });
   } catch {
     return Response.json({ error: "Portfolio AI could not answer this question." }, { status: 503, headers });
   }

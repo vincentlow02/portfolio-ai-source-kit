@@ -13,3 +13,5 @@ The source kit relies on separately installed third-party packages. No dependenc
 | `@sparticuz/chromium`, `tsx`, `@types/node`, `@types/react`, `@types/react-dom` | MIT |
 
 Browser binaries and their bundled components can have additional terms. Check the exact versions and licenses in the host's installed dependency tree. This list is an inventory, not a substitute for the original license texts or a complete transitive audit.
+
+The embedded chat serves Geist from the installed Next.js package under the SIL Open Font License 1.1. [Geist license](scripts/portfolio-chat/local-preview/geist-OFL.txt)

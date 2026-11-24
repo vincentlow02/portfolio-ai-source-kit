@@ -8,7 +8,7 @@ Portfolio AI adds an assistant that answers from selected pages on your own port
 
 ## Hosted assistant
 
-Use this route for a public HTTPS portfolio that allows an embedded script and frame. The assistant runs in its own project and uses the pages you approve.
+Use this route for a public HTTPS portfolio that allows the assistant's script, stylesheet, icons, and frame. The assistant runs in its own project and uses the pages you approve.
 
 [![Deploy Portfolio AI with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvincentlow02%2Fportfolio-ai-source-kit%2Ftree%2Fhosted-assistant-template&env=PORTFOLIO_SITE_ORIGIN%2CPORTFOLIO_SOURCE_PATHS&project-name=portfolio-ai-assistant)
 
@@ -19,7 +19,7 @@ Use this route for a public HTTPS portfolio that allows an embedded script and f
    <script src="https://your-assistant.example.com/embed.js" defer></script>
    ```
 
-3. Open your public portfolio, choose **Ask about this portfolio**, and ask about a distinctive term from an approved page. Confirm the answer includes a **Source** link pointing back to that page. Redeploy the assistant to refresh the knowledge base after updating the source pages.
+3. Open your public portfolio, select the sparkle button (**Ask about this portfolio**), and ask about a distinctive term from an approved page. Expand **Sources** to check the link. On desktop, you can select a passage from an approved page and use **Ask Portfolio AI** to quote it. Redeploy the assistant to refresh the knowledge base after updating the source pages.
 
 If a Vite portfolio page opens through site navigation but its direct URL returns 404, configure your host to serve the app at that URL before selecting it. For a Vite SPA on Vercel, see [the deep-link rewrite instructions](https://vercel.com/docs/frameworks/frontend/vite#using-vite-to-make-spas).
 
@@ -74,7 +74,7 @@ In your **Vite portfolio's** `index.html`, add this development-only loader befo
 </script>
 ```
 
-Refresh the portfolio at `http://127.0.0.1:5173` and select **Ask about this portfolio**. Enter a distinctive term from an approved page. The answer should show a matching passage. Click **Source** to open the corresponding page on your portfolio. A question about an unrelated topic should return an insufficient-information message. This smoke test uses local search and works without model credentials or a database.
+Refresh the portfolio at `http://127.0.0.1:5173` and select the sparkle button (**Ask about this portfolio**). Enter a distinctive term from an approved page. The answer should show a matching passage. Expand **Sources** to open the corresponding page on your portfolio. A question about an unrelated topic should return an insufficient-information message. This smoke test uses local search and works without model credentials or a database.
 
 If the chat button is missing, check that both terminals are running and that your browser uses the exact `127.0.0.1` origin you captured. If you start chat with `--port`, use that port in the loader. Rebuild the knowledge base and restart chat after changing approved content or the portfolio port.
 
@@ -97,7 +97,7 @@ The URL above illustrates a Singapore workspace. Keep the key in the Git-ignored
 npm run preview:chat -- --model
 ```
 
-Refresh the portfolio and check that the panel says **Model preview**. Ask a question about an approved page and check that the cited passage supports the answer. Model mode sends the question and selected approved passages to your provider and can incur charges. Both Vite preview modes bind to `127.0.0.1` for local testing.
+Refresh the portfolio. Ask a question about an approved page and check that the cited passage supports the model's answer. Model mode sends the question and selected approved passages to your provider and can incur charges. Both Vite preview modes bind to `127.0.0.1` for local testing.
 
 ## Try the example
 

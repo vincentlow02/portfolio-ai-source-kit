@@ -2,15 +2,16 @@ import { once } from "node:events";
 import { readFile } from "node:fs/promises";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { Readable } from "node:stream";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { APICallError, NoObjectGeneratedError, NoOutputGeneratedError } from "ai";
 import { ZodError } from "zod";
 import type { PortfolioCorpus } from "../../lib/portfolio-knowledge";
 import { b2PublicCorpus } from "../../lib/portfolio-chat/b2";
-import { validateMessages } from "../../lib/portfolio-chat/core";
 import { resolveResponseLanguage } from "../../lib/portfolio-chat/language";
 import { readPortfolioRequest } from "../../lib/portfolio-chat/request-body";
-import { createModelReply, excerptReply } from "../../lib/portfolio-chat/source-reply";
+import { createModelReply, excerptReply, validateWidgetQuestion, widgetResponse } from "../../lib/portfolio-chat/source-reply";
+import { readWidgetAsset, widgetAssets, widgetFramePolicy } from "../../lib/portfolio-chat/widget-assets";
 import { localPreviewOrigin } from "../portfolio-knowledge/anonymous-browser.mjs";
 
 const { values } = parseArgs({ options: {
@@ -53,14 +54,11 @@ async function servePreview(port: number, useModel: boolean) {
   }
   const modelReply = useModel ? createModelReply(corpus) : undefined;
 
-  const assets = new Map(await Promise.all([
-    ["/", "preview.html", "text/html; charset=utf-8"],
-    ["/preview.js", "preview.js", "text/javascript; charset=utf-8"],
-    ["/preview.css", "preview.css", "text/css; charset=utf-8"],
-    ["/embed.js", "embed.js", "text/javascript; charset=utf-8"],
-    ["/embed.css", "embed.css", "text/css; charset=utf-8"],
-  ].map(async ([route, name, contentType]) => [route, {
-    contentType, body: await readFile(new URL(`./local-preview/${name}`, import.meta.url), "utf8"),
+  const kitRoot = fileURLToPath(new URL("../../", import.meta.url));
+  const assets = new Map(await Promise.all([...widgetAssets].map(async ([route, { type }]) => [route, {
+    type, body: await readWidgetAsset(kitRoot, route, {
+      origin: portfolioOrigin, paths: corpus.pages.map(page => page.url), mode: modelReply ? "Model preview" : "Local preview · Finds matching passages",
+    }),
   }] as const)));
 
   const server = createServer(async (request, response) => {
@@ -75,11 +73,10 @@ async function servePreview(port: number, useModel: boolean) {
     const origin = `http://${request.headers.host}`;
     const asset = request.url && assets.get(request.url);
     if (request.method === "GET" && asset) {
-      response.setHeader("Content-Type", asset.contentType);
-      if (request.url === "/") {
-        response.setHeader("Content-Security-Policy", `default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors ${portfolioOrigin}`);
-      }
-      response.end(request.url === "/" ? asset.body.replace("{{mode}}", modelReply ? "Model preview" : "Local preview · Finds matching passages") : asset.body);
+      response.setHeader("Content-Type", asset.type);
+      if (request.url === "/") response.setHeader("Content-Security-Policy", widgetFramePolicy(portfolioOrigin));
+      if (request.url === "/widget/geist.woff2") response.setHeader("Access-Control-Allow-Origin", portfolioOrigin);
+      response.end(asset.body);
       return;
     }
     if (request.method !== "POST" || request.url !== "/api/preview") {
@@ -91,21 +88,18 @@ async function servePreview(port: number, useModel: boolean) {
       return;
     }
 
-    let messages;
+    let question;
     try {
-      const body = await readQuestion(request, origin);
-      messages = validateMessages(body?.messages);
+      question = validateWidgetQuestion(await readQuestion(request, origin), corpus);
     } catch {
       sendJson(response, 400, { error: "Enter a question of up to 2,000 characters." });
       return;
     }
     try {
+      const { messages, quote } = question;
       const language = resolveResponseLanguage(messages, corpus.pages[0]?.language);
-      const result = modelReply ? await modelReply(messages, language) : await excerptReply(corpus, messages, language);
-      sendJson(response, 200, {
-        answer: result.answer,
-        sources: result.sources.map(source => ({ section: source.section, href: new URL(source.url, portfolioOrigin).href })),
-      });
+      const result = modelReply ? await modelReply(messages, language, quote) : await excerptReply(corpus, messages, language, quote);
+      sendJson(response, 200, widgetResponse(result, portfolioOrigin));
     } catch (error) {
       const message = modelReply ? describeModelFailure(error) : "The preview could not look up that question.";
       if (modelReply) console.warn(`Model preview: ${message}`);
@@ -154,7 +148,7 @@ function readQuestion(request: IncomingMessage, origin: string) {
     body: Readable.toWeb(request) as ReadableStream<Uint8Array>,
     duplex: "half",
   };
-  return readPortfolioRequest(new Request(`${origin}/api/preview`, init), 8_000) as Promise<{ messages?: unknown } | null>;
+  return readPortfolioRequest(new Request(`${origin}/api/preview`, init), 16_000);
 }
 
 function sendJson(response: ServerResponse, status: number, data: unknown) {

@@ -3,26 +3,48 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Portfolio AI preview</title>
+  <title>Portfolio AI</title>
+  <link rel="license" href="/widget/geist-OFL.txt">
   <link rel="stylesheet" href="/preview.css">
   <script type="module" src="/preview.js"></script>
 </head>
-<body>
-  <main>
-    <header>
-      <h1>Portfolio AI</h1>
-      <p>{{mode}}</p>
-    </header>
-    <section id="output" aria-label="Preview response" aria-live="polite">
-      <p>Ask about the work in this portfolio.</p>
-    </section>
-    <form>
-      <label for="question">Your question</label>
-      <div class="composer">
-        <input id="question" name="question" required maxlength="2000" autocomplete="off">
-        <button type="submit">Ask</button>
+<body class="shell" data-layout="desktop" data-portfolio-origin="{{portfolio-origin}}">
+  <main class="panel" aria-labelledby="chat-title" tabindex="-1">
+    <header class="header">
+      <h1 id="chat-title">Portfolio AI</h1>
+      <p class="visually-hidden">{{mode}}</p>
+      <div class="actions">
+        <button id="reset" type="button" aria-label="Reset conversation" title="Reset conversation"><img src="/widget/reset.svg" alt=""></button>
+        <button id="close" type="button" aria-label="Close Portfolio AI" title="Close Portfolio AI"><img src="/widget/close.svg" alt=""></button>
       </div>
-    </form>
+    </header>
+    <div class="content" id="chat-content">
+      <section class="welcome" id="welcome" aria-label="Suggested questions">
+        <h2>Ask me anything.</h2>
+        <div class="suggestions">
+          <button type="button"><img src="/widget/suggestion.svg" alt=""><span>What projects are featured here?</span></button>
+          <button type="button"><img src="/widget/suggestion.svg" alt=""><span>How does the owner approach their work?</span></button>
+          <button type="button"><img src="/widget/suggestion.svg" alt=""><span>Which project should I explore first?</span></button>
+          <button type="button"><img src="/widget/suggestion.svg" alt=""><span>Tell me about the portfolio owner</span></button>
+        </div>
+      </section>
+      <section class="messages" id="messages" aria-label="Conversation" hidden>
+        <div class="user" role="group" aria-label="Your question"><p id="asked"></p></div>
+        <div id="output" aria-live="polite" aria-atomic="true"></div>
+      </section>
+    </div>
+    <div class="composerArea">
+      <div class="quotePreview" id="quote" hidden>
+        <img src="/widget/quote.svg" alt="">
+        <span id="quote-text"></span>
+        <button id="remove-quote" type="button" aria-label="Remove selected quote" title="Remove selected quote"><img src="/widget/remove.svg" alt=""></button>
+      </div>
+      <form class="composer">
+        <label class="visually-hidden" for="question">Your question</label>
+        <textarea id="question" name="question" rows="1" required maxlength="2000" autocomplete="off" placeholder="Ask about this portfolio..." disabled></textarea>
+        <button type="submit" aria-label="Send message" title="Send message" disabled><img src="/widget/send.svg" alt=""></button>
+      </form>
+    </div>
   </main>
 </body>
 </html>

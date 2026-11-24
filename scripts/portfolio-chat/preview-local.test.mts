@@ -51,10 +51,10 @@ async function startPreview(t: TestContext, model = false) {
   for await (const [line] of on(lines, "line", { close: ["close"], signal: AbortSignal.timeout(10_000) })) {
     const chatUrl = /^Local chat preview: (http:\/\/127\.0\.0\.1:\d+\/)$/u.exec(line)?.[1];
     if (!chatUrl) continue;
-    const request = (content: string, origin = new URL(chatUrl).origin) => fetch(new URL("api/preview", chatUrl), {
+    const request = (content: string, origin = new URL(chatUrl).origin, selectionContext?: object) => fetch(new URL("api/preview", chatUrl), {
       method: "POST",
       headers: { Origin: origin, "Sec-Fetch-Site": "same-origin", "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: [{ role: "user", content }] }),
+      body: JSON.stringify({ messages: [{ role: "user", content }], selectionContext }),
     });
     return { chatUrl, request };
   }
@@ -67,6 +67,7 @@ test("local chat returns a source excerpt and links only to an approved portfoli
   assert.equal(chatPage.status, 200);
   assert.ok(chatPage.headers.get("Content-Security-Policy")?.endsWith(`frame-ancestors ${portfolioOrigin}`));
   assert.equal((await fetch(new URL("embed.js", chatUrl))).status, 200);
+  assert.equal((await fetch(new URL("widget/sparkles.svg", chatUrl))).headers.get("Content-Type"), "image/svg+xml");
   const reply = await request("recycled steel");
   assert.equal(reply.status, 200);
   assert.deepEqual(await reply.json(), {
@@ -77,6 +78,13 @@ test("local chat returns a source excerpt and links only to an approved portfoli
   const result = await unsupported.json();
   assert.match(result.answer, /does not provide enough information/);
   assert.deepEqual(result.sources, []);
+  const quote = { pagePath: "/projects", sectionId: "materials", text: "recycled steel frame" };
+  const quoted = await request("Explain this quote", undefined, quote);
+  assert.equal(quoted.status, 200);
+  assert.deepEqual(await quoted.json(), {
+    answer: article, sources: [{ section: "Materials", href: `${portfolioOrigin}/projects#materials` }],
+  });
+  assert.equal((await request("Explain this quote", undefined, { ...quote, text: "unpublished notes" })).status, 400);
   assert.equal((await request("recycled steel", portfolioOrigin)).status, 403);
   assert.equal((await fetch(new URL(".portfolio-knowledge/local-preview.json", chatUrl))).status, 404);
 });
