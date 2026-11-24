@@ -87,6 +87,7 @@ export function comparisonTopicMatcher(query: string): { hasTopic: boolean; matc
   const timeWords = new Set(["when","何时","何時","何年","什么时候","什麼時候","いつ"]);
   const personWords = new Set(["who","谁","誰"]);
   const reasonWords = new Set(["why","为什么","為什麼","为何","為何","なぜ"]);
+  const methodWords = new Set(["方法","方式","手法","手段"]);
   const queryText=query.normalize("NFKC").toLocaleLowerCase()
     .replace(/\b(?:the|these|those) two projects?\b/gu,"both projects")
     .replace(/(?:这|這)?(?:两个|兩個|两项|兩項)(?:项目|項目|專案)/gu,"项目");
@@ -105,6 +106,7 @@ export function comparisonTopicMatcher(query: string): { hasTopic: boolean; matc
     if(timeWords.has(term)) return /\b(?:19|20)\d{2}\b|\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\b|\d{2,4}年/iu.test(sentence);
     if(personWords.has(term)) return /\b(?:people|person|users?|participants?|volunteers?|researchers?|team|staff|they|we|i)\b|参与者|參與者|志愿者|志願者|参加者|チーム|担当者/iu.test(sentence);
     if(reasonWords.has(term)) return /\b(?:because|since|therefore|so that|in order to)\b|因为|因為|所以|ため|理由/iu.test(sentence);
+    if(methodWords.has(term)) return /\b(?:methods?|methodology|techniques?|procedures?|approaches?)\b|方法|方式|手法|手段/iu.test(sentence);
     if (/^\d+$/u.test(term)) return new RegExp("(?<!\\d)"+term+"(?!\\d)","u").test(sentence);
     if (/^[a-z]+$/u.test(term)) {
       const stem=term.length>4 ? term.replace(/(?:ing|ed|es|s)$/u,"") : term;

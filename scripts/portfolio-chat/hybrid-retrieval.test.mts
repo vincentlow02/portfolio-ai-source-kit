@@ -141,6 +141,9 @@ test("comparison topic checks use source body and retain explicit attributes",()
   assert.equal(comparisonTopicMatcher("What materials did both projects use?").matches("Materials\nThe calendar schedules community events."),false);
   assert.equal(comparisonTopicMatcher("这两个项目分别如何测试地点？").matches("Testing\nThe prototype was tested with volunteers."),false);
   assert.equal(comparisonTopicMatcher("両方のプロジェクトの参加者の名前は？").matches("Testing\nResearchers tested the prototype with volunteers."),false);
+  assert.equal(comparisonTopicMatcher("测试方法").matches("Research\nThe test methods included volunteer sessions."),true);
+  assert.equal(comparisonTopicMatcher("テスト方法").matches("Research\nThe test methods included volunteer sessions."),true);
+  assert.equal(comparisonTopicMatcher("测试方法费用").matches("Research\nThe test methods included volunteer sessions."),false);
 });
 
 test("the default retrieves an approved English excerpt for a Chinese question", async () => {
