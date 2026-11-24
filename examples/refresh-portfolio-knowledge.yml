@@ -1,3 +1,4 @@
+# Enable repository_dispatch events in this portfolio project's Vercel Git settings.
 name: Refresh Portfolio AI knowledge
 
 on:
