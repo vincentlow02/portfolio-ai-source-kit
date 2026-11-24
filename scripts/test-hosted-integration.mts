@@ -62,10 +62,10 @@ function ask(base: string, content: string, site = base) {
   });
 }
 
-function askConversation(base: string, messages: Array<{role: "user"|"assistant"; content: string}>) {
+function askConversation(base: string, messages: Array<{role: "user"|"assistant"; content: string}>, pageContext?: { pathname: string }) {
   return fetch(base + "/api/preview", { method: "POST", signal: AbortSignal.timeout(20_000),
     headers: { "Content-Type": "application/json", Origin: base, "Sec-Fetch-Site": "same-origin" },
-    body: JSON.stringify({messages}),
+    body: JSON.stringify({ messages, pageContext }),
   });
 }
 
@@ -102,6 +102,15 @@ try {
     assert.deepEqual(await result.json(), {
       answer: article, sources: [{ section: "Research", href: origin + "/work/lantern#research" }],
     });
+    const question = [{ role: "user" as const, content: "How was it tested?" }];
+    const pageReply = await askConversation(base, question, { pathname: "/work/spruce" });
+    assert.equal(pageReply.status, 200);
+    assert.deepEqual((await pageReply.json()).sources, [{ section: "Research", href: origin + "/work/spruce#research" }]);
+    const withoutPage = await askConversation(base, question);
+    assert.match((await withoutPage.json()).answer, /which project do you mean/iu);
+    assert.equal((await askConversation(base, question, { pathname: "/private" })).status, 400);
+    const named = await askConversation(base, [{ role: "user", content: "How did Lantern test tactile signs?" }], { pathname: "/work/spruce" });
+    assert.deepEqual((await named.json()).sources, [{ section: "Research", href: origin + "/work/lantern#research" }]);
     const prior = [{role:"user" as const,content:"Compare Lantern and Spruce"},{role:"assistant" as const,content:"They are different projects."}];
     const both = await askConversation(base,[...prior,{role:"user",content:"How were both projects tested?"}]);
     assert.equal(both.status,200);
@@ -158,6 +167,9 @@ try {
     const answer = await result.json();
     assert.match(answer.answer, /six libraries/u);
     assert.deepEqual(answer.sources, [{ section: "Research", href: origin + "/work/lantern#research" }]);
+    const contextual = await askConversation(base, [{ role: "user", content: "How was it tested at six libraries?" }], { pathname: "/work/lantern" });
+    assert.equal(contextual.status, 200);
+    assert.deepEqual((await contextual.json()).sources, [{ section: "Research", href: origin + "/work/lantern#research" }]);
   });
   console.log("Hosted webpack, excerpt, model, origin and fail-closed quota integration passed.");
 } finally {

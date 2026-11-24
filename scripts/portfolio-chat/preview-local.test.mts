@@ -2,12 +2,13 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { on, once } from "node:events";
 import { cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createInterface } from "node:readline";
 import test, { type TestContext } from "node:test";
 import { fileURLToPath } from "node:url";
-import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
+import { buildKnowledgeCorpus, type KnowledgeSource } from "../../lib/knowledge/contract";
 import { embeddingModelDirectory } from "../../lib/portfolio-chat/embedding-model.mjs";
 import { launchBrowser } from "../portfolio-knowledge/anonymous-browser.mjs";
 import { excerptReply } from "../../lib/portfolio-chat/source-reply";
@@ -15,17 +16,17 @@ import { excerptReply } from "../../lib/portfolio-chat/source-reply";
 const portfolioOrigin = "http://127.0.0.1:5173";
 const article = "The prototype used a recycled steel frame.";
 
-async function startPreview(t: TestContext, model = false) {
+async function startPreview(t: TestContext, model = false, origin = portfolioOrigin, extraSources: KnowledgeSource[] = []) {
   const corpus = await buildKnowledgeCorpus([{
     access: "public", format: "rendered",
     page: { url: "/projects", title: "Projects", language: "en", kind: "page" },
     sections: [{ title: "Materials", anchor: "materials", text: article }],
-  }], "local-preview", async () => {});
+  }, ...extraSources], "local-preview", async () => {});
   const root = await mkdtemp(join(tmpdir(), "portfolio-chat-preview-"));
   const directory = join(root, ".portfolio-knowledge");
   const file = join(directory, "local-preview.json");
   await mkdir(directory);
-  await writeFile(file, JSON.stringify({ origin: portfolioOrigin, corpus }));
+  await writeFile(file, JSON.stringify({ origin, corpus }));
   await cp(embeddingModelDirectory, join(root, embeddingModelDirectory), { recursive: true });
   const dependencies = new URL("../../node_modules/tsx/dist/loader.mjs", import.meta.url).href;
   const script = fileURLToPath(new URL("./preview-local.mts", import.meta.url));
@@ -91,31 +92,59 @@ test("local chat returns a source excerpt and links only to an approved portfoli
   assert.equal((await fetch(new URL(".portfolio-knowledge/local-preview.json", chatUrl))).status, 404);
 });
 
-test("the iframe widget sends bounded conversation history and clears it on reset", async t => {
-  const { chatUrl } = await startPreview(t);
+test("the embedded widget sends only the current question and the latest approved page", async t => {
+  let embedUrl = "";
+  const server = createServer((_request, response) => {
+    response.setHeader("Content-Type", "text/html");
+    response.end(`<!doctype html><title>Portfolio fixture</title><main>Portfolio</main><script src="${embedUrl}" defer></script>`);
+  });
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  t.after(() => { server.close(); server.closeAllConnections(); });
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const origin = `http://127.0.0.1:${address.port}`;
+  const { chatUrl } = await startPreview(t, false, origin, [{
+    access: "public", format: "rendered",
+    page: { url: "/projects/lantern", title: "Lantern", language: "en", kind: "case-study", projectId: "lantern" },
+    sections: [{ title: "Research", anchor: "research", text: "The Lantern team tested tactile signs at six libraries." }],
+  }]);
+  embedUrl = new URL("embed.js", chatUrl).href;
   const browser = await launchBrowser();
   t.after(() => browser.close());
   const page = await browser.newPage();
-  await page.goto(chatUrl);
+  const pageErrors: string[] = [];
+  page.on("pageerror", error => pageErrors.push(String(error)));
+  await page.goto(`${origin}/projects/lantern?tracking=example#research`);
+  assert.deepEqual(pageErrors, []);
+  await page.evaluate(() => document.querySelector("portfolio-ai-preview")!.shadowRoot!.querySelector<HTMLButtonElement>(".launcher")!.click());
+  const panel = await page.waitForFrame(frame => frame.url() === chatUrl);
+  await panel.waitForSelector("#question", { visible: true });
   const ask = async (text: string) => {
     const sent = page.waitForRequest(request => new URL(request.url()).pathname === "/api/preview" && request.method() === "POST");
-    await page.type("#question", text);
-    await page.click('form button[type="submit"]');
+    await panel.type("#question", text);
+    await panel.click('form button[type="submit"]');
     const request = await sent;
-    await page.waitForSelector("#output .assistant");
+    await panel.waitForSelector("#output .assistant");
     return request.fetchPostData().then(data => JSON.parse(data!));
   };
-  const first = await ask("recycled steel");
-  assert.deepEqual(first.messages, [{ role: "user", content: "recycled steel" }]);
-  const second = await ask("What about the frame?");
-  assert.deepEqual(second.messages, [
-    { role: "user", content: "recycled steel" },
-    { role: "assistant", content: article },
-    { role: "user", content: "What about the frame?" },
-  ]);
-  await page.click("#reset");
-  const restarted = await ask("recycled steel");
-  assert.deepEqual(restarted.messages, first.messages);
+  const first = await ask("How was it tested?");
+  assert.deepEqual(first, {
+    messages: [{ role: "user", content: "How was it tested?" }],
+    pageContext: { pathname: "/projects/lantern" },
+  });
+  assert.equal(await panel.$eval(".sources a", link => link.getAttribute("href")), `${origin}/projects/lantern#research`);
+  await page.evaluate(() => history.pushState(null, "", "/projects"));
+  const second = await ask("recycled steel");
+  assert.deepEqual(second, {
+    messages: [{ role: "user", content: "recycled steel" }],
+    pageContext: { pathname: "/projects" },
+  });
+  await page.evaluate(() => history.pushState(null, "", "/unapproved"));
+  assert.deepEqual(await ask("How was it tested?"), { messages: first.messages });
+  assert.match(await panel.$eval("#output p", reply => reply.textContent ?? ""), /which project do you mean/iu);
+  await panel.click("#reset");
+  assert.ok(await panel.waitForSelector("#welcome", { visible: true }));
 });
 
 test("source excerpts prefer a full phrase over a number shared by another project", async () => {

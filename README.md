@@ -21,6 +21,8 @@ Import your fork of the Kit into a Vercel project using the branch or release th
 
 3. Open your public portfolio, select the sparkle button (**Ask about this portfolio**), and ask about a distinctive term from an approved page. Expand **Sources** to check the link. On desktop, you can select a passage from an approved page and use **Ask Portfolio AI** to quote it. Redeploy the assistant to refresh the knowledge base after updating the source pages.
 
+For both Hosted and Vite preview, the widget sends one question at a time. On an approved project page, it also sends the current path so a question like “How was it tested?” can refer to that project. The reader recognizes approved `/projects/<slug>` pages as projects. For another route such as `/work/field-notes`, use `<main data-portfolio-project="field-notes">`. The ID uses lowercase letters, digits, and hyphens. Keep one approved page per project ID and language.
+
 If a Vite portfolio page opens through site navigation but its direct URL returns 404, configure your host to serve the app at that URL before selecting it. For a Vite SPA on Vercel, see [the deep-link rewrite instructions](https://vercel.com/docs/frameworks/frontend/vite#using-vite-to-make-spas).
 
 The hosted assistant returns source excerpts without API credentials. To enable generated Qwen answers, copy the settings shown in the [environment template](.env.example) to your assistant project's environment, apply the [quota migration](supabase/migrations/202611100001_vincent_ai_analytics.sql) to a dedicated Supabase project, and set `PORTFOLIO_HOSTED_MODEL=1`. Configure the region, rate limits and budget using the [security and quota guide](docs/security.md). The assistant reserves shared quota before sending the question and selected approved passages to Qwen. Keep provider keys and quota credentials in the assistant project's server environment.
@@ -49,6 +51,8 @@ npm run preview:local -- --origin http://127.0.0.1:5173 --path /projects
 ```
 
 Replace `/projects` with a public page you approve for the assistant. Repeat `--path` to include more pages. A successful run prints `Local knowledge preview` with the page and passage counts and saves `.portfolio-knowledge/local-preview.json`. Review the passages and their source paths in that file. Git ignores the file.
+
+Use an approved `/projects/<slug>` page or mark its `<main>` with `data-portfolio-project` to let the widget identify the current project.
 
 The reader captures visible text in `<main>` on pages with English, Chinese, or Japanese HTML language declarations. Use `/` or lowercase route paths with letters, digits, and hyphens, such as `/projects/field-notes`. It can load same-origin scripts and styles to render a page. The approved page's text needs to render with those resources, since capture blocks `fetch` and XHR. Protected, hidden, and `noindex` content is excluded.
 

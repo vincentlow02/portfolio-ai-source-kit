@@ -79,9 +79,11 @@ export async function answerHostedQuestion(request: Request) {
     let question;
     try { question = validateWidgetQuestion(body, corpus); }
     catch { return Response.json({ error: "Enter a question or select verified public text." }, { status: 400, headers }); }
-    const { messages, quote } = question;
+    const { messages, page, quote } = question;
     const language = resolveResponseLanguage(messages, corpus.pages[0]?.language);
-    const result = model ? await model(messages, language, quote, { signal: request.signal, reserve: () => reserveQuota(process.env) }) : await excerptReply(corpus, messages, language, quote);
+    const result = model
+      ? await model(messages, language, quote, { page, signal: request.signal, reserve: () => reserveQuota(process.env) })
+      : await excerptReply(corpus, messages, language, quote, page);
     return Response.json(widgetResponse(result, origin), { headers });
   } catch (error) {
     if (error instanceof WidgetQuotaError) return Response.json({ error: error.status === 503 ? "The model quota service is unavailable." : "The request limit has been reached. Try again later." }, { status: error.status, headers });

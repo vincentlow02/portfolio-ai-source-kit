@@ -61,19 +61,20 @@ test("hosted capture only loads an approved public page and its same-origin scri
   const allowed = new Set<string>();
   const load = async (url: string) => {
     allowed.add(url);
-    if (url === origin + "/projects") return { status: 200, contentType: "text/html", body:
+    if (url === origin + "/work/field-notes") return { status: 200, contentType: "text/html", body:
       '<!doctype html><html lang="en"><div id="app"></div><script src="/app.js"></script><script src="https://other.example.com/app.js"></script>' };
     if (url === origin + "/app.js") return { status: 200, contentType: "text/javascript", body:
-      'document.querySelector("#app").innerHTML = "<main><p>Project introduction.</p><h1>Field notes</h1><p>Public prototype measurements.</p></main>";' };
+      'document.querySelector("#app").innerHTML = "<main data-portfolio-project=field-notes><p>Project introduction.</p><h1>Field notes</h1><p>Public prototype measurements.</p></main>";' };
     throw new Error("Unexpected fixture resource");
   };
   const browser = await launchBrowser(["--proxy-server=http://127.0.0.1:9", "--proxy-bypass-list=<-loopback>"]);
   try {
-    const source = await captureSiteSource(browser, origin, "/projects", "hosted", load);
+    const source = await captureSiteSource(browser, origin, "/work/field-notes", "hosted", load);
     const corpus = await buildKnowledgeCorpus([source], "hosted", verifyInBrowser(browser, origin, "hosted", load));
     assert.equal(corpus.chunks.length, 1);
+    assert.equal(corpus.chunks[0].projectId, "field-notes");
     assert.match(corpus.chunks[0].content, /Project introduction.*Public prototype measurements/su);
-    assert.deepEqual([...allowed].sort(), [origin + "/app.js", origin + "/projects"]);
+    assert.deepEqual([...allowed].sort(), [origin + "/app.js", origin + "/work/field-notes"]);
   } finally { await browser.close(); }
 });
 
@@ -109,9 +110,12 @@ test("local preview reads a client-rendered page without allowing external origi
     const browser = await launchBrowser();
     try {
       const source = await captureLocalPreviewSource(browser, origin, "/projects");
-      const corpus = await buildKnowledgeCorpus([source], "local-preview", verifyInBrowser(browser, origin, "local-preview"));
+      const project = await captureLocalPreviewSource(browser, origin, "/projects/prototype");
+      const corpus = await buildKnowledgeCorpus([source, project], "local-preview", verifyInBrowser(browser, origin, "local-preview"));
       assert.equal(corpus.pages[0].title, "Project notes");
       assert.equal(corpus.chunks[0].sourceUrl, "/projects#project");
+      assert.equal(corpus.chunks[0].projectId, null);
+      assert.equal(corpus.chunks[1].projectId, "prototype");
       assert.match(corpus.chunks[0].content, /tested the prototype with volunteers/);
       assert.doesNotMatch(corpus.chunks[0].content, /Draft-only/);
       assert.equal(backgroundRequests, 0);

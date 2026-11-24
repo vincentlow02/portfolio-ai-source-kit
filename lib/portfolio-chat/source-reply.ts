@@ -10,6 +10,7 @@ import { defaultPortfolioChatConfig } from "./engine-config";
 import { verifySelection } from "./selection";
 
 type VerifiedQuote = ReturnType<typeof verifySelection>;
+type PageContext = ReturnType<typeof parsePageContext>;
 
 export function widgetResponse(result: { answer: string; sources: ReadonlyArray<{ section: string; url: string }>; followUpQuestions?: string[] }, origin: string) {
   return {
@@ -20,13 +21,14 @@ export function widgetResponse(result: { answer: string; sources: ReadonlyArray<
 }
 
 export function validateWidgetQuestion(body: unknown, corpus: PortfolioCorpus) {
-  const input = body as { messages?: unknown; selectionContext?: unknown } | null;
+  const input = body as { messages?: unknown; pageContext?: unknown; selectionContext?: unknown } | null;
   const messages = validateMessages(input?.messages);
-  if (input?.selectionContext === undefined) return { messages, quote: undefined };
+  const page = parsePageContext(input?.pageContext, corpus);
+  if (input?.selectionContext === undefined) return { messages, page, quote: undefined };
   if (!input.selectionContext || typeof input.selectionContext !== "object" || Array.isArray(input.selectionContext)) throw new Error("Invalid selection");
   const { lang, ...selection } = input.selectionContext as Record<string, unknown>;
-  const page = parsePageContext({ pathname: selection.pagePath, lang }, corpus);
-  return { messages, quote: verifySelection(selection, corpus, page) };
+  const selectionPage = parsePageContext({ pathname: selection.pagePath, lang }, corpus);
+  return { messages, page: selectionPage, quote: verifySelection(selection, corpus, selectionPage) };
 }
 
 export class WidgetQuotaError extends Error {
@@ -39,10 +41,10 @@ export function createModelReply(corpus: PortfolioCorpus, env: NodeJS.ProcessEnv
   const objectMode = env.QWEN_JSON_MODE?.trim() === "object";
 
   return async (messages: ChatMessage[], language: ResponseLanguage, quote?: VerifiedQuote,
-    options: { signal?: AbortSignal; reserve?: () => Promise<boolean> } = {}) => {
+    options: { page?: PageContext; signal?: AbortSignal; reserve?: () => Promise<boolean> } = {}) => {
     const guardian = resolveGuardianReply(messages.at(-1)!.content, language);
     if (guardian) return { answer: guardian.answer, sources: [] };
-    const input = { corpus, messages, language, selection: quote, allowUnstructuredCatalog: true };
+    const input = { corpus, messages, language, page: options.page, selection: quote, allowUnstructuredCatalog: true };
     const { pack, answer } = await prepareAnswer(input);
     if (answer) return answer;
     options.signal?.throwIfAborted();
@@ -55,11 +57,12 @@ export function createModelReply(corpus: PortfolioCorpus, env: NodeJS.ProcessEnv
   };
 }
 
-export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessage[], language: ResponseLanguage, quote?: VerifiedQuote) {
+export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessage[], language: ResponseLanguage, quote?: VerifiedQuote, currentPage?: PageContext) {
   const guardian = resolveGuardianReply(messages.at(-1)!.content, language);
   if (guardian) return { answer: guardian.answer, sources: [], recommendations: [] };
   const context = !quote ? resolveContext(messages, corpus) : undefined;
-  if (context?.ambiguous) return { answer: { en: "Which project do you mean?", zh: "你指的是哪个项目？", ja: "どのプロジェクトについてですか？" }[language], sources: [], recommendations: [] };
+  const pageProject = context?.ambiguous && !context.multiplePriorProjects ? currentPage?.projectId : undefined;
+  if (context?.ambiguous && !pageProject) return { answer: { en: "Which project do you mean?", zh: "你指的是哪个项目？", ja: "どのプロジェクトについてですか？" }[language], sources: [], recommendations: [] };
   // A plural comparison must not be answered with only one project's excerpt.
   // Assemble a bounded public passage for each subject or return insufficient.
   const explicitComparison = Boolean(context && context.explicit.length > 1 && comparisonQuestion.test(messages.at(-1)!.content));
@@ -78,7 +81,7 @@ export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessag
     const result = validateAnswer({language,insufficient:false,answer:"Matching portfolio passages.",sourceIds:chunks.map(chunk=>chunk.chunkId),recommendedProjectIds:[]},corpus);
     return {...result,answer:chunks.map(chunk=>`${chunk.pageTitle}: ${chunk.content.slice(chunk.content.indexOf("\n")+1)}`).join("\n\n"),followUpQuestions:[]};
   }
-  const retrieval = quote ? undefined : await retrieveEvidence(corpus, messages);
+  const retrieval = quote ? undefined : await retrieveEvidence(corpus, messages, undefined, undefined, pageProject ? [pageProject] : undefined);
   const match = quote && sourceMatchesSpecificIntent(messages.at(-1)!.content, quote.chunk.content) ? quote.chunk : quote ? undefined : retrieval?.chunks[0];
   const result = validateAnswer({
     language, insufficient: !match, answer: "Matching portfolio passage.",

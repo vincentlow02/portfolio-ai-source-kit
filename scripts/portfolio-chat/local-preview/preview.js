@@ -13,7 +13,22 @@ const quoteText = document.querySelector("#quote-text");
 const embedded = window.parent !== window;
 let quote = null;
 let pending = null;
-let history = [];
+
+function currentPage() {
+  if (!embedded) return;
+  // Read at submit time so client-side routing cannot leave a stale page hint.
+  return new Promise(resolve => {
+    const { port1, port2 } = new MessageChannel();
+    function finish(page) {
+      clearTimeout(timeout);
+      port1.close();
+      resolve(page);
+    }
+    const timeout = setTimeout(finish, 250);
+    port1.onmessage = event => finish(event.data);
+    window.parent.postMessage({ type: "portfolio-ai:page-context" }, portfolioOrigin, [port2]);
+  });
+}
 
 function setQuote(selection) {
   quote = selection;
@@ -90,7 +105,7 @@ async function ask(value) {
   if (!content || pending) return;
   const request = new AbortController();
   pending = request;
-  const selectionContext = quote;
+  const selectionContext = quote ?? undefined;
   setQuote(null);
   input.value = "";
   updateSend();
@@ -103,19 +118,11 @@ async function ask(value) {
   status.textContent = "Thinking...";
   output.replaceChildren(status);
   try {
-    const prior = history.slice();
-    const requestBody = () => JSON.stringify({
-      messages: [...prior, { role: "user", content }],
-      ...(selectionContext ? { selectionContext } : {}),
-    });
-    let envelope = requestBody();
-    while (prior.length && new TextEncoder().encode(envelope).byteLength > 16_000) {
-      prior.splice(0, 2);
-      envelope = requestBody();
-    }
+    const pageContext = selectionContext ? undefined : await currentPage();
+    if (pending !== request) return;
     const response = await fetch("/api/preview", {
       method: "POST", headers: { "Content-Type": "application/json" }, signal: request.signal,
-      body: envelope,
+      body: JSON.stringify({ messages: [{ role: "user", content }], selectionContext, pageContext }),
     });
     const result = await response.json();
     if (pending !== request) return;
@@ -125,7 +132,6 @@ async function ask(value) {
       return;
     }
     if (typeof result.answer !== "string" || !result.answer.trim()) throw new Error("Invalid reply");
-    history = [...history, { role: "user", content }, { role: "assistant", content: result.answer.trim().slice(0, 1000) }].slice(-4);
     showAnswer(result.answer, result.sources, result.followUpQuestions);
   } catch {
     if (pending === request) showAnswer("The assistant is temporarily unavailable.");
@@ -140,7 +146,6 @@ async function ask(value) {
 document.querySelector("#reset").addEventListener("click", () => {
   pending?.abort();
   pending = null;
-  history = [];
   setQuote(null);
   input.value = "";
   asked.textContent = "";

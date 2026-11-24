@@ -99,11 +99,13 @@ async function servePreview(port: number, useModel: boolean) {
       return;
     }
     try {
-      const { messages, quote } = question;
+      const { messages, page, quote } = question;
       const language = resolveResponseLanguage(messages, corpus.pages[0]?.language);
       const controller = new AbortController();
       response.once("close", () => controller.abort());
-      const result = modelReply ? await modelReply(messages, language, quote, { signal: controller.signal }) : await excerptReply(corpus, messages, language, quote);
+      const result = modelReply
+        ? await modelReply(messages, language, quote, { page, signal: controller.signal })
+        : await excerptReply(corpus, messages, language, quote, page);
       sendJson(response, 200, widgetResponse(result, portfolioOrigin));
     } catch (error) {
       const message = modelReply ? describeModelFailure(error) : "The preview could not look up that question.";

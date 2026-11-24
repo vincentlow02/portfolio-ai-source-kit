@@ -81,14 +81,21 @@
     selectionAction.hidden = true;
   }
 
+  function currentPage() {
+    const pathname = location.pathname.replace(/\/$/u, "") || "/";
+    const lang = new URLSearchParams(location.search).get("lang");
+    const source = lang ? `${pathname}?lang=${lang}` : pathname;
+    if (!approved.has(source) ||
+        document.querySelector('meta[name="robots" i][content*="noindex" i], [data-portfolio-access="protected"]')) return;
+    return { pathname, ...(lang ? { lang } : {}) };
+  }
+
   function showSelection() {
     if (mobile.matches) return hideSelection();
-    const lang = new URLSearchParams(location.search).get("lang");
-    const source = lang ? `${location.pathname}?lang=${lang}` : location.pathname;
+    const page = currentPage();
     const selection = window.getSelection();
     const main = document.querySelector("main");
-    if (!approved.has(source) || !main || !selection || selection.isCollapsed || selection.rangeCount !== 1 ||
-        document.querySelector('meta[name="robots" i][content*="noindex" i], [data-portfolio-access="protected"]')) return hideSelection();
+    if (!page || !main || !selection || selection.isCollapsed || selection.rangeCount !== 1) return hideSelection();
 
     const range = selection.getRangeAt(0);
     const text = selection.toString().trim();
@@ -102,7 +109,8 @@
     if (!rect.width || !rect.height) return hideSelection();
 
     const section = start.closest("section[id]");
-    selected = { pagePath: location.pathname, text, sectionId: section && section === end.closest("section[id]") ? section.id : null, ...(lang ? { lang } : {}) };
+    const { pathname, ...language } = page;
+    selected = { pagePath: pathname, text, sectionId: section && section === end.closest("section[id]") ? section.id : null, ...language };
     selectionAction.hidden = false;
     selectionAction.style.left = `${Math.max(8, Math.min(rect.left, innerWidth - selectionAction.offsetWidth - 8))}px`;
     selectionAction.style.top = `${Math.max(8, Math.min(rect.bottom + 8, innerHeight - 42))}px`;
@@ -125,6 +133,7 @@
 
   window.addEventListener("message", event => {
     if (event.origin !== url.origin || event.source !== frame.contentWindow) return;
+    if (event.data?.type === "portfolio-ai:page-context") event.ports[0]?.postMessage(currentPage());
     if (event.data?.type === "portfolio-ai:ready") { ready = true; if (!frame.hidden) showPanel(); }
     if (event.data?.type === "portfolio-ai:close") {
       frame.hidden = true;

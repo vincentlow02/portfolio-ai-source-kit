@@ -128,11 +128,14 @@ export async function captureSiteSource(browser: Browser, origin: string, source
   const url = originUrl(origin, sourcePath);
   return withAnonymousPortfolioPage(browser, origin, url, async (page: Page): Promise<KnowledgeSource> => {
     const language = knowledgeLanguage.parse(await page.evaluate(() => document.documentElement.lang.toLowerCase().split("-")[0]));
-    const title = await page.evaluate(() => {
+    const { title, project } = await page.evaluate(() => {
       const headings = Array.from(document.querySelectorAll<HTMLElement>("main h1, main h2, main h3, main h4, main h5, main h6"));
       const heading = headings.find(element => !element.closest('[hidden],[inert],[aria-hidden="true" i]') &&
         element.checkVisibility({ opacityProperty: true, visibilityProperty: true, contentVisibilityAuto: true }));
-      return (heading?.innerText.trim() || document.title.trim()).slice(0, 200);
+      return {
+        title: (heading?.innerText.trim() || document.title.trim()).slice(0, 200),
+        project: document.querySelector("main")?.getAttribute("data-portfolio-project") ?? null,
+      };
     });
     const { sections } = await inspectPublishedPage(page, language, title);
     // An introduction and a repeated heading can share both a title and page-level citation.
@@ -147,6 +150,11 @@ export async function captureSiteSource(browser: Browser, origin: string, source
       mergedSections.push(section);
       if (!section.anchor) pageSections.set(section.title, section);
     }
-    return { access: "public", format: "rendered", page: { url: sourcePath, title, language, kind: "page" }, sections: mergedSections };
+    const projectId = project ?? /^\/projects\/([^/]+)$/u.exec(knowledgePath(sourcePath))?.[1] ?? null;
+    return {
+      access: "public", format: "rendered",
+      page: { url: sourcePath, title, language, kind: projectId === null ? "page" : "case-study", projectId },
+      sections: mergedSections,
+    };
   }, mode, loadResource);
 }
