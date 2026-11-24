@@ -18,3 +18,6 @@ Commits `dc83718` and `b85b1fe` add narrow multilingual evidence-type checks for
 Commits `a6de258` and `2c52e83` add counted Chinese/Japanese numeral checks and personal-role checks for first-person and selected female pronouns. These are conservative lexical controls, with known coverage and false-rejection limits described in the security report.
 
 `01f3f6c` adds a limited people-count association check; `07299e4` covers equivalent participant terminology. This complements numeric-presence checking but does not validate arbitrary units or facts.
+
+- `0bee033`: retry an empty single explicit project search with the project label removed while retaining that project's scope and unchanged retrieval thresholds; extend narrow intent checks to counts and dates. Extra retrieval can increase latency and irrelevant evidence.
+- `3a5416e`: add a narrow start-of-use intent check to distinguish some creation-date evidence. These lexical gates are not event-level entailment checks and can reject valid facts.

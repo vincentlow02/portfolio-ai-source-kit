@@ -2,7 +2,7 @@
 
 | Check | Result and scope |
 |---|---|
-| Original offline + added tests | `npm run test:offline` passed 71/71 at `01f3f6c`, with Node 24, installed Chrome and `--test-concurrency=1`; full existing assertions retained. An additional equivalent-participant assertion passed separately at `07299e4`. A parallel attempt failed due to ONNX memory allocation and revealed a Chinese overbroad clarification; the rule was narrowed and the sequential full run passed. |
+| Original offline + added tests | `npm run test:offline` passed 72/72 at `3a5416e`, with Node 24, installed Chrome and `--test-concurrency=1`; full existing assertions retained. An additional equivalent-participant assertion passed separately at `07299e4`. A parallel attempt failed due to ONNX memory allocation and revealed a Chinese overbroad clarification; the rule was narrowed and the sequential full run passed. |
 | Atlas integration | Passed at `1eeefe6` using mock provider, fixture quota and a D: temporary directory; authorization, privacy, selections, citations, follow-up, cancellation and concurrency were exercised. |
 | Hosted integration | Passed at `437bd50` with default cross-drive temp; reruns including `2c52e83` passed webpack, excerpt/model, origin and fail-closed quota. At `e022f38` an initial run failed with JavaScript heap allocation; a sequential retry passed. |
 | Local registry / two portfolios | Passed at `2c52e83` via local registry, fresh install, builds, type checks and mock/browser integration in both hosts using a 512 MB npm child-process heap setting. Exact remote GitHub installation is separate and remains unverified. |

@@ -53,3 +53,21 @@ Compared with V2 commit `f370bebfb158f9a92d26502f6946d6a89ed76b44`. This registe
 | `scripts/portfolio-chat/specific-intent.test.mts` | Specific-intent regression, evaluation, or per-case evidence |
 | `lib/portfolio-chat/answer-engine.ts` | Apply specific-intent evidence check before generation with verified selection |
 | `scripts/portfolio-chat/atlas-security.test.mts` | Personal/team attribution and multilingual role regressions |
+| `docs/v2-1-evaluation/count-date-after-usage.json` | Per-case evaluation results and diagnostic evidence |
+| `docs/v2-1-evaluation/count-date-before-usage.json` | Per-case evaluation results and diagnostic evidence |
+| `docs/v2-1-evaluation/count-date-v2.json` | Per-case evaluation results and diagnostic evidence |
+| `docs/v2-1-evaluation/multisection-after-gates.json` | Per-case evaluation results and diagnostic evidence |
+| `docs/v2-1-evaluation/multisection-before-gates.json` | Per-case evaluation results and diagnostic evidence |
+| `docs/v2-1-evaluation/multisection-v2.json` | Per-case evaluation results and diagnostic evidence |
+| `docs/v2-1-evaluation/original-v2-1-scoped.json` | Per-case evaluation results and diagnostic evidence |
+| `docs/v2-1-evaluation/query-scope-development.json` | Per-case evaluation results and diagnostic evidence |
+| `docs/v2-1-evaluation/scoped-retry-v2-1.json` | Per-case evaluation results and diagnostic evidence |
+| `docs/v2-1-evaluation/scoped-retry-v2.json` | Per-case evaluation results and diagnostic evidence |
+| `docs/v2-1-evaluation/usage-v2-1.json` | Per-case evaluation results and diagnostic evidence |
+| `docs/v2-1-evaluation/usage-v2.json` | Per-case evaluation results and diagnostic evidence |
+| `docs/v2-1-evaluation/v2-1-scoped.json` | Per-case evaluation results and diagnostic evidence |
+| `scripts/portfolio-chat/count-date-confirmation.mts` | Independent evaluation or security regression coverage |
+| `scripts/portfolio-chat/query-scope-development.mts` | Independent evaluation or security regression coverage |
+| `scripts/portfolio-chat/scoped-retry-holdout.mts` | Independent evaluation or security regression coverage |
+| `scripts/portfolio-chat/scoped-retry-multisection.mts` | Independent evaluation or security regression coverage |
+| `scripts/portfolio-chat/usage-confirmation.mts` | Independent evaluation or security regression coverage |

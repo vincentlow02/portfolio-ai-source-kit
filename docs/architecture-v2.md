@@ -45,3 +45,7 @@ Next hosts declare public pages and protected paths in `portfolio-knowledge.conf
 Run the appropriate publisher after a text change, removal or access change. The publisher generates stable IDs per source/section, a schema-v1 digest over the canonical knowledge fields, and a snapshot-specific build version. Next checks the current `.next/BUILD_ID`, rejects a mismatched snapshot and tests the completed artifact against its private HTTP path in a loopback preview. A failed validation keeps the previous artifact where one exists. A rebuilt Next application will still reject a previous snapshot whose build ID differs. Hosted and Vite replace their capture files with a completed JSON artifact. The next process loads the new publication. Replace deployed instances that still hold the old snapshot to enforce revocation. Restart the Vite chat process after rebuilding its local corpus.
 
 See the [integration guide](integration.md) for installing the kit in another portfolio and [V2 evaluation](architecture-v2-evaluation.md) for measured thresholds and limitations.
+
+### V2.1 scoped-search update
+
+After an empty qualified result for a single explicit project, the shared engine can retry without the project label within that same project scope. Similarity thresholds are unchanged; an additional search has latency and precision costs. Narrow count/date/start-of-use evidence gates are conservative lexical checks, not semantic proof. See the V2.1 retrieval and security reports for observed failures and limits.
