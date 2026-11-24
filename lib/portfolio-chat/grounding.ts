@@ -24,6 +24,9 @@ function normalizedNumbers(text: string) {
 function digits(text: string) {
   return normalizedNumbers(text).match(/(?<![a-z0-9])\d+(?:[.,]\d+)*(?![0-9])/gu) ?? [];
 }
+function actionStem(word: string) {
+  return word.toLowerCase().replace(/(?:ed|ing|s)$/u, "");
+}
 
 /** Conservative lexical check for English claims and explicitly named research subjects. */
 export function hasEnglishEvidenceAnchor(text: string, sources: string[], ignored: string[] = []) {
@@ -70,6 +73,12 @@ export function validateB2(output: ModelClaims, corpus: PortfolioCorpus, pack: A
       const negativeSentences = cited.flatMap(text => text.split(/[.!?\n]/u)).filter(sentence => negation.test(sentence));
       const labels = citedChunks.flatMap(chunk => [chunk.pageTitle, chunk.projectId ?? "", ...(chunk.projectId ? config.projectAliases?.[chunk.projectId] ?? [] : [])]);
       if (!negativeSentences.length || !hasEnglishEvidenceAnchor(claim.text, negativeSentences, [config.ownerName, ...(config.ownerAliases ?? []), ...labels])) return false;
+    }
+    if (output.language === "en" && citedChunks.every(chunk => chunk.language === "en") && !negation.test(claim.text)) {
+      const claimActions = new Set((claim.text.match(/\b[a-z]{4,}\b/giu) ?? []).map(actionStem));
+      const negatedActions = cited.flatMap(text => [...text.matchAll(/\b(?:not|never|didn't|doesn't|wasn't|weren't)\s+([a-z]{4,})\b/giu)]
+        .map(match => actionStem(match[1])).filter(word => !genericTerms.has(word) && word !== "only"));
+      if (negatedActions.some(action => claimActions.has(action))) return false;
     }
     if (output.language === "en" && citedChunks.every(chunk => chunk.language === "en")) {
       const projectLabels = citedChunks.flatMap(chunk => [chunk.pageTitle, chunk.projectId ?? "", ...(chunk.projectId ? config.projectAliases?.[chunk.projectId] ?? [] : [])]);

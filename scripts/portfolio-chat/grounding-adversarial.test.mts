@@ -32,3 +32,8 @@ test("negative claim requires some explicit negative evidence for same-language 
   // A tampered chunk is rejected by corpus integrity before any polarity check.
   assert.equal(validateB2({language:"en",insufficient:false,claims:[{text:"Beacon never tested the prototype.",evidenceKeys:["E1"]}],recommendedProjectIds:[]},corpus,positiveOnly).insufficient,true);
 });
+
+test("positive claim is rejected when cited sentence explicitly negates the same action", () => {
+  assert.equal(check("Beacon launched the service.").insufficient,true);
+  assert.equal(check("Beacon tested the prototype with 6 visitors.").insufficient,false);
+});
