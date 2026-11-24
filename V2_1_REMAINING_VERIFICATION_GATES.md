@@ -5,7 +5,7 @@
 3. Verify a distributed request/compute limit for Hosted excerpt mode in the intended multi-instance deployment. Set provider-side and database model budgets independently; test production config without exposing keys.
 4. After the V2.1 commit is actually published, install its exact GitHub SHA in a clean host. A local registry test is not equivalent.
 5. With explicit authorization, measure real provider answer quality, failure behavior, latency and billing, and deployed quota configuration. No actual model calls were authorized in this phase.
-6. Re-audit the final source archive after report-only updates. The `a2e8d86` source archive passed manifest checks, clean extraction, install, 76 offline tests and Atlas integration. The final archive must be audited against the final tree and the difference from this tested tree restricted to documented report-only updates.
+6. Re-audit the final source archive after report-only updates. The `dff86f9` source archive passed manifest checks, clean extraction, install, 77 offline tests and Atlas integration. The final archive must be audited against the final tree and the difference from this tested tree restricted to documented report-only updates.
 
 The independent PostgreSQL concurrency test and local lockfile advisory checks were completed locally. They do not prove deployed database grants or prevent future dependency advisories.
 
