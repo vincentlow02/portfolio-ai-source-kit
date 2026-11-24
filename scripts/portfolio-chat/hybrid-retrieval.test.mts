@@ -120,6 +120,12 @@ test("explicit plural follow-ups retain both compared projects without resolving
   assert.deepEqual(reply.sources,[]);
   assert.equal(reservations,0);
   assert.deepEqual((await excerptReply(projects,[...prior,...question("What about both projects' submarine fuel capacity?")],"en")).sources,[]);
+  const longQuestion=`What about both projects ${Array.from({length:33},(_,i)=>`term${i}`).join(" ")}?`;
+  const phases:string[]=[];
+  const bounded=await buildB2Pack(projects,[...prior,...question(longQuestion)],null,"en",undefined,phase=>phases.push(phase));
+  assert.deepEqual(bounded.entries,[]);
+  assert.equal(phases.includes("keyword"),false);
+  assert.equal(phases.includes("semantic"),false);
   const oneSided=await buildKnowledgeCorpus([
     {access:"public",format:"rendered",page:{url:"/work/alpha",title:"Alpha",language:"en",kind:"case-study",projectId:"alpha"},sections:[{title:"Materials",anchor:"materials",text:"The Alpha prototype is made from cardboard and wood."}]},
     {access:"public",format:"rendered",page:{url:"/work/beta",title:"Beta",language:"en",kind:"case-study",projectId:"beta"},sections:[{title:"Overview",anchor:"overview",text:"Beta is a calendar for local community events."}]},
@@ -150,6 +156,31 @@ test("comparison topic checks use source body and retain explicit attributes",()
   assert.equal(comparisonTopicMatcher("测试方法").matches("Research\nThe test methods included volunteer sessions."),true);
   assert.equal(comparisonTopicMatcher("テスト方法").matches("Research\nThe test methods included volunteer sessions."),true);
   assert.equal(comparisonTopicMatcher("测试方法费用").matches("Research\nThe test methods included volunteer sessions."),false);
+  const repeated=comparisonTopicMatcher(Array(100).fill("testing").join(" "));
+  assert.equal(repeated.matches("Testing\nThe prototype was tested with volunteers."),true);
+  const manyTerms=Array.from({length:33},(_,i)=>`term${i}`);
+  const oversized=comparisonTopicMatcher(manyTerms.join(" "));
+  assert.equal(oversized.hasTopic,true);
+  assert.equal(oversized.tooManyTerms,true);
+  assert.equal(oversized.matches(`Research\n${manyTerms.join(" ")}`),false);
+});
+
+test("oversized multi-project comparison fails closed before retrieval",async()=>{
+  const ids=Array.from({length:19},(_,i)=>`project-${i}`);
+  const sources=ids.map(id=>({access:"public" as const,format:"rendered" as const,page:{url:`/work/${id}`,title:id,language:"en" as const,kind:"case-study" as const,projectId:id},sections:[{title:"Testing",anchor:"test",text:`${id} was tested with volunteers.`}]}));
+  const projects=await buildKnowledgeCorpus(sources,"many-projects",async()=>{});
+  const messages=[...question(`Compare ${ids.join(" and ")}`),{role:"assistant" as const,content:"They are different projects."},...question("How were both projects tested?")];
+  const phases:string[]=[];
+  const pack=await buildB2Pack(projects,messages,null,"en",undefined,phase=>phases.push(phase));
+  assert.equal(pack.projects.length,19);
+  assert.deepEqual(pack.entries,[]);
+  assert.equal(phases.includes("keyword"),false);
+  assert.equal(phases.includes("semantic"),false);
+  assert.equal((await prepareAnswer({corpus:projects,messages,language:"en"})).answer?.insufficient,true);
+  let reservations=0;
+  const model=createModelReply(projects,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
+  assert.deepEqual((await model(messages,"en",undefined,{reserve:async()=>{reservations++;return false;}})).sources,[]);
+  assert.equal(reservations,0);
 });
 
 test("the default retrieves an approved English excerpt for a Chinese question", async () => {

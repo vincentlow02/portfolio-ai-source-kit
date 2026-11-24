@@ -115,10 +115,12 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   const ambiguous = !selectedChunk && resolved.ambiguous && (resolved.multiplePriorProjects || !page?.projectId);
   const comparisonTopic = resolved.carryComparison ? comparisonTopicMatcher(query) : undefined;
   const ambiguousTopic = Boolean(comparisonTopic && !comparisonTopic.hasTopic && !comparisonQuestion.test(query) && !selectedChunk);
+  const tooManyComparisonProjects = resolved.carryComparison && projects.length > 18;
+  const tooManyComparisonTerms = comparisonTopic?.tooManyTerms === true;
   const searchQuery = [...projects, query, resolved.topic].filter(Boolean).join(" ");
   const searchMessages: ChatMessage[] = [{ role: "user", content: searchQuery }];
   const retrievalStarted = timing ? performance.now() : 0;
-  let retrieval: RetrievalResult = (listRequested && !selectedChunk) || ambiguousTopic
+  let retrieval: RetrievalResult = (listRequested && !selectedChunk) || ambiguousTopic || tooManyComparisonProjects || tooManyComparisonTerms
     ? { projects, chunks: [], qualifiedMatches: [], candidates: [], scores: new Map(), fallback: false }
     : await retrieveEvidence(corpus, searchMessages, config, timing);
   // A duplicated explicit project label can lower semantic similarity. Retry
@@ -142,7 +144,7 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   const overview = overviewQuestion.test(query) && !presentationQuestion.test(query);
   const eligible = corpus.chunks.filter(c => {
     const sourcePath = pathnameOf(c.sourceUrl);
-    return c.accessLevel === "public" && (!projects.length || projects.includes(c.projectId ?? "")) && isSubstantivePassage(c) && (!comparisonTopic?.hasTopic || comparisonTopic.matches(c.content)) && corpus.pages.some(p => p.url === c.sourceUrl.split("#")[0]) &&
+    return !tooManyComparisonProjects && !tooManyComparisonTerms && c.accessLevel === "public" && (!projects.length || projects.includes(c.projectId ?? "")) && isSubstantivePassage(c) && (!comparisonTopic?.hasTopic || comparisonTopic.matches(c.content)) && corpus.pages.some(p => p.url === c.sourceUrl.split("#")[0]) &&
       (!overview || !presentationSection.test(c.sectionTitle)) &&
       (intent !== "PERSONAL_OVERVIEW" || sourcePath === config.profilePath || allowProjectEvidence && c.projectId !== null && (sourcePath === projectPath(corpus, config, c.projectId, c.language) || sourcePath === config.publicOverviewPath));
   });
