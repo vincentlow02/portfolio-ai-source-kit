@@ -29,3 +29,5 @@ Structural validation cannot prove that a statement is entailed by a citation. A
 ## Reused libraries
 
 The implementation uses [Next.js](https://nextjs.org/), [React](https://react.dev/), [Orama](https://github.com/oramasearch/orama), the [Vercel AI SDK](https://github.com/vercel/ai), [Puppeteer](https://pptr.dev/), [unified and remark](https://unifiedjs.com/), [Zod](https://zod.dev/) and [Lucide](https://lucide.dev/). Dependencies are installed separately; review their licenses and transitive notices for your own distribution. Exact test versions are in the Atlas lockfile.
+
+See [Portfolio AI internal architecture V2](architecture-v2.md) for the shared answer engine, evidence eligibility, runtime limits and knowledge publication lifecycle.
