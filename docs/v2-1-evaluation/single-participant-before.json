@@ -1,0 +1,184 @@
+{
+  "corpusHash": "175d6dd908216ea1eb941fcdeecb1c36bb6603f784e4efa6528d68fbaa1c4382",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "Compare Beacon and Linden participants.",
+      "kind": "supported",
+      "expected": [
+        "/work/beacon#discovery",
+        "/work/linden#trial"
+      ],
+      "projects": [
+        "beacon",
+        "linden"
+      ],
+      "evidence": [
+        {
+          "url": "/work/beacon#discovery",
+          "id": "e2c54dc333267a3bab59a082"
+        }
+      ],
+      "needsGeneration": false,
+      "excerptSources": [
+        "/work/beacon#discovery"
+      ],
+      "elapsedMs": 1131.5268
+    },
+    {
+      "id": "p2",
+      "q": "Compare Beacon and Linden study participants.",
+      "kind": "supported",
+      "expected": [
+        "/work/beacon#discovery",
+        "/work/linden#trial"
+      ],
+      "projects": [
+        "beacon",
+        "linden"
+      ],
+      "evidence": [
+        {
+          "url": "/work/beacon#discovery",
+          "id": "e2c54dc333267a3bab59a082"
+        }
+      ],
+      "needsGeneration": false,
+      "excerptSources": [
+        "/work/beacon#discovery"
+      ],
+      "elapsedMs": 16.691499999999905
+    },
+    {
+      "id": "n1",
+      "q": "Compare Beacon and Linden study participant names.",
+      "kind": "unsupported-names",
+      "projects": [
+        "beacon",
+        "linden"
+      ],
+      "evidence": [
+        {
+          "url": "/work/beacon#discovery",
+          "id": "e2c54dc333267a3bab59a082"
+        }
+      ],
+      "needsGeneration": false,
+      "excerptSources": [
+        "/work/beacon#discovery"
+      ],
+      "elapsedMs": 12.873199999999997
+    },
+    {
+      "id": "n2",
+      "q": "Compare Beacon and Linden participants from Mars.",
+      "kind": "unsupported-place",
+      "projects": [
+        "beacon",
+        "linden"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 18.877400000000307
+    },
+    {
+      "id": "n3",
+      "q": "Compare Beacon and Linden participant salaries.",
+      "kind": "unsupported-salary",
+      "projects": [
+        "beacon",
+        "linden"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 1.0871999999999389
+    },
+    {
+      "id": "n4",
+      "q": "Compare River and Lake participants.",
+      "kind": "planned",
+      "projects": [
+        "lake",
+        "river"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 15.040300000000116
+    },
+    {
+      "id": "n5",
+      "q": "Compare Castle and Meadow participants.",
+      "kind": "nonhuman-count",
+      "projects": [
+        "castle",
+        "meadow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 16.435399999999845
+    },
+    {
+      "id": "n6",
+      "q": "Compare Cloud and Vale participants.",
+      "kind": "negated",
+      "projects": [
+        "cloud",
+        "vale"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 13.18040000000019
+    },
+    {
+      "id": "n7",
+      "q": "Compare Beacon and Sun participants.",
+      "kind": "one-sided",
+      "projects": [
+        "beacon",
+        "sun"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 18.429399999999987
+    },
+    {
+      "id": "n8",
+      "q": "Compare Beacon and Linden child participants.",
+      "kind": "unsupported-age",
+      "projects": [
+        "beacon",
+        "linden"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 18.781400000000303
+    },
+    {
+      "id": "n9",
+      "q": "Compare Beacon and Linden participants of submarine testing.",
+      "kind": "unsupported-subject",
+      "projects": [
+        "beacon",
+        "linden"
+      ],
+      "evidence": [
+        {
+          "url": "/work/beacon#discovery",
+          "id": "e2c54dc333267a3bab59a082"
+        }
+      ],
+      "needsGeneration": false,
+      "excerptSources": [
+        "/work/beacon#discovery"
+      ],
+      "elapsedMs": 16.122299999999996
+    }
+  ]
+}

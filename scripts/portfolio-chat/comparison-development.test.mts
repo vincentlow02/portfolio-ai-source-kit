@@ -50,9 +50,20 @@ test("explicit participant comparison uses evidence for each project and rejects
  assert.deepEqual(new Set(pack.entries.map(e=>e.chunk.sourceUrl)),new Set(["/work/dune#research","/work/cedar#research"]));
  assert.deepEqual(new Set((await excerptReply(fixture,query("Compare Dune and Cedar participants."),"en")).sources.map(source=>source.url)),new Set(["/work/dune#research","/work/cedar#research"]));
  const model=createModelReply(fixture,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
- for(const text of ["Compare Dune and Cedar study participant names.","Compare Dune and Cedar participants from Mars.","Compare Dune and Cedar participant salaries."]){
+ for(const text of ["Compare Dune and Cedar study participant names.","Compare Dune and Cedar participants from Mars.","Compare Dune and Cedar participant salaries.","Compare Dune and Cedar participants of submarine testing."]){
   let reservations=0;
   assert.deepEqual((await model(query(text),"en",undefined,{reserve:async()=>{reservations++;return false;}})).sources,[],text);
   assert.equal(reservations,0,text);
+  assert.deepEqual((await excerptReply(fixture,query(text),"en")).sources,[],text);
+ }
+});
+
+test("explicit unsupported comparisons cannot return a one-sided excerpt",async()=>{
+ const fixture=await buildKnowledgeCorpus([
+  {access:"public",format:"rendered",page:{url:"/work/beacon",title:"Beacon",language:"en",kind:"case-study",projectId:"beacon"},sections:[{title:"Discovery",anchor:"discovery",text:"Six transit workers described accessibility barriers during interviews at a railway station."}]},
+  {access:"public",format:"rendered",page:{url:"/work/linden",title:"Linden",language:"en",kind:"case-study",projectId:"linden"},sections:[{title:"Trial",anchor:"trial",text:"Four teachers tested the paper lesson cards during a workshop at a community centre."}]},
+ ],"single-excerpt-development",async()=>{});
+ for(const text of ["Compare Beacon and Linden study participant names.","Compare Beacon and Linden participants of submarine testing."]){
+   assert.deepEqual((await excerptReply(fixture,query(text),"en")).sources,[],text);
  }
 });

@@ -5,7 +5,8 @@ import { validateAnswer, validateMessages, type ChatMessage } from "./core";
 import { resolveGuardianReply } from "./guardian";
 import type { ResponseLanguage } from "./language";
 import { configureModel } from "./provider";
-import { comparisonTopicClarification, isSubstantivePassage, resolveContext, retrieveEvidence, sourceMatchesSpecificIntent } from "./retrieval";
+import { comparisonQuestion, comparisonTopicClarification, comparisonTopicMatcher, isSubstantivePassage, removeProjectLabels, resolveContext, retrieveEvidence, sourceMatchesSpecificIntent } from "./retrieval";
+import { defaultPortfolioChatConfig } from "./engine-config";
 import { verifySelection } from "./selection";
 
 type VerifiedQuote = ReturnType<typeof verifySelection>;
@@ -61,11 +62,17 @@ export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessag
   if (context?.ambiguous) return { answer: { en: "Which project do you mean?", zh: "你指的是哪个项目？", ja: "どのプロジェクトについてですか？" }[language], sources: [], recommendations: [] };
   // A plural comparison must not be answered with only one project's excerpt.
   // Assemble a bounded public passage for each subject or return insufficient.
-  if (context?.carryComparison || (context && isExplicitParticipantComparison(messages.at(-1)!.content,context.explicit,corpus))) {
+  const explicitComparison = Boolean(context && context.explicit.length > 1 && comparisonQuestion.test(messages.at(-1)!.content));
+  if (context?.carryComparison || (context && explicitComparison)) {
     if (context.projects.length > 18) return validateAnswer({language,insufficient:true,answer:"",sourceIds:[],recommendedProjectIds:[]},corpus);
     const pack = await buildB2Pack(corpus, messages, null, language, undefined, undefined, undefined, true);
     if (pack.ambiguousTopic) return {answer:comparisonTopicClarification[language],sources:[],recommendations:[]};
-    const matches = context.projects.map(id => pack.entries.find(entry => entry.chunk.projectId === id)?.chunk);
+    const currentQuery=messages.at(-1)!.content;
+    const explicitTopic = explicitComparison && !isExplicitParticipantComparison(currentQuery,context.explicit,corpus)
+      ? comparisonTopicMatcher(removeProjectLabels(currentQuery,context.explicit,corpus,defaultPortfolioChatConfig)) : undefined;
+    if (explicitTopic?.tooManyTerms) return validateAnswer({language,insufficient:true,answer:"",sourceIds:[],recommendedProjectIds:[]},corpus);
+    const matches = context.projects.map(id => pack.entries.find(entry => entry.chunk.projectId === id &&
+      (!explicitTopic?.hasTopic || explicitTopic.matches(entry.chunk.content)))?.chunk);
     if (matches.some(chunk => !chunk)) return validateAnswer({language,insufficient:true,answer:"",sourceIds:[],recommendedProjectIds:[]},corpus);
     const chunks = matches.filter((chunk): chunk is NonNullable<typeof chunk> => Boolean(chunk));
     const result = validateAnswer({language,insufficient:false,answer:"Matching portfolio passages.",sourceIds:chunks.map(chunk=>chunk.chunkId),recommendedProjectIds:[]},corpus);
