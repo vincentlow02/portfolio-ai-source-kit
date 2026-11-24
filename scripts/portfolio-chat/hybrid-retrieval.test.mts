@@ -79,3 +79,29 @@ test("context carries one topic, resolves comparisons and resets on a named proj
   assert.deepEqual(switched.projects, ["garden"]);
   assert.equal(switched.topic, "");
 });
+
+test("concurrent cold requests share embeddings and a failure falls back to unique literal public evidence", async () => {
+  let corpusBatches = 0;
+  let unavailable = true;
+  const search = createEvidenceRetriever(async texts => {
+    if (texts.length > 1) {
+      corpusBatches++;
+      await new Promise(resolve => setImmediate(resolve));
+      if (unavailable) throw new Error("Encoder unavailable");
+    }
+    return texts.map(() => [1, 0]);
+  });
+  const [exact, broad] = await Promise.all([
+    search(corpus, question("reflecting telescopes")),
+    search(corpus, question("Which equipment did visitors use?")),
+  ]);
+  assert.equal(corpusBatches, 1);
+  assert.equal(exact.fallback, true);
+  assert.deepEqual(exact.qualifiedMatches.map(chunk => chunk.sourceUrl), ["/observatory#optics"]);
+  assert.equal(broad.fallback, true);
+  assert.deepEqual(broad.qualifiedMatches, []);
+  unavailable = false;
+  const recovered = await search(corpus, question("Which equipment did visitors use?"));
+  assert.equal(corpusBatches, 2);
+  assert.equal(recovered.fallback, false);
+});

@@ -143,13 +143,14 @@ async function embedPassages(chunks: PortfolioChunk[], embed: EmbedTexts) {
   return vectors;
 }
 
-function exactMatch(candidates: PortfolioChunk[], terms: string, question: string, keywords: Map<string, number>) {
+function exactMatch(candidates: PortfolioChunk[], terms: string, question: string, keywords: Map<string, number>, requireUnique = false) {
   const normalize = (text: string) => text.normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
   const phrase = normalize(terms);
   const literal = phrase.includes(" ") || (phrase.length >= 2 && phrase === normalize(question));
   if (!literal || !/\p{L}/u.test(phrase)) return;
-  return candidates.filter(chunk => ` ${normalize(chunk.content)} `.includes(` ${phrase} `))
-    .sort((a, b) => (keywords.get(b.chunkId) ?? 0) - (keywords.get(a.chunkId) ?? 0))[0];
+  const matches = candidates.filter(chunk => ` ${normalize(chunk.content)} `.includes(` ${phrase} `));
+  if (requireUnique && (phrase.length < 8 || matches.length !== 1)) return undefined;
+  return matches.sort((a, b) => (keywords.get(b.chunkId) ?? 0) - (keywords.get(a.chunkId) ?? 0))[0];
 }
 
 export type RetrievalPhase = "keyword" | "corpusEmbedding" | "queryEmbedding" | "semantic";
@@ -183,16 +184,28 @@ export function createEvidenceRetriever(embed: EmbedTexts, profile = defaultRetr
       });
       cache = { key, vectors };
     }
-    const vectors = await cache.vectors;
-    timing?.("corpusEmbedding", performance.now() - corpusStarted);
-    const queryStarted = timing ? performance.now() : 0;
-    const [query] = await embed([question]);
-    timing?.("queryEmbedding", performance.now() - queryStarted);
+    let vectors: Awaited<ReturnType<typeof embedPassages>>;
+    let query: number[];
+    try {
+      vectors = await cache.vectors;
+      timing?.("corpusEmbedding", performance.now() - corpusStarted);
+      const queryStarted = timing ? performance.now() : 0;
+      [query] = await embed([question]);
+      timing?.("queryEmbedding", performance.now() - queryStarted);
+      if (!query?.length || candidates.some(chunk => vectors.get(chunk.chunkId)?.length !== query.length)) {
+        throw new Error("Invalid portfolio embedding dimensions");
+      }
+    } catch {
+      // When the encoder is unavailable, only a unique verbatim phrase is safe.
+      const literal = exactMatch(candidates, terms, currentQuestion, keywords, true);
+      const chunks = literal ? [literal] : [];
+      if (literal) scores.set(literal.chunkId, 2);
+      return { projects, candidates, scores, chunks, qualifiedMatches: chunks, fallback: true };
+    }
     const semanticStarted = timing ? performance.now() : 0;
     if (!query?.length) throw new Error("Invalid question embedding");
     for (const { chunkId } of candidates) {
       const vector = vectors.get(chunkId)!;
-      if (vector.length !== query.length) throw new Error("Inconsistent embedding dimensions");
       const similarity = vector.reduce((sum, component, index) => sum + component * query[index], 0);
       const score = similarity + profile.keywordWeight * (keywords.get(chunkId) ?? 0);
       // Full-text support can admit a match just below the semantic cutoff.
