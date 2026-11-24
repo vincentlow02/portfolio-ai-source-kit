@@ -1,0 +1,10 @@
+# V2.1 Remaining Verification Gates
+
+1. Improve and evaluate multilingual paraphrases and topic-specific comparison on a larger independently adjudicated corpus. Fresh cases `f2` and `f4` abstain despite available evidence; `f3` contains extra non-labelled evidence. Keep the fresh results frozen and use newly authored development data for future changes.
+2. Expand claim-level adversarial testing and establish an explicit product policy for residual semantic grounding and cross-language entailment. Numeric/keyword/source checks are not proof.
+3. Verify a distributed request/compute limit for Hosted excerpt mode in the intended multi-instance deployment. Set provider-side and database model budgets independently; test production config without exposing keys.
+4. After the V2.1 commit is actually published, install its exact GitHub SHA in a clean host. A local registry test is not equivalent.
+5. With explicit authorization, measure real provider answer quality, failure behavior, latency and billing, and deployed quota configuration. No actual model calls were authorized in this phase.
+6. Complete the final source archive manifest/secret audit, clean extraction and reinstall; record commit and digest. Re-run the final-source compatibility matrix after the last code commit.
+
+The independent PostgreSQL concurrency test and local lockfile advisory checks were completed locally. They do not prove deployed database grants or prevent future dependency advisories.
