@@ -1,0 +1,100 @@
+{
+  "corpusHash": "4e7f2683364eda62d149feeba6020879c447b50f9540df6d1f711d91e557c6b3",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "Compare Sail and Ash participants.",
+      "kind": "supported",
+      "projects": [
+        "ash",
+        "sail"
+      ],
+      "evidence": [
+        {
+          "url": "/work/ash#evaluation",
+          "id": "fe861349b34be43954a0a82c"
+        },
+        {
+          "url": "/work/sail#research",
+          "id": "dfdeb9b8913920de78141b4d"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/ash#evaluation",
+        "/work/sail#research"
+      ],
+      "elapsedMs": 1856.9910999999997
+    },
+    {
+      "id": "n1",
+      "q": "Compare Tide and Pine participants.",
+      "kind": "negated",
+      "projects": [
+        "pine",
+        "tide"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 45.82939999999962
+    },
+    {
+      "id": "n2",
+      "q": "Compare Loam and Moss participants.",
+      "kind": "embedded-uncertain",
+      "projects": [
+        "loam",
+        "moss"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 36.22900000000027
+    },
+    {
+      "id": "n3",
+      "q": "Compare Cape and Willow participants.",
+      "kind": "conditional",
+      "projects": [
+        "cape",
+        "willow"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 39.3087000000005
+    },
+    {
+      "id": "n4",
+      "q": "Compare Sail and Tide participants.",
+      "kind": "one-sided",
+      "projects": [
+        "sail",
+        "tide"
+      ],
+      "evidence": [
+        {
+          "url": "/work/sail#research",
+          "id": "dfdeb9b8913920de78141b4d"
+        }
+      ],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 48.205300000000534
+    },
+    {
+      "id": "n5",
+      "q": "Compare Sail and Ash participant names.",
+      "kind": "unknown-names",
+      "projects": [
+        "ash",
+        "sail"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 37.148299999999836
+    }
+  ]
+}

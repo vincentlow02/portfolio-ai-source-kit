@@ -1,0 +1,268 @@
+{
+  "corpusHash": "7283933bb990994a50bfa83191f84128054eb422fdc97ca16ea4040453996a0a",
+  "realModelCalls": 0,
+  "rows": [
+    {
+      "id": "p1",
+      "prior": "Compare Switchyard and Reverie",
+      "q": "両方のプロジェクトはどう検証されましたか？",
+      "expected": [
+        "/work/switchyard#trial",
+        "/work/reverie#trial"
+      ],
+      "projects": [
+        "reverie",
+        "switchyard"
+      ],
+      "modelPathEligible": true,
+      "pack": [
+        {
+          "url": "/work/reverie#trial",
+          "id": "4cd54c261e90567e126ffaaf"
+        },
+        {
+          "url": "/work/switchyard#trial",
+          "id": "3cd7cb3e9fb1eb0d5f3047bd"
+        }
+      ],
+      "excerptSources": [
+        "/work/reverie#trial",
+        "/work/switchyard#trial"
+      ],
+      "preparationMs": 1534.0375,
+      "excerptMs": 26.640800000000127
+    },
+    {
+      "id": "p2",
+      "prior": "Kiln と Reverie を比べて",
+      "q": "それぞれの作品はどのようにテストされましたか？",
+      "expected": [
+        "/work/kiln#trial",
+        "/work/reverie#trial"
+      ],
+      "projects": [
+        "kiln",
+        "reverie"
+      ],
+      "modelPathEligible": true,
+      "pack": [
+        {
+          "url": "/work/kiln#trial",
+          "id": "8cdf5e9b2a29c54b8c0a221c"
+        },
+        {
+          "url": "/work/reverie#trial",
+          "id": "4cd54c261e90567e126ffaaf"
+        }
+      ],
+      "excerptSources": [
+        "/work/kiln#trial",
+        "/work/reverie#trial"
+      ],
+      "preparationMs": 9.958099999999831,
+      "excerptMs": 12.071000000000367
+    },
+    {
+      "id": "p3",
+      "prior": "Compare Kiln and Switchyard",
+      "q": "両者のプロジェクトはどのように検証されましたか？",
+      "expected": [
+        "/work/kiln#trial",
+        "/work/switchyard#trial"
+      ],
+      "projects": [
+        "kiln",
+        "switchyard"
+      ],
+      "modelPathEligible": true,
+      "pack": [
+        {
+          "url": "/work/kiln#trial",
+          "id": "8cdf5e9b2a29c54b8c0a221c"
+        },
+        {
+          "url": "/work/switchyard#trial",
+          "id": "3cd7cb3e9fb1eb0d5f3047bd"
+        }
+      ],
+      "excerptSources": [
+        "/work/kiln#trial",
+        "/work/switchyard#trial"
+      ],
+      "preparationMs": 11.294100000000071,
+      "excerptMs": 14.25819999999976
+    },
+    {
+      "id": "p4",
+      "prior": "Compare Switchyard and Reverie",
+      "q": "How were both projects tested?",
+      "language": "en",
+      "expected": [
+        "/work/switchyard#trial",
+        "/work/reverie#trial"
+      ],
+      "projects": [
+        "reverie",
+        "switchyard"
+      ],
+      "modelPathEligible": true,
+      "pack": [
+        {
+          "url": "/work/reverie#trial",
+          "id": "4cd54c261e90567e126ffaaf"
+        },
+        {
+          "url": "/work/switchyard#trial",
+          "id": "3cd7cb3e9fb1eb0d5f3047bd"
+        }
+      ],
+      "excerptSources": [
+        "/work/reverie#trial",
+        "/work/switchyard#trial"
+      ],
+      "preparationMs": 13.834699999999884,
+      "excerptMs": 17.71180000000004
+    },
+    {
+      "id": "p5",
+      "prior": "对比 Kiln 和 Switchyard",
+      "q": "这两个项目分别如何测试？",
+      "language": "zh",
+      "expected": [
+        "/work/kiln#trial",
+        "/work/switchyard#trial"
+      ],
+      "projects": [
+        "kiln",
+        "switchyard"
+      ],
+      "modelPathEligible": true,
+      "pack": [
+        {
+          "url": "/work/kiln#trial",
+          "id": "8cdf5e9b2a29c54b8c0a221c"
+        },
+        {
+          "url": "/work/switchyard#trial",
+          "id": "3cd7cb3e9fb1eb0d5f3047bd"
+        }
+      ],
+      "excerptSources": [
+        "/work/kiln#trial",
+        "/work/switchyard#trial"
+      ],
+      "preparationMs": 14.35109999999986,
+      "excerptMs": 8.354600000000119
+    },
+    {
+      "id": "n1",
+      "prior": "Compare Bracken and Wildwood",
+      "q": "両方のプロジェクトはどう検証されましたか？",
+      "expected": [],
+      "projects": [
+        "bracken",
+        "wildwood"
+      ],
+      "modelPathEligible": false,
+      "pack": [],
+      "excerptSources": [],
+      "preparationMs": 22.172199999999975,
+      "excerptMs": 15.01780000000008
+    },
+    {
+      "id": "n2",
+      "prior": "Compare Chervil and Skyline",
+      "q": "両方の作品はどうテストされましたか？",
+      "expected": [],
+      "projects": [
+        "chervil",
+        "skyline"
+      ],
+      "modelPathEligible": false,
+      "pack": [],
+      "excerptSources": [],
+      "preparationMs": 8.985899999999674,
+      "excerptMs": 36.82990000000018
+    },
+    {
+      "id": "n3",
+      "prior": "Compare Kiln and Wildwood",
+      "q": "両方のプロジェクトはどう検証されましたか？",
+      "expected": [],
+      "projects": [
+        "kiln",
+        "wildwood"
+      ],
+      "modelPathEligible": false,
+      "pack": [
+        {
+          "url": "/work/kiln#trial",
+          "id": "8cdf5e9b2a29c54b8c0a221c"
+        }
+      ],
+      "excerptSources": [],
+      "preparationMs": 17.623399999999947,
+      "excerptMs": 17.13149999999996
+    },
+    {
+      "id": "n4",
+      "prior": "Compare Switchyard and Reverie",
+      "q": "両方のプロジェクトは火星でどう検証されましたか？",
+      "expected": [],
+      "projects": [
+        "reverie",
+        "switchyard"
+      ],
+      "modelPathEligible": false,
+      "pack": [],
+      "excerptSources": [],
+      "preparationMs": 19.01780000000008,
+      "excerptMs": 24.546899999999823
+    },
+    {
+      "id": "n5",
+      "prior": "Compare Switchyard and Reverie",
+      "q": "両方のプロジェクトはどう検証されませんでしたか？",
+      "expected": [],
+      "projects": [
+        "reverie",
+        "switchyard"
+      ],
+      "modelPathEligible": false,
+      "pack": [],
+      "excerptSources": [],
+      "preparationMs": 22.54340000000002,
+      "excerptMs": 18.66319999999996
+    },
+    {
+      "id": "n6",
+      "prior": "Compare Kiln and Switchyard",
+      "q": "両方のプロジェクトは潜水艦でどうテストされましたか？",
+      "expected": [],
+      "projects": [
+        "kiln",
+        "switchyard"
+      ],
+      "modelPathEligible": false,
+      "pack": [],
+      "excerptSources": [],
+      "preparationMs": 13.70010000000002,
+      "excerptMs": 11.682799999999588
+    },
+    {
+      "id": "n7",
+      "prior": "Compare Reverie and Switchyard",
+      "q": "両方のプロジェクトはどう検証されましたか？費用も教えてください。",
+      "expected": [],
+      "projects": [
+        "reverie",
+        "switchyard"
+      ],
+      "modelPathEligible": false,
+      "pack": [],
+      "excerptSources": [],
+      "preparationMs": 1.6433999999999287,
+      "excerptMs": 0.8841000000002168
+    }
+  ]
+}

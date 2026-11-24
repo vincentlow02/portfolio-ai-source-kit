@@ -1,5 +1,17 @@
 # V2.1 evaluation notes
 
+## Final snapshot
+
+`f1806e1` is the reviewed executable snapshot. The [retrieval evaluation](../../V2_1_RETRIEVAL_EVALUATION.md) leads with the final V2 comparison, per-split stub call counts and failure cases.
+
+- `original-v2-1-verified.json` and `v2-1-verified.json` are final independent reruns of the original 100-case and separate multilingual harnesses. `original-v2.json` and `v2-fresh.json` contain their V2 comparisons.
+- `hosted-japanese-final-before.json` and `hosted-japanese-final-after.json` record the separately frozen 12-case confirmation across `3a60eb7` and `f1806e1`. Both achieve the same exact excerpt and abstention counts. The reproducible zero-to-two Japanese citation improvement comes from the actual Hosted HTTP development fixture.
+- `participant-method-final-development.json` and `japanese-verification-final-development.json` are reruns of observed confirmation cases, now development regressions. The before, after and promoted histories remain in their original files.
+- `participant-direct-before.json` and `participant-direct-verified.json` record the frozen direct-statement polarity confirmation against `61c46f2` and the final snapshot.
+- `verified-audit-all.json` and `verified-audit-production.json` record the advisory results for the exact lockfile.
+
+## Historical evaluation notes
+
 The original `prism-implementation-6` fixture case is `Prism は字幕をどこに保存しますか？`. V2's `architecture-evaluation.mts` constructs corpus hash `28c76e7d2f349a4e822abf2e07223f2320d68524b4c2382c357c9d496c60b83e`; the expected public chunk is `ae78b79ec8fe17308264f702` (`/work/prism#implementation`). On this Windows/Node 24 environment, the V2 rerun returned that exact chunk with fused score 0.5347803083599023; the V2.1 run also returned it. This conflicts with the V2 evaluation document's earlier miss. The historical run's model artifact and raw score were not retained here, so the reason for the difference is NOT VERIFIED; do not infer a fix from this rerun.
 
 The new synthetic dataset in `scripts/portfolio-chat/independent-evaluation.mts` is frozen before comparison. Four projects/eight passages and twelve questions are far too few for population estimates. Development has 4 supported, 1 unrelated and 1 ambiguous case; holdout has 4 supported, 1 unrelated and 1 ambiguous. `v2.json` and `v2-1.json` retain per-case text, expected URLs, retrieval top 5, assembled evidence, flags and timings. A single question can expect multiple passages. Recall and coverage average per supported question; irrelevant ratio divides non-labelled pack entries by all pack entries, including entries subsequently suppressed by clarification. Unsupported abstention and ambiguity clarification are reported separately. Each case runs preparation and, if necessary, the shared generation executor with a stubbed provider; `modelCalls` counts actual mock HTTP calls and `answerPathMs` includes the stubbed generation. No network model or quality claim is implied. The quota/HTTP adapters are not timed by this script.

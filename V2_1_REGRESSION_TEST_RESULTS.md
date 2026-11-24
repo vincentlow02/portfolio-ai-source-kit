@@ -1,5 +1,24 @@
 # V2.1 Regression Test Results
 
+## Final executable snapshot `f1806e1`
+
+| Check | Observed result |
+|---|---|
+| Original 55 offline checks plus added regressions | `npm run test:offline` passed **87/87**, exit 0. The original test files remain in the suite. Browser checks used installed Chrome and serial execution. |
+| Next.js Source Kit and Atlas | Local Registry installation into the independent Atlas host, production build, type check, route and browser integration all passed. The fixture checks authorization, privacy, text selection, citation navigation, follow-up, cancellation and mock quota. |
+| Vite Local Preview | The offline preview and chat adapter tests execute the local runtime. Excerpt selection and links, iframe history/reset, mock model response validation and failure handling passed. |
+| Hosted Assistant | The actual local Next/webpack Hosted fixture passed, exit 0. The Japanese comparison returned both expected citation URLs. Unsupported extra qualifiers and participant names yielded empty sources. Excerpt and stub-model paths, origin handling and fail-closed shared quota passed. |
+| Second Portfolio and Local Registry | `node scripts/test-registry-install.mjs --local` passed both clean hosts, exit 0. The second host verified mobile chat, reset, citations, protected content, authorization and mock quota failure. |
+| PostgreSQL quota | Fresh loopback PostgreSQL 16.16 passed the 12/5 concurrent reservation, lock/rollback, RLS, grant and ceiling checks. See the security report for the Windows launch observation and exact acceptance counts. |
+| Dependency advisory audit | Production-only and full `npm audit` both completed with exit 0 and zero entries on the exact unchanged lockfile. |
+| Retrieval | Original 100 cases retained. The latest independent and frozen confirmations, disagreements and per-case timings are linked in the retrieval report. |
+| Source ZIP and clean reinstall | Candidate archive of `f1806e1` matched all 307 Git entries. SHA-256 `4476c803cd7e18db731cb6168960f451dc702abc3ba84880543852bd8531b41d`. A fresh extraction ran `npm ci --ignore-scripts` and `npm run test:offline`, both exit 0 and 87/87 tests. The final archive includes the later report and evidence records and is audited against its own commit. |
+| Live provider, production deployment and exact GitHub SHA | **NOT VERIFIED**. The completed local checks use test fixtures and stub credentials. |
+
+The interrupted prior check at `3a60eb7` subsequently recorded 86/86 with exit 0. The 87th case is the Hosted Japanese retrieval regression. The earlier 85- and 86-case runs are retained as historical checks.
+
+## Historical validation
+
 | Check | Result and scope |
 |---|---|
 | Original offline + added tests | `npm run test:offline` passed 77/77 at source commit `525de60`, with Node 24, installed Chrome and `--test-concurrency=1`; full existing assertions retained. An additional equivalent-participant assertion passed separately at `07299e4`. A parallel attempt failed due to ONNX memory allocation and revealed a Chinese overbroad clarification; the rule was narrowed and the sequential full run passed. |

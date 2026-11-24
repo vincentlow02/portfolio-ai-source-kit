@@ -1,0 +1,221 @@
+{
+  "corpusHash": "cc46d14c093acb0089381b00e8cfebd533cec003d8149dbe782fb8e7b32c0032",
+  "rows": [
+    {
+      "id": "p1",
+      "prior": "Atlas と Harbor を比べて",
+      "q": "両方のプロジェクトは何人で検証されましたか？",
+      "kind": "supported",
+      "projects": [
+        "atlas",
+        "harbor"
+      ],
+      "evidence": [
+        {
+          "url": "/work/atlas#field",
+          "id": "6d68319d3297919dc0056e6c"
+        },
+        {
+          "url": "/work/harbor#field",
+          "id": "fa7b5ffb4944effd2063845a"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/atlas#field",
+        "/work/harbor#field"
+      ],
+      "elapsedMs": 2005.1155
+    },
+    {
+      "id": "p2",
+      "prior": "Compare Atlas and Harbor",
+      "q": "それぞれのプロジェクトはどんな方法で検証されたのですか？",
+      "kind": "supported",
+      "projects": [
+        "atlas",
+        "harbor"
+      ],
+      "evidence": [
+        {
+          "url": "/work/atlas#field",
+          "id": "6d68319d3297919dc0056e6c"
+        },
+        {
+          "url": "/work/harbor#field",
+          "id": "fa7b5ffb4944effd2063845a"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/atlas#field",
+        "/work/harbor#field"
+      ],
+      "elapsedMs": 60.02169999999978
+    },
+    {
+      "id": "p3",
+      "prior": "Compare Atlas and Harbor",
+      "q": "両方のプロジェクトの検証に参加した人は何人ですか？",
+      "kind": "supported",
+      "projects": [
+        "atlas",
+        "harbor"
+      ],
+      "evidence": [
+        {
+          "url": "/work/atlas#field",
+          "id": "6d68319d3297919dc0056e6c"
+        },
+        {
+          "url": "/work/harbor#field",
+          "id": "fa7b5ffb4944effd2063845a"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/atlas#field",
+        "/work/harbor#field"
+      ],
+      "elapsedMs": 46.32340000000022
+    },
+    {
+      "id": "p4",
+      "prior": "Compare Atlas and Harbor",
+      "q": "それぞれのプロジェクトはどう検証されましたか？",
+      "kind": "supported",
+      "projects": [
+        "atlas",
+        "harbor"
+      ],
+      "evidence": [
+        {
+          "url": "/work/atlas#field",
+          "id": "6d68319d3297919dc0056e6c"
+        },
+        {
+          "url": "/work/harbor#field",
+          "id": "fa7b5ffb4944effd2063845a"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/atlas#field",
+        "/work/harbor#field"
+      ],
+      "elapsedMs": 51.65159999999969
+    },
+    {
+      "id": "n1",
+      "prior": "Compare Echo and Grove",
+      "q": "両方のプロジェクトは何人で検証されましたか？",
+      "kind": "planned-not-done",
+      "projects": [
+        "echo",
+        "grove"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 54.60979999999972
+    },
+    {
+      "id": "n2",
+      "prior": "Compare Echo and Grove",
+      "q": "それぞれのプロジェクトはどんな方法で検証されたのですか？",
+      "kind": "planned-not-done",
+      "projects": [
+        "echo",
+        "grove"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 63.32559999999967
+    },
+    {
+      "id": "n3",
+      "prior": "Compare Moss and Wave",
+      "q": "それぞれのプロジェクトはどんな方法で検証されたのですか？",
+      "kind": "unrelated-method",
+      "projects": [
+        "moss",
+        "wave"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 77.9973
+    },
+    {
+      "id": "n4",
+      "prior": "Compare River and Leaf",
+      "q": "両方のプロジェクトは何人で検証されましたか？",
+      "kind": "negated",
+      "projects": [
+        "leaf",
+        "river"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 65.45429999999988
+    },
+    {
+      "id": "n5",
+      "prior": "Compare Atlas and Harbor",
+      "q": "両方のプロジェクトの火星での検証に参加した人は何人ですか？",
+      "kind": "unsupported-place",
+      "projects": [
+        "atlas",
+        "harbor"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 84.30749999999989
+    },
+    {
+      "id": "n6",
+      "prior": "Compare Atlas and Harbor",
+      "q": "それぞれのプロジェクトは何円かけて検証されたのですか？",
+      "kind": "unsupported-cost",
+      "projects": [
+        "atlas",
+        "harbor"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 60.969200000000455
+    },
+    {
+      "id": "n7",
+      "prior": "Compare Atlas and Harbor",
+      "q": "両方のプロジェクトの検証参加者の名前は何ですか？",
+      "kind": "unsupported-names",
+      "projects": [
+        "atlas",
+        "harbor"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 69.38889999999992
+    },
+    {
+      "id": "n8",
+      "prior": "Compare Atlas and Harbor",
+      "q": "それぞれのプロジェクトは火星でどんな方法で検証されたのですか？",
+      "kind": "unsupported-place-method",
+      "projects": [
+        "atlas",
+        "harbor"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 72.73739999999998
+    }
+  ]
+}

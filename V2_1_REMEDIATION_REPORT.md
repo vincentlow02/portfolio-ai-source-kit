@@ -1,6 +1,16 @@
 # V2.1 Remediation Report
 
-**Current assessment: `INTERNAL_ARCHITECTURE_V2_1_REQUIRES_FIXES`**. The shared engine and three adapters remain; no paid provider, production deployment or remote install was used. This is a local engineering assessment, not a production or real-model approval.
+**Final assessment `INTERNAL_ARCHITECTURE_V2_1_CONDITIONALLY_VERIFIED`.** The documented local repair and compatibility gates passed. Retrieval and claim checks still have measured limitations, and the listed provider, production and exact-SHA gates remain open.
+
+The implementation shares answer preparation, evidence assembly and generation across Next.js, Vite Local Preview and Hosted Assistant. The adapters retain their existing access, request, response and quota contracts. On the final executable source at `f1806e1`, all 87 offline tests and the local Hosted integration passed. The Hosted Japanese comparison now returns both expected public citations. The original 100-question benchmark and lockfile are unchanged. See the [regression results](V2_1_REGRESSION_TEST_RESULTS.md) for source archive and installation evidence.
+
+The original V2 audit remains part of the record. Windows Chromium and cross-volume Hosted fixture failures were test-environment issues. The later tests exercise installed Chrome and a same-volume fixture. The duplicate-pipeline description was withdrawn after tracing the shared Answer Engine. Local Registry installation was independently verified for Atlas and the second portfolio. See the [issue register](V2_1_ISSUE_RESOLUTION_REGISTER.md) for current dispositions.
+
+Localized clarification and insufficient-evidence decisions precede the model reservation. Supported generation uses one configured model request in the fixture. Claim validation filters forged citations, selected numeric and attribution swaps, and some polarity contradictions. Retrieval retains project scope and unchanged qualification thresholds. The [retrieval evaluation](V2_1_RETRIEVAL_EVALUATION.md) reports held-out results and the residual recall and evidence gaps. Real provider quality, production behavior, the historical Prism discrepancy and exact published GitHub SHA installation remain **NOT VERIFIED**. See the [verification gates](V2_1_REMAINING_VERIFICATION_GATES.md).
+
+## Historical remediation notes
+
+The entries below describe earlier runs and their then-current findings. The summary above and the final regression evidence govern the present status.
 
 On branch `fix-v2-1`, from V2 `f370bebfb158f9a92d26502f6946d6a89ed76b44`, the implementation adds deterministic clarification for common unresolved pronouns, preserves verified selections and page/history context, retries empty scoped searches without duplicate project names under unchanged qualification thresholds, and adds conservative evidence checks for explicit numbers, project names and English negation. It also improves Windows browser and temporary fixture handling. See `V2_1_ARCHITECTURE_CHANGELOG.md` and the issue register for exact boundaries.
 

@@ -1,5 +1,13 @@
 # V2.1 Architecture Changelog
 
+The repair branch starts at V2 `f370bebfb158f9a92d26502f6946d6a89ed76b44`. The earlier `4fcfcf39f2fdd6cc812e94a5454d0993aa592f04` tree remains the historical architecture baseline. The executable snapshot for final validation is `f1806e1`. Next.js, Vite and Hosted retain their adapters and use the shared Answer Engine for model preparation, generation and validation. Hosted and Vite can still return deterministic excerpts.
+
+`57e976b`, `456e2b5` and `757c534` require affirmative direct English study evidence for the generic participant comparison. They reject known negative, conditional or merely reported interviews before generation. `bd2294e` consolidates the Japanese retry and admits an English equivalent only when the entire carried question matches a generic completed-testing form and the missing projects have English-only eligible candidates. Original topic eligibility, approved public source rules, score thresholds, pack caps and the all-project requirement still apply. An English passage must contain a recognized direct completed test for these generic Japanese forms.
+
+The accompanying regression checks exercise the actual Hosted HTTP route, cross-language citations, unsupported qualifiers and zero reservation where evidence is absent. The local Registry fixture continues to exercise both independent hosts. The retrieval and grounding changes remain bounded by the documented limits on wording and relationships. See the [current architecture](docs/architecture-v2.md) and [file change register](V2_1_FILE_CHANGE_REGISTER.md).
+
+## Earlier changes
+
 - `0c3720f`, `940d3b0`, `67cdc87`, `1eeefe6`: resolve bare references conservatively, respect clear history, page and verified selections, protect ambiguous multi-project context, and retain original Chinese material question behavior.
 - `dada1d4`, `bdd7226`, `5623571`: verify numeric claim forms and explicit project names against cited material, add a narrow same-language negative-claim check and adversarial tests; avoid interpreting very short project IDs as ordinary articles.
 - `14ab6cc`: only after an empty named-project retrieval, retry without duplicate project labels while retaining the same search qualification thresholds. This may perform an additional embedding query; latency must be measured in a real deployment.

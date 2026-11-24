@@ -1,0 +1,143 @@
+{
+  "corpusHash": "4e7f2683364eda62d149feeba6020879c447b50f9540df6d1f711d91e557c6b3",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "Compare Sail and Ash participants.",
+      "kind": "supported",
+      "projects": [
+        "ash",
+        "sail"
+      ],
+      "evidence": [
+        {
+          "url": "/work/ash#evaluation",
+          "id": "fe861349b34be43954a0a82c"
+        },
+        {
+          "url": "/work/sail#research",
+          "id": "dfdeb9b8913920de78141b4d"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/ash#evaluation",
+        "/work/sail#research"
+      ],
+      "elapsedMs": 1782.2374000000002
+    },
+    {
+      "id": "n1",
+      "q": "Compare Tide and Pine participants.",
+      "kind": "negated",
+      "projects": [
+        "pine",
+        "tide"
+      ],
+      "evidence": [
+        {
+          "url": "/work/pine#research",
+          "id": "a8cc9aaf391589381012580a"
+        },
+        {
+          "url": "/work/tide#research",
+          "id": "e70e3e4b80aec0f3da8febcd"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/pine#research",
+        "/work/tide#research"
+      ],
+      "elapsedMs": 32.35600000000022
+    },
+    {
+      "id": "n2",
+      "q": "Compare Loam and Moss participants.",
+      "kind": "embedded-uncertain",
+      "projects": [
+        "loam",
+        "moss"
+      ],
+      "evidence": [
+        {
+          "url": "/work/loam#research",
+          "id": "e48e1f847e8368a5aa95fe99"
+        },
+        {
+          "url": "/work/moss#research",
+          "id": "20df856a7eb5fed55c4d5b30"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/loam#research",
+        "/work/moss#research"
+      ],
+      "elapsedMs": 33.345700000000306
+    },
+    {
+      "id": "n3",
+      "q": "Compare Cape and Willow participants.",
+      "kind": "conditional",
+      "projects": [
+        "cape",
+        "willow"
+      ],
+      "evidence": [
+        {
+          "url": "/work/cape#research",
+          "id": "3295cf4d54e3d60f17d004f2"
+        },
+        {
+          "url": "/work/willow#research",
+          "id": "6a1fc218922e5273c6af666d"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/cape#research",
+        "/work/willow#research"
+      ],
+      "elapsedMs": 31.085000000000036
+    },
+    {
+      "id": "n4",
+      "q": "Compare Sail and Tide participants.",
+      "kind": "one-sided",
+      "projects": [
+        "sail",
+        "tide"
+      ],
+      "evidence": [
+        {
+          "url": "/work/sail#research",
+          "id": "dfdeb9b8913920de78141b4d"
+        },
+        {
+          "url": "/work/tide#research",
+          "id": "e70e3e4b80aec0f3da8febcd"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/sail#research",
+        "/work/tide#research"
+      ],
+      "elapsedMs": 31.907200000000103
+    },
+    {
+      "id": "n5",
+      "q": "Compare Sail and Ash participant names.",
+      "kind": "unknown-names",
+      "projects": [
+        "ash",
+        "sail"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 33.16700000000037
+    }
+  ]
+}

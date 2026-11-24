@@ -1,6 +1,6 @@
 # V2.1 Retrieval Evaluation
 
-Full methodology and per-case data: `docs/v2-1-evaluation/README.md`, `original-v2.json`, `original-v2-1-japanese-final.json`, `v2-fresh.json` and `v2-1-japanese-final.json`. Results below are per supported query; irrelevant evidence is a proportion of all assembled entries. Timings are single local observations and generation uses a mock provider.
+Final executable snapshot `f1806e1`. Each row reports mean recall and coverage over supported queries. Irrelevant evidence is the share of all assembled entries outside the expected labels. Raw top-five recall precedes evidence assembly and its scoped retries. See the [evaluation index](docs/v2-1-evaluation/README.md) and the case-level [V2 original](docs/v2-1-evaluation/original-v2.json), [V2.1 original](docs/v2-1-evaluation/original-v2-1-verified.json), [V2 independent](docs/v2-1-evaluation/v2-fresh.json) and [V2.1 independent](docs/v2-1-evaluation/v2-1-verified.json) records.
 
 | Dataset | Version | Recall@5 | Evidence coverage | Irrelevant evidence | Unsupported abstention | Ambiguity clarification |
 |---|---|---:|---:|---:|---:|---:|
@@ -10,7 +10,27 @@ Full methodology and per-case data: `docs/v2-1-evaluation/README.md`, `original-
 | Independent development (4 supported) | V2 | 25% | 50% | 33.33% | 1/1 | 0/1 |
 | Independent development | V2.1 | 25% | 75% | 25.00% | 1/1 | 1/1 |
 | Fresh confirmation (4 supported) | V2 | 50% | 50% | 33.33% | 1/1 | 0/1 |
-| Fresh confirmation (previously inspected) | V2.1 | 50% | 75% | 40% | 1/1 | 1/1 |
+| Independent initial holdout (now observed) | V2 | 100% | 75% | 62.50% | 1/1 | 1/1 |
+| Independent initial holdout (now observed) | V2.1 | 100% | 100% | 55.56% | 1/1 | 1/1 |
+| Fresh confirmation (now observed) | V2.1 | 50% | 100% | 28.57% | 1/1 | 1/1 |
+
+| Independent evaluation split | Stub provider calls V2 → V2.1 | Median retrieval ms V2 → V2.1 | Median answer path ms V2 → V2.1 |
+|---|---:|---:|---:|
+| Development | 3 → 3 | 12.07 → 8.07 | 18.79 → 23.99 |
+| Initial holdout | 3 → 4 | 12.35 → 6.34 | 15.91 → 9.23 |
+| Fresh confirmation | 2 → 4 | 11.62 → 5.95 | 15.29 → 8.59 |
+
+The per-case logs identify deterministic refusals and clarifications with zero stub calls, and prepared generation with at most one. More supported queries reach a stub in the later rows. These medians are single-machine observations with synthetic responses and do not establish production latency or cost. Context accuracy is the clarification rate on the labelled ambiguous case in each split. History and verified-page resolution have separate route regressions.
+
+`d4`, a Japanese standalone research comparison, still abstains despite two labelled research passages. `f2` and `f3` each assemble one extra unlabelled passage. The formerly failing `f4` now assembles both expected participant passages and invokes one stub. These cases are observed and the later rerun is regression evidence.
+
+The reproducible Hosted Japanese verification case moved from zero to two citations on the HTTP fixture. Its stricter assertion also checks an unsupported location. Separately, the [frozen 12-case confirmation before](docs/v2-1-evaluation/hosted-japanese-final-before.json) and [after](docs/v2-1-evaluation/hosted-japanese-final-after.json), authored and labelled by the same reviewer, gives 5/5 exact dual excerpts and 7/7 abstentions in both versions. One unsupported case assembles a passage for a single project. Both answer paths abstain. The holdout shows preservation on those cases. It does not independently establish a quality uplift or raw Recall@5 for this route. Warm median preparation and excerpt times were 12.72/13.59 ms before and 13.83/15.02 ms after, excluding each first observation. Neither run contacted a model. No score threshold was adjusted.
+
+The previously observed [method/count confirmation](docs/v2-1-evaluation/participant-method-final-development.json) now produces 4/4 dual excerpts and 8/8 abstentions. The older [verification set](docs/v2-1-evaluation/japanese-verification-final-development.json) produces 3/3 and 7/7. These are development regressions. The historic Prism artifact discrepancy below remains **NOT VERIFIED** and is distinct from the Hosted fixture.
+
+## Historical evaluation notes
+
+The entries below preserve intermediate results, including failed and reverted experiments. The final snapshot above supersedes their earlier present-tense descriptions.
 
 The first independent holdout was used to investigate a cross-language assembly miss and is no longer blind. Its later 100% coverage on four answerable cases cannot validate generalization. The fresh cases were authored after an earlier fix but have subsequently been inspected and reused diagnostically; they are no longer blind. Japanese `f2` now includes its expected passage plus an unlabelled passage, comparison `f4` still misses, and `f3` admits an additional non-labelled passage. No semantic threshold was lowered. Case-level actual stubbed provider call counts and retrieval/answer path times are in JSON. In the first independent set `d6` changes from one mock model call to zero; ordinary generated cases make one.
 
