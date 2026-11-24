@@ -135,6 +135,18 @@ export async function captureSiteSource(browser: Browser, origin: string, source
       return (heading?.innerText.trim() || document.title.trim()).slice(0, 200);
     });
     const { sections } = await inspectPublishedPage(page, language, title);
-    return { access: "public", format: "rendered", page: { url: sourcePath, title, language, kind: "page" }, sections };
+    // An introduction and a repeated heading can share both a title and page-level citation.
+    const pageSections = new Map<string, (typeof sections)[number]>();
+    const mergedSections = [];
+    for (const section of sections) {
+      const previous = section.anchor ? undefined : pageSections.get(section.title);
+      if (previous) {
+        previous.text += "\n" + section.text;
+        continue;
+      }
+      mergedSections.push(section);
+      if (!section.anchor) pageSections.set(section.title, section);
+    }
+    return { access: "public", format: "rendered", page: { url: sourcePath, title, language, kind: "page" }, sections: mergedSections };
   }, mode, loadResource);
 }

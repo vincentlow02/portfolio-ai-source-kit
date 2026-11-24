@@ -64,14 +64,15 @@ test("hosted capture only loads an approved public page and its same-origin scri
     if (url === origin + "/projects") return { status: 200, contentType: "text/html", body:
       '<!doctype html><html lang="en"><div id="app"></div><script src="/app.js"></script><script src="https://other.example.com/app.js"></script>' };
     if (url === origin + "/app.js") return { status: 200, contentType: "text/javascript", body:
-      'document.querySelector("#app").innerHTML = "<main><h1>Field notes</h1><p>Public prototype measurements.</p></main>";' };
+      'document.querySelector("#app").innerHTML = "<main><p>Project introduction.</p><h1>Field notes</h1><p>Public prototype measurements.</p></main>";' };
     throw new Error("Unexpected fixture resource");
   };
   const browser = await launchBrowser(["--proxy-server=http://127.0.0.1:9", "--proxy-bypass-list=<-loopback>"]);
   try {
     const source = await captureSiteSource(browser, origin, "/projects", "hosted", load);
     const corpus = await buildKnowledgeCorpus([source], "hosted", verifyInBrowser(browser, origin, "hosted", load));
-    assert.match(corpus.chunks[0].content, /Public prototype measurements/);
+    assert.equal(corpus.chunks.length, 1);
+    assert.match(corpus.chunks[0].content, /Project introduction.*Public prototype measurements/su);
     assert.deepEqual([...allowed].sort(), [origin + "/app.js", origin + "/projects"]);
   } finally { await browser.close(); }
 });
