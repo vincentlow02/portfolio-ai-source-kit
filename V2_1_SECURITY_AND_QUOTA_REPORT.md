@@ -35,3 +35,7 @@ A direct local matcher probe using the Japanese affirmative question `両方の�
 ## Latest grounding verification
 
 IA-18 (P1): a cited passage counting user accounts or volunteer devices could be misread as counting people when the same number occurs. `grounding.ts` now requires recognized human counts in claims to appear as recognized human counts in cited evidence; `retrieval.ts` excludes selected nonhuman compounds. The independently frozen eight-case synthetic `human-count-confirmation.mts` had four incorrect acceptances before and 8/8 expected decisions afterwards, including preserved valid account and staff claims. Raw before/after results are in `docs/v2-1-evaluation`. Finite vocabulary and suffix rules can miss unseen phrases or conservatively reject correct claims; they do not verify event association or semantic entailment. No real provider was contacted.
+
+## Latest temporal-evidence finding
+
+IA-19 is a confirmed P1 potential paid-call and factuality defect: a passage saying a test is planned was treated as evidence that it occurred. The frozen confirmation contains two planned cases; prior code entered generation on both, current selected modal/planning checks abstain on both. `hybrid-retrieval.test.mts` verifies zero fake quota reservations. This is a bounded English grammar guard and does not prove future, conditional, hypothetical or negation relationships in other expressions or languages.

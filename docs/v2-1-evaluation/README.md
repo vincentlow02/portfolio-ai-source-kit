@@ -76,3 +76,7 @@ After adding the narrow affirmative-testing negation guard, `japanese-negation-h
 ## Latest participant and count datasets
 
 The observed `japanese-verification-holdout` was promoted to development before the count/method change; its 3/3 rerun is `japanese-verification-promoted-count.json`. A newly authored same-reviewer `participant-method-fresh.mts` was committed before first execution, and its before/after JSON records 0/3 supported pairs in both versions and 5/5 negative/unsupported abstentions. It is now observed. `human-count-confirmation.mts` was separately frozen before execution: four nonhuman-to-human substitutions were incorrectly accepted before and rejected after; all eight expected decisions passed after. These synthetic samples are not production estimates and have no real LLM calls.
+
+## Latest participant confirmation
+
+`participant-method-fresh` was inspected then promoted to development; `participant-method-promoted-update.json` records 3/3 recovered supported pairs and 5/5 negative/unsupported abstentions. A separately frozen `participant-method-confirmation.mts` had 1/4 supported and 6/8 negative abstentions before, 2/4 and 8/8 after. It is now observed; the subsequent diagnostic confirms topic-match eligibility but not semantic qualification for its two missing cases. The English paraphrases in `participant-confirm-diagnostic.jsonl` are diagnostic experiments, not production retrieval changes. Small same-reviewer fictional samples cannot validate generalization.

@@ -39,3 +39,7 @@ Commits `a6de258` and `2c52e83` add counted Chinese/Japanese numeral checks and 
 ## Latest changes
 
 `6ee7867` adds scoped Japanese test-method and explicit participant-count checks, retaining score thresholds and requiring public test-related evidence. `d361c0e` prevents selected account/device compounds from establishing human counts in retrieval and cited claims. `583492d` and `434a660` freeze separate synthetic confirmation cases before execution. These are bounded heuristics; the new participant/method confirmation still misses 3/3 supported cases, and negative semantics and source-to-claim relationships remain incomplete.
+
+## Scoped testing relation follow-up
+
+`ea807c4` permits one existing Japanese testing-synonym retry for a missing comparison side, scoped to the resolved projects and retaining original eligibility rules, adds bounded method/participant grammar and a guard for selected future/planned testing forms. It adds local retrieval cost and remains a lexical heuristic, not semantic entailment. A frozen 12-case same-reviewer confirmation still misses 2/4 supported cases; 8/8 negative cases abstain. `1fb61b4` froze that set before first execution and `cdfe34c` recorded results and quota checks.

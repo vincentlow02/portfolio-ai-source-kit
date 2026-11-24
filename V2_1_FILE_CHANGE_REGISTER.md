@@ -139,3 +139,12 @@ Compared with V2 commit `f370bebfb158f9a92d26502f6946d6a89ed76b44`. This registe
 | `docs/v2-1-evaluation/participant-method-before.json` | Independent verification case or per-case evidence |
 | `scripts/portfolio-chat/human-count-confirmation.mts` | Independent verification case or per-case evidence |
 | `scripts/portfolio-chat/participant-method-fresh.mts` | Independent verification case or per-case evidence |
+| `docs/v2-1-evaluation/original-v2-1-participant-update.json` | Independent verification, regression or per-case evidence |
+| `docs/v2-1-evaluation/participant-confirm-after.json` | Independent verification, regression or per-case evidence |
+| `docs/v2-1-evaluation/participant-confirm-before.json` | Independent verification, regression or per-case evidence |
+| `docs/v2-1-evaluation/participant-confirm-diagnostic.jsonl` | Independent verification, regression or per-case evidence |
+| `docs/v2-1-evaluation/participant-method-diagnostic.jsonl` | Independent verification, regression or per-case evidence |
+| `docs/v2-1-evaluation/participant-method-promoted-update.json` | Independent verification, regression or per-case evidence |
+| `scripts/portfolio-chat/participant-confirmation-diagnostic.mts` | Independent verification, regression or per-case evidence |
+| `scripts/portfolio-chat/participant-method-confirmation.mts` | Independent verification, regression or per-case evidence |
+| `scripts/portfolio-chat/participant-method-diagnostic.mts` | Independent verification, regression or per-case evidence |
