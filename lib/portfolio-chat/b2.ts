@@ -1,6 +1,6 @@
 import type { PortfolioChunk, PortfolioCorpus } from "../portfolio-knowledge";
 import { resolveRecommendations, validateAnswer, type B2Intent, type ChatMessage } from "./core";
-import { comparisonQuestion, isSubstantivePassage, resolveContext, resolveProjects, retrieveEvidence, validationFollowUp, type RetrievalPhase, type RetrievalResult } from "./retrieval";
+import { comparisonQuestion, isSubstantivePassage, resolveContext, resolveProjects, retrieveEvidence, sourceMatchesSpecificIntent, validationFollowUp, type RetrievalPhase, type RetrievalResult } from "./retrieval";
 import { languageInstruction, type ResponseLanguage } from "./language";
 import { audienceStatement, hasEnglishEvidenceAnchor, personalRoleLabel } from "./grounding";
 import { defaultPortfolioChatConfig, projectPath, replaceOwnerMentions, sourcePath as pathnameOf, isInternalSource, type PortfolioChatConfig } from "./engine-config";
@@ -144,6 +144,7 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
     const size = Buffer.byteLength(c.content);
     if (result.length >= 18 || size > 3000 || bytes + size > 18000 || seen.has(c.chunkId)) return;
     if (!retrieval.scores.has(c.chunkId) && !reason) return;
+    if (reason !== "verified-selection" && !sourceMatchesSpecificIntent(query, c.content)) return;
     if (c.buildVersion !== corpus.contentHash || c.accessLevel !== "public" || !corpus.pages.some(page => page.url === c.sourceUrl.split("#")[0])) return;
     result.push(c);
     seen.add(c.chunkId);

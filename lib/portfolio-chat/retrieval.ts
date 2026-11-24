@@ -24,6 +24,22 @@ export function isSubstantivePassage(chunk: PortfolioChunk): boolean {
     !/^(?:\d+\s*\/|solution\s*\d+\s*\/|[\p{P}\p{S}\s]+$)/iu.test(line));
 }
 
+// Some specific factual requests need evidence for the requested kind of
+// fact, not merely the same topic. This deliberately small multilingual gate
+// is conservative and is not a general semantic-entailment classifier.
+export function sourceMatchesSpecificIntent(query: string, source: string): boolean {
+  const checks: Array<[RegExp, RegExp]> = [
+    [/(?:\b(?:price|pricing|cost|costs|purchase|buy|buying|expensive)\b|価格|値段|費用|料金|いくら|購入|购买|購買|价格|價格|费用|費用|多少钱|多少錢)/iu,
+      /(?:\b(?:price|pricing|cost|costs|purchase|buy|sold|free|budget|dollars?|euros?|yen|usd|sgd)\b|[$€£¥]\s*\d|\d[\d,.]*\s*(?:円|元)|[一二三四五六七八九十百千万]+(?:円|元)|価格|値段|費用|料金|無料|購入|购买|購買|价格|價格|费用|費用|免费|免費|美元)/iu],
+    [/(?:\b(?:salary|salaries|wages?|payroll|compensation|payday)\b|給料|給与|賃金|工资|工資|薪水|薪资|薪資)/iu,
+      /(?:\b(?:salary|salaries|wages?|payroll|compensation|paid|payday|earn(?:ed|s)?)\b|給料|給与|賃金|工资|工資|薪水|薪资|薪資)/iu],
+    [/(?:\b(?:manufacturer|manufacturers|who manufactures|which company (?:makes|manufactures|sells))\b|製造.{0,15}会社|会社.{0,15}製造|哪.{0,8}(?:公司|企业).{0,8}(?:生产|製造|制造))/iu,
+      /(?:\b(?:manufacturer|manufactured|manufactures|produced by|made by|sold by|supplier|vendor)\b|製造元|製造会社|製造した|メーカー|生产商|生產商|制造商|製造商|生产厂家)/iu],
+  ];
+  const normalizedQuery = query.normalize("NFKC"), normalizedSource = source.normalize("NFKC");
+  return checks.every(([intent, evidence]) => !intent.test(normalizedQuery) || evidence.test(normalizedSource));
+}
+
 function names(text: string, corpus: PortfolioCorpus, config: PortfolioChatConfig): string[] {
   const lower = text.toLocaleLowerCase();
   const known = new Set(corpus.chunks.map((chunk) => chunk.projectId).filter((id): id is string => Boolean(id)));
@@ -178,7 +194,7 @@ export function createEvidenceRetriever(embed: EmbedTexts, profile = defaultRetr
       chunk.buildVersion === corpus.contentHash && pages.has(chunk.sourceUrl.split("#")[0]) && searchable(chunk));
     const key = [corpus.contentHash, ...approved.map(chunk => chunk.chunkId)].join("|");
     const passages = approved.filter(isSubstantivePassage);
-    const candidates = passages.filter(chunk => !projects.length || projects.includes(chunk.projectId ?? ""));
+    const candidates = passages.filter(chunk => (!projects.length || projects.includes(chunk.projectId ?? "")) && sourceMatchesSpecificIntent(currentQuestion, chunk.content));
     const scores = new Map<string, number>();
     if (!question || !candidates.length) return { projects, candidates, scores, chunks: [], qualifiedMatches: [], fallback: true };
 
