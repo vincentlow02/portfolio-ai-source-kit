@@ -120,3 +120,14 @@ Compared with V2 commit `f370bebfb158f9a92d26502f6946d6a89ed76b44`. This registe
 | `scripts/portfolio-chat/plural-topic-holdout.mts` | Multiturn context evaluation, per-case evidence or regression coverage |
 | `docs/v2-1-evaluation/plural-methods-regression.json` | Multiturn context evaluation, per-case evidence or regression coverage |
 | `docs/v2-1-evaluation/plural-topic-regression.json` | Multiturn context evaluation, per-case evidence or regression coverage |
+| `docs/v2-1-evaluation/japanese-heldout-diagnostic.json` | Japanese verification evaluation, regression or per-case evidence |
+| `docs/v2-1-evaluation/japanese-negation-after.json` | Japanese verification evaluation, regression or per-case evidence |
+| `docs/v2-1-evaluation/japanese-negation-before.json` | Japanese verification evaluation, regression or per-case evidence |
+| `docs/v2-1-evaluation/japanese-verification-after.json` | Japanese verification evaluation, regression or per-case evidence |
+| `docs/v2-1-evaluation/japanese-verification-before.json` | Japanese verification evaluation, regression or per-case evidence |
+| `docs/v2-1-evaluation/original-v2-1-japanese-final.json` | Japanese verification evaluation, regression or per-case evidence |
+| `docs/v2-1-evaluation/plural-topic-promoted-japanese.json` | Japanese verification evaluation, regression or per-case evidence |
+| `docs/v2-1-evaluation/v2-1-japanese-final.json` | Japanese verification evaluation, regression or per-case evidence |
+| `scripts/portfolio-chat/japanese-heldout-diagnostic.mts` | Japanese verification evaluation, regression or per-case evidence |
+| `scripts/portfolio-chat/japanese-negation-holdout.mts` | Japanese verification evaluation, regression or per-case evidence |
+| `scripts/portfolio-chat/japanese-verification-holdout.mts` | Japanese verification evaluation, regression or per-case evidence |

@@ -1,0 +1,93 @@
+[
+  {
+    "q": "両方のプロジェクトはどう検証されましたか？",
+    "qualified": [
+      {
+        "url": "/work/orion#trial",
+        "score": 0.46391484643147807,
+        "topic": true
+      },
+      {
+        "url": "/work/beacon#trial",
+        "score": 0.42871886626823513,
+        "topic": true
+      }
+    ],
+    "candidates": [
+      {
+        "url": "/work/beacon#trial",
+        "topic": true
+      },
+      {
+        "url": "/work/beacon#outcome",
+        "topic": false
+      },
+      {
+        "url": "/work/orion#trial",
+        "topic": true
+      },
+      {
+        "url": "/work/orion#outcome",
+        "topic": false
+      }
+    ]
+  },
+  {
+    "q": "両方のプロジェクトはどのような方法で検証されましたか？",
+    "qualified": [
+      {
+        "url": "/work/orion#trial",
+        "score": 0.47297089719271757,
+        "topic": false
+      },
+      {
+        "url": "/work/beacon#trial",
+        "score": 0.4368401288398812,
+        "topic": false
+      }
+    ],
+    "candidates": [
+      {
+        "url": "/work/beacon#trial",
+        "topic": false
+      },
+      {
+        "url": "/work/beacon#outcome",
+        "topic": false
+      },
+      {
+        "url": "/work/orion#trial",
+        "topic": false
+      },
+      {
+        "url": "/work/orion#outcome",
+        "topic": false
+      }
+    ]
+  },
+  {
+    "q": "両方のプロジェクトは何人で検証されましたか？",
+    "qualified": [
+      {
+        "url": "/work/orion#trial",
+        "score": 0.47113590519791154,
+        "topic": false
+      },
+      {
+        "url": "/work/beacon#trial",
+        "score": 0.4641668416150404,
+        "topic": false
+      }
+    ],
+    "candidates": [
+      {
+        "url": "/work/beacon#trial",
+        "topic": false
+      },
+      {
+        "url": "/work/orion#trial",
+        "topic": false
+      }
+    ]
+  }
+]

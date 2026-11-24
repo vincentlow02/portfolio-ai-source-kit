@@ -1,0 +1,159 @@
+{
+  "corpusHash": "158aa2214051ff26be21f11b33b9bdc3a3734b31f55d2e6ab39fbd86bafe0be0",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "両方のプロジェクトはどう検証されましたか？",
+      "kind": "supported",
+      "projects": [
+        "beacon",
+        "orion"
+      ],
+      "evidence": [
+        {
+          "url": "/work/beacon#trial",
+          "id": "e1e779cde6ce72132fcd633b",
+          "reason": "qualified-match"
+        },
+        {
+          "url": "/work/orion#trial",
+          "id": "8aa075d457c9ddd79a512e3f",
+          "reason": "qualified-match"
+        }
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/beacon#trial",
+        "/work/orion#trial"
+      ],
+      "elapsedMs": 1458.9835999999998
+    },
+    {
+      "id": "p2",
+      "q": "両方のプロジェクトはどのような方法で検証されましたか？",
+      "kind": "supported",
+      "projects": [
+        "beacon",
+        "orion"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 39.58130000000028
+    },
+    {
+      "id": "p3",
+      "q": "両方のプロジェクトは何人で検証されましたか？",
+      "kind": "supported",
+      "projects": [
+        "beacon",
+        "orion"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 35.204299999999876
+    },
+    {
+      "id": "n1",
+      "q": "両方のプロジェクトは火星でどう検証されましたか？",
+      "kind": "unsupported",
+      "projects": [
+        "beacon",
+        "orion"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 32.289700000000266
+    },
+    {
+      "id": "n2",
+      "q": "両方のプロジェクトの検証費用はいくらですか？",
+      "kind": "unsupported",
+      "projects": [
+        "beacon",
+        "orion"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 1.6404999999999745
+    },
+    {
+      "id": "n3",
+      "q": "両方のプロジェクトはどこで検証されましたか？",
+      "kind": "unsupported",
+      "projects": [
+        "beacon",
+        "orion"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 29.2509
+    },
+    {
+      "id": "n4",
+      "q": "両方のプロジェクトは2021年に検証されましたか？",
+      "kind": "unsupported",
+      "projects": [
+        "beacon",
+        "orion"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 26.489199999999983
+    },
+    {
+      "id": "n5",
+      "q": "両方のプロジェクトの検証参加者の名前は？",
+      "kind": "unsupported",
+      "projects": [
+        "beacon",
+        "orion"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 27.076900000000023
+    },
+    {
+      "id": "n6",
+      "q": "両方のプロジェクトは子供の安全についてどう検証されましたか？",
+      "kind": "unsupported",
+      "projects": [
+        "beacon",
+        "orion"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 29.746200000000044
+    },
+    {
+      "id": "n7",
+      "q": "両方のプロジェクトは検証されませんでしたか？",
+      "kind": "negative-question",
+      "projects": [
+        "beacon",
+        "orion"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 26.652399999999943
+    }
+  ]
+}

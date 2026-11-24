@@ -1,0 +1,141 @@
+{
+  "corpusHash": "2880331893fe214431dc3fbe1ab3043a6e8ad51c19b7e0e72d0968c8516822c5",
+  "rows": [
+    {
+      "id": "p1",
+      "prior": "Compare Atoll and Cedar",
+      "q": "両方のプロジェクトはどう検証されましたか？",
+      "kind": "supported",
+      "language": "ja",
+      "projects": [
+        "atoll",
+        "cedar"
+      ],
+      "evidence": [
+        "/work/atoll#trial",
+        "/work/cedar#trial"
+      ],
+      "needsGeneration": true,
+      "clarification": false,
+      "excerptSources": [
+        "/work/atoll#trial",
+        "/work/cedar#trial"
+      ],
+      "elapsedMs": 1275.5028000000002
+    },
+    {
+      "id": "p2",
+      "prior": "Compare Atoll and Cedar",
+      "q": "それぞれのプロジェクトはどのように検証されましたか？",
+      "kind": "supported",
+      "language": "ja",
+      "projects": [
+        "atoll",
+        "cedar"
+      ],
+      "evidence": [
+        "/work/atoll#trial"
+      ],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 16.308799999999792
+    },
+    {
+      "id": "p3",
+      "prior": "Compare Atoll and Cedar",
+      "q": "両方のプロジェクトは何人で検証されましたか？",
+      "kind": "supported",
+      "language": "ja",
+      "projects": [
+        "atoll",
+        "cedar"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 27.381900000000314
+    },
+    {
+      "id": "n1",
+      "prior": "Compare Firth and Larch",
+      "q": "両方のプロジェクトはどう検証されましたか？",
+      "kind": "contradicted-assertion",
+      "language": "ja",
+      "projects": [
+        "firth",
+        "larch"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 29.02430000000004
+    },
+    {
+      "id": "n2",
+      "prior": "Compare Firth and Larch",
+      "q": "How were both projects tested?",
+      "kind": "contradicted-assertion",
+      "language": "en",
+      "projects": [
+        "firth",
+        "larch"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 23.463199999999688
+    },
+    {
+      "id": "n3",
+      "prior": "Compare Atoll and Cedar",
+      "q": "両方のプロジェクトは火星でどう検証されましたか？",
+      "kind": "unsupported",
+      "language": "ja",
+      "projects": [
+        "atoll",
+        "cedar"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 27.534900000000107
+    },
+    {
+      "id": "n4",
+      "prior": "Compare Atoll and Cedar",
+      "q": "両方のプロジェクトの検証費用はいくらですか？",
+      "kind": "unsupported",
+      "language": "ja",
+      "projects": [
+        "atoll",
+        "cedar"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 1.3391999999998916
+    },
+    {
+      "id": "n5",
+      "prior": "Compare Atoll and Cedar",
+      "q": "両方のプロジェクトはどこで検証されましたか？",
+      "kind": "unsupported",
+      "language": "ja",
+      "projects": [
+        "atoll",
+        "cedar"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 22.485799999999927
+    }
+  ]
+}

@@ -1,0 +1,2583 @@
+{
+  "cases": 100,
+  "totals": [
+    {
+      "split": "development",
+      "count": 50,
+      "recallAt5": 0.8409090909090909,
+      "precisionAt5": 0.7159090909090909,
+      "mrrAt5": 0.9090909090909091,
+      "evidenceCoverage": 0.9659090909090909,
+      "irrelevantEvidenceRate": 0.3,
+      "noEvidenceOnUnsupported": 1
+    },
+    {
+      "split": "holdout",
+      "count": 50,
+      "recallAt5": 0.8125,
+      "precisionAt5": 0.6723484848484849,
+      "mrrAt5": 0.8522727272727273,
+      "evidenceCoverage": 0.9261363636363636,
+      "irrelevantEvidenceRate": 0.2777777777777778,
+      "noEvidenceOnUnsupported": 1
+    }
+  ],
+  "performance": {
+    "coldRetrievalMs": 2659.7553000000003,
+    "coldStagesMs": {
+      "keyword": 11.766200000000026,
+      "corpusEmbedding": 2629.9365000000003,
+      "queryEmbedding": 8.386400000000322,
+      "semantic": 1.5888999999997395,
+      "assembly": 7.191100000000006
+    },
+    "warmP50Ms": 8.140199999999822,
+    "warmP95Ms": 11.040299999999661,
+    "warmStageP50Ms": {
+      "keyword": 0.15470000000004802,
+      "corpusEmbedding": 0.0016999999998006388,
+      "queryEmbedding": 7.568699999999808,
+      "semantic": 0.09479999999985012,
+      "assembly": 0.33260000000063883
+    },
+    "concurrentCorpusCold4Ms": 180.95160000000033,
+    "concurrentRssDeltaBytes": 11800576,
+    "fixtureGenerationP50Ms": 2.71100000000024,
+    "fixtureGenerationP95Ms": 138.42599999999948,
+    "rssBytes": 537272320
+  },
+  "rows": [
+    {
+      "id": "lantern-research-1",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#research",
+        "/work/arbor#testing",
+        "/work/harbor#research"
+      ],
+      "evidence": [
+        "/work/lantern#research",
+        "/work/arbor#testing",
+        "/work/harbor#research"
+      ],
+      "retrievalMs": 2659.7553000000003,
+      "stages": {
+        "keyword": 11.766200000000026,
+        "corpusEmbedding": 2629.9365000000003,
+        "queryEmbedding": 8.386400000000322,
+        "semantic": 1.5888999999997395,
+        "assembly": 7.191100000000006
+      },
+      "recall": 1,
+      "precision": 0.3333333333333333,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 2,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-research-2",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#research",
+        "/work/arbor#testing",
+        "/work/orbit#testing"
+      ],
+      "evidence": [
+        "/work/lantern#research",
+        "/work/arbor#testing",
+        "/work/orbit#testing"
+      ],
+      "retrievalMs": 8.19549999999981,
+      "stages": {
+        "keyword": 0.4058999999997468,
+        "corpusEmbedding": 0.002300000000104774,
+        "queryEmbedding": 7.342599999999948,
+        "semantic": 0.20899999999983265,
+        "assembly": 3.286399999999958
+      },
+      "recall": 1,
+      "precision": 0.3333333333333333,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 2,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-research-3",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#research",
+        "/work/lantern#design"
+      ],
+      "evidence": [
+        "/work/lantern#research",
+        "/work/lantern#design"
+      ],
+      "retrievalMs": 7.075399999999718,
+      "stages": {
+        "keyword": 0.1412000000000262,
+        "corpusEmbedding": 0.003200000000106229,
+        "queryEmbedding": 6.39640000000054,
+        "semantic": 0.10459999999966385,
+        "assembly": 0.7155999999995402
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-research-4",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#research",
+        "/work/lantern#design"
+      ],
+      "evidence": [
+        "/work/lantern#research",
+        "/work/lantern#design"
+      ],
+      "retrievalMs": 6.266899999999623,
+      "stages": {
+        "keyword": 0.14220000000022992,
+        "corpusEmbedding": 0.0015000000003055902,
+        "queryEmbedding": 5.822000000000116,
+        "semantic": 0.08129999999982829,
+        "assembly": 0.49879999999939173
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-research-5",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#research",
+        "/work/arbor#testing"
+      ],
+      "evidence": [
+        "/work/lantern#research",
+        "/work/arbor#testing"
+      ],
+      "retrievalMs": 14.361700000000383,
+      "stages": {
+        "keyword": 0.30130000000008295,
+        "corpusEmbedding": 0.0015999999995983671,
+        "queryEmbedding": 7.696399999999812,
+        "semantic": 1.0417000000006738,
+        "assembly": 4.0429000000003725
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-research-6",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#research",
+        "/work/arbor#testing",
+        "/work/harbor#research"
+      ],
+      "evidence": [
+        "/work/lantern#research",
+        "/work/arbor#testing",
+        "/work/harbor#research"
+      ],
+      "retrievalMs": 9.491100000000188,
+      "stages": {
+        "keyword": 0.23170000000027358,
+        "corpusEmbedding": 0.0014000000001033186,
+        "queryEmbedding": 8.79609999999957,
+        "semantic": 0.23829999999998108,
+        "assembly": 0.3459999999995489
+      },
+      "recall": 1,
+      "precision": 0.3333333333333333,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 2,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-design-1",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#design",
+        "/work/lantern#research"
+      ],
+      "evidence": [
+        "/work/lantern#design",
+        "/work/lantern#research"
+      ],
+      "retrievalMs": 8.180899999999383,
+      "stages": {
+        "keyword": 0.1544000000003507,
+        "corpusEmbedding": 0.0016999999998006388,
+        "queryEmbedding": 7.70969999999943,
+        "semantic": 0.08939999999984138,
+        "assembly": 0.3133000000007087
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-design-2",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#design",
+        "/work/lantern#research"
+      ],
+      "evidence": [
+        "/work/lantern#design",
+        "/work/lantern#research"
+      ],
+      "retrievalMs": 6.411000000000058,
+      "stages": {
+        "keyword": 0.1407999999992171,
+        "corpusEmbedding": 0.0011000000004059984,
+        "queryEmbedding": 6.075900000000729,
+        "semantic": 0.06419999999980064,
+        "assembly": 0.3504000000002634
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-design-3",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#design",
+        "/work/lantern#research"
+      ],
+      "evidence": [
+        "/work/lantern#design",
+        "/work/lantern#research"
+      ],
+      "retrievalMs": 5.121499999999287,
+      "stages": {
+        "keyword": 0.15470000000004802,
+        "corpusEmbedding": 0.0015000000003055902,
+        "queryEmbedding": 4.711299999999937,
+        "semantic": 0.06409999999959837,
+        "assembly": 0.28660000000036234
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-design-4",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#design"
+      ],
+      "evidence": [
+        "/work/lantern#design"
+      ],
+      "retrievalMs": 4.460100000000239,
+      "stages": {
+        "keyword": 0.13450000000011642,
+        "corpusEmbedding": 0.0010999999994965037,
+        "queryEmbedding": 4.041999999999462,
+        "semantic": 0.05389999999988504,
+        "assembly": 0.21219999999993888
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-design-5",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#design",
+        "/work/lantern#research"
+      ],
+      "evidence": [
+        "/work/lantern#design",
+        "/work/lantern#research"
+      ],
+      "retrievalMs": 5.794699999999466,
+      "stages": {
+        "keyword": 0.14249999999992724,
+        "corpusEmbedding": 0.0010000000002037268,
+        "queryEmbedding": 5.252400000000307,
+        "semantic": 0.06379999999990105,
+        "assembly": 0.3833999999997104
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-design-6",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#design",
+        "/work/lantern#research"
+      ],
+      "evidence": [
+        "/work/lantern#design",
+        "/work/lantern#research"
+      ],
+      "retrievalMs": 6.751600000000508,
+      "stages": {
+        "keyword": 0.10539999999946303,
+        "corpusEmbedding": 0.0014999999993960955,
+        "queryEmbedding": 6.375799999999799,
+        "semantic": 0.06739999999990687,
+        "assembly": 0.33260000000063883
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-implementation-1",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/signal#implementation",
+        "/work/signal#research"
+      ],
+      "evidence": [
+        "/work/signal#implementation",
+        "/work/signal#research"
+      ],
+      "retrievalMs": 7.948699999999917,
+      "stages": {
+        "keyword": 0.25820000000021537,
+        "corpusEmbedding": 0.0014999999993960955,
+        "queryEmbedding": 7.377800000000207,
+        "semantic": 0.07149999999910506,
+        "assembly": 0.259900000000016
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-implementation-2",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/signal#implementation"
+      ],
+      "evidence": [
+        "/work/signal#implementation"
+      ],
+      "retrievalMs": 7.940400000000409,
+      "stages": {
+        "keyword": 0.2919000000001688,
+        "corpusEmbedding": 0.0015999999995983671,
+        "queryEmbedding": 7.420799999999872,
+        "semantic": 0.0761000000002241,
+        "assembly": 0.28629999999975553
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-implementation-3",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/signal#implementation"
+      ],
+      "evidence": [
+        "/work/signal#implementation"
+      ],
+      "retrievalMs": 5.527099999999336,
+      "stages": {
+        "keyword": 0.1554999999998472,
+        "corpusEmbedding": 0.0014000000001033186,
+        "queryEmbedding": 5.071900000000824,
+        "semantic": 0.08719999999993888,
+        "assembly": 0.25720000000001164
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-implementation-4",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/signal#implementation"
+      ],
+      "evidence": [
+        "/work/signal#implementation",
+        "/work/signal#research"
+      ],
+      "retrievalMs": 5.905700000000252,
+      "stages": {
+        "keyword": 0.12849999999980355,
+        "corpusEmbedding": 0.0014000000001033186,
+        "queryEmbedding": 5.497400000000198,
+        "semantic": 0.10530000000017026,
+        "assembly": 0.3011000000005879
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-implementation-5",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/signal#implementation",
+        "/work/signal#research"
+      ],
+      "evidence": [
+        "/work/signal#implementation",
+        "/work/signal#research"
+      ],
+      "retrievalMs": 7.377799999999297,
+      "stages": {
+        "keyword": 0.07930000000033033,
+        "corpusEmbedding": 0.0014000000001033186,
+        "queryEmbedding": 6.9440999999997075,
+        "semantic": 0.06860000000051514,
+        "assembly": 0.2617000000000189
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-implementation-6",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/signal#implementation"
+      ],
+      "evidence": [
+        "/work/signal#implementation"
+      ],
+      "retrievalMs": 7.8697000000001935,
+      "stages": {
+        "keyword": 0.09270000000014988,
+        "corpusEmbedding": 0.001399999999193824,
+        "queryEmbedding": 7.539499999999862,
+        "semantic": 0.06610000000000582,
+        "assembly": 0.26680000000033033
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-research-1",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/signal#research",
+        "/work/harbor#research"
+      ],
+      "evidence": [
+        "/work/signal#research",
+        "/work/harbor#research"
+      ],
+      "retrievalMs": 8.533399999999347,
+      "stages": {
+        "keyword": 0.3688000000001921,
+        "corpusEmbedding": 0.0015999999995983671,
+        "queryEmbedding": 7.7509000000000015,
+        "semantic": 0.1488999999992302,
+        "assembly": 0.41190000000005966
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-research-2",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/signal#research"
+      ],
+      "evidence": [
+        "/work/signal#research",
+        "/work/signal#implementation"
+      ],
+      "retrievalMs": 11.357699999999568,
+      "stages": {
+        "keyword": 0.37929999999960273,
+        "corpusEmbedding": 0.0024000000003070454,
+        "queryEmbedding": 10.612999999999374,
+        "semantic": 0.0945000000001528,
+        "assembly": 0.8201000000008207
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-research-3",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/signal#research",
+        "/work/signal#implementation"
+      ],
+      "evidence": [
+        "/work/signal#research",
+        "/work/signal#implementation"
+      ],
+      "retrievalMs": 6.354000000000269,
+      "stages": {
+        "keyword": 0.1868000000004031,
+        "corpusEmbedding": 0.0016000000005078618,
+        "queryEmbedding": 5.909300000000258,
+        "semantic": 0.08359999999993306,
+        "assembly": 0.3184000000010201
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-research-4",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/signal#research"
+      ],
+      "evidence": [
+        "/work/signal#research",
+        "/work/signal#implementation"
+      ],
+      "retrievalMs": 6.480800000000272,
+      "stages": {
+        "keyword": 0.16640000000006694,
+        "corpusEmbedding": 0.0014000000001033186,
+        "queryEmbedding": 5.999400000000605,
+        "semantic": 0.0978000000004613,
+        "assembly": 0.3442000000004555
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-research-5",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/signal#research"
+      ],
+      "evidence": [
+        "/work/signal#research"
+      ],
+      "retrievalMs": 7.309400000000096,
+      "stages": {
+        "keyword": 0.08489999999983411,
+        "corpusEmbedding": 0.0014000000001033186,
+        "queryEmbedding": 6.982899999999972,
+        "semantic": 0.07439999999951397,
+        "assembly": 0.7103999999990265
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-research-6",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/signal#research"
+      ],
+      "evidence": [
+        "/work/signal#research",
+        "/work/signal#implementation"
+      ],
+      "retrievalMs": 8.779900000000453,
+      "stages": {
+        "keyword": 0.08330000000023574,
+        "corpusEmbedding": 0.001299999999901047,
+        "queryEmbedding": 8.42109999999957,
+        "semantic": 0.08159999999952561,
+        "assembly": 0.3036999999994805
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "arbor-testing-1",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/arbor#testing"
+      ],
+      "evidence": [
+        "/work/arbor#testing"
+      ],
+      "retrievalMs": 9.186499999999796,
+      "stages": {
+        "keyword": 0.3253999999997177,
+        "corpusEmbedding": 0.0021000000006097252,
+        "queryEmbedding": 8.460699999999633,
+        "semantic": 0.21119999999973516,
+        "assembly": 0.3148000000001048
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "arbor-testing-2",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/arbor#testing"
+      ],
+      "evidence": [
+        "/work/arbor#testing"
+      ],
+      "retrievalMs": 6.256900000000314,
+      "stages": {
+        "keyword": 0.1397000000006301,
+        "corpusEmbedding": 0.0014999999993960955,
+        "queryEmbedding": 5.78690000000006,
+        "semantic": 0.07399999999961437,
+        "assembly": 0.26480000000083237
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "arbor-testing-3",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/arbor#testing",
+        "/work/orbit#testing"
+      ],
+      "evidence": [
+        "/work/arbor#testing",
+        "/work/orbit#testing"
+      ],
+      "retrievalMs": 8.494200000000092,
+      "stages": {
+        "keyword": 0.35539999999946303,
+        "corpusEmbedding": 0.001900000000205182,
+        "queryEmbedding": 7.7354999999997744,
+        "semantic": 0.15470000000004802,
+        "assembly": 0.29510000000027503
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "arbor-testing-4",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/arbor#testing"
+      ],
+      "evidence": [
+        "/work/arbor#testing"
+      ],
+      "retrievalMs": 7.237200000000485,
+      "stages": {
+        "keyword": 0.14549999999962893,
+        "corpusEmbedding": 0.0014000000001033186,
+        "queryEmbedding": 6.871399999999994,
+        "semantic": 0.06430000000000291,
+        "assembly": 0.2364000000006854
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "arbor-testing-5",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/arbor#testing"
+      ],
+      "evidence": [
+        "/work/arbor#testing"
+      ],
+      "retrievalMs": 7.51969999999983,
+      "stages": {
+        "keyword": 0.10310000000026776,
+        "corpusEmbedding": 0.0014999999993960955,
+        "queryEmbedding": 7.083800000000338,
+        "semantic": 0.09390000000075815,
+        "assembly": 0.3045000000001892
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "arbor-testing-6",
+      "split": "development",
+      "answerable": true,
+      "matches": [],
+      "evidence": [
+        "/work/arbor#testing"
+      ],
+      "retrievalMs": 8.091300000000047,
+      "stages": {
+        "keyword": 0.10360000000036962,
+        "corpusEmbedding": 0.0015000000003055902,
+        "queryEmbedding": 7.744599999999991,
+        "semantic": 0.07409999999981665,
+        "assembly": 0.22330000000056316
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "arbor-implementation-1",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/arbor#implementation"
+      ],
+      "evidence": [
+        "/work/arbor#implementation"
+      ],
+      "retrievalMs": 7.873999999999796,
+      "stages": {
+        "keyword": 0.18440000000009604,
+        "corpusEmbedding": 0.0016999999998006388,
+        "queryEmbedding": 7.4465000000000146,
+        "semantic": 0.09879999999975553,
+        "assembly": 0.2323999999998705
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "arbor-implementation-2",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/arbor#implementation"
+      ],
+      "evidence": [
+        "/work/arbor#implementation"
+      ],
+      "retrievalMs": 7.565499999999702,
+      "stages": {
+        "keyword": 0.16829999999936263,
+        "corpusEmbedding": 0.0016000000005078618,
+        "queryEmbedding": 7.0974999999998545,
+        "semantic": 0.08330000000023574,
+        "assembly": 0.29759999999987485
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "arbor-implementation-3",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/arbor#implementation"
+      ],
+      "evidence": [
+        "/work/arbor#implementation"
+      ],
+      "retrievalMs": 6.3740999999999985,
+      "stages": {
+        "keyword": 0.15899999999965075,
+        "corpusEmbedding": 0.002199999999902502,
+        "queryEmbedding": 5.928200000000288,
+        "semantic": 0.09209999999984575,
+        "assembly": 0.2529999999987922
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "arbor-implementation-4",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/arbor#implementation"
+      ],
+      "evidence": [
+        "/work/arbor#implementation",
+        "/work/arbor#testing"
+      ],
+      "retrievalMs": 5.285899999999856,
+      "stages": {
+        "keyword": 0.17479999999977736,
+        "corpusEmbedding": 0.0015000000003055902,
+        "queryEmbedding": 4.90059999999994,
+        "semantic": 0.07530000000042492,
+        "assembly": 0.2826999999997497
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "arbor-implementation-5",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/arbor#implementation"
+      ],
+      "evidence": [
+        "/work/arbor#implementation"
+      ],
+      "retrievalMs": 8.140199999999822,
+      "stages": {
+        "keyword": 0.10930000000007567,
+        "corpusEmbedding": 0.0015999999995983671,
+        "queryEmbedding": 7.787000000000262,
+        "semantic": 0.0760999999993146,
+        "assembly": 0.25569999999970605
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "arbor-implementation-6",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/arbor#implementation"
+      ],
+      "evidence": [
+        "/work/arbor#implementation"
+      ],
+      "retrievalMs": 9.807200000000194,
+      "stages": {
+        "keyword": 0.09149999999954161,
+        "corpusEmbedding": 0.001399999999193824,
+        "queryEmbedding": 9.48949999999968,
+        "semantic": 0.07729999999992287,
+        "assembly": 0.2613000000001193
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-testing-1",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#testing"
+      ],
+      "evidence": [
+        "/work/orbit#testing"
+      ],
+      "retrievalMs": 9.32589999999982,
+      "stages": {
+        "keyword": 0.3720999999995911,
+        "corpusEmbedding": 0.0015000000003055902,
+        "queryEmbedding": 8.48989999999958,
+        "semantic": 0.28069999999934225,
+        "assembly": 0.3857000000007247
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-testing-2",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#testing"
+      ],
+      "evidence": [
+        "/work/orbit#testing"
+      ],
+      "retrievalMs": 9.457800000000134,
+      "stages": {
+        "keyword": 0.49989999999979773,
+        "corpusEmbedding": 0.0016000000005078618,
+        "queryEmbedding": 8.49330000000009,
+        "semantic": 0.21680000000014843,
+        "assembly": 0.27259999999932916
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-testing-3",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#testing",
+        "/work/orbit#design"
+      ],
+      "evidence": [
+        "/work/orbit#testing",
+        "/work/orbit#design"
+      ],
+      "retrievalMs": 8.69250000000011,
+      "stages": {
+        "keyword": 0.17109999999956926,
+        "corpusEmbedding": 0.001900000000205182,
+        "queryEmbedding": 8.129899999999907,
+        "semantic": 0.09439999999995052,
+        "assembly": 0.3374999999996362
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-testing-4",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#testing",
+        "/work/orbit#design"
+      ],
+      "evidence": [
+        "/work/orbit#testing",
+        "/work/orbit#design"
+      ],
+      "retrievalMs": 7.618500000000495,
+      "stages": {
+        "keyword": 0.183100000000195,
+        "corpusEmbedding": 0.0020000000004074536,
+        "queryEmbedding": 7.118399999999383,
+        "semantic": 0.10310000000026776,
+        "assembly": 0.3806000000004133
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-testing-5",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#testing",
+        "/work/orbit#design"
+      ],
+      "evidence": [
+        "/work/orbit#testing",
+        "/work/orbit#design"
+      ],
+      "retrievalMs": 9.343700000000354,
+      "stages": {
+        "keyword": 0.13829999999961728,
+        "corpusEmbedding": 0.001900000000205182,
+        "queryEmbedding": 8.76010000000042,
+        "semantic": 0.08290000000033615,
+        "assembly": 0.8029000000005908
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-testing-6",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#testing"
+      ],
+      "evidence": [
+        "/work/orbit#testing"
+      ],
+      "retrievalMs": 11.040299999999661,
+      "stages": {
+        "keyword": 0.13360000000011496,
+        "corpusEmbedding": 0.0024999999995998223,
+        "queryEmbedding": 10.501100000000406,
+        "semantic": 0.0955999999996493,
+        "assembly": 0.35899999999946886
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-design-1",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#design"
+      ],
+      "evidence": [
+        "/work/orbit#design"
+      ],
+      "retrievalMs": 8.90270000000055,
+      "stages": {
+        "keyword": 0.20690000000013242,
+        "corpusEmbedding": 0.00120000000060827,
+        "queryEmbedding": 8.432200000000194,
+        "semantic": 0.07909999999992579,
+        "assembly": 0.36049999999977445
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-design-2",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#design"
+      ],
+      "evidence": [
+        "/work/orbit#design"
+      ],
+      "retrievalMs": 8.89009999999962,
+      "stages": {
+        "keyword": 0.26630000000022847,
+        "corpusEmbedding": 0.0016999999998006388,
+        "queryEmbedding": 8.291200000000572,
+        "semantic": 0.09479999999985012,
+        "assembly": 0.3323000000009415
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-design-3",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#design"
+      ],
+      "evidence": [
+        "/work/orbit#design"
+      ],
+      "retrievalMs": 6.622199999999793,
+      "stages": {
+        "keyword": 0.1797999999998865,
+        "corpusEmbedding": 0.0016999999998006388,
+        "queryEmbedding": 6.1976000000004206,
+        "semantic": 0.07479999999941356,
+        "assembly": 0.29250000000047294
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-design-4",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#design"
+      ],
+      "evidence": [
+        "/work/orbit#design"
+      ],
+      "retrievalMs": 5.796299999999974,
+      "stages": {
+        "keyword": 0.19869999999991705,
+        "corpusEmbedding": 0.0020000000004074536,
+        "queryEmbedding": 5.355000000000473,
+        "semantic": 0.06459999999970023,
+        "assembly": 0.31300000000010186
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-design-5",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#design"
+      ],
+      "evidence": [
+        "/work/orbit#design"
+      ],
+      "retrievalMs": 9.523199999999633,
+      "stages": {
+        "keyword": 0.09919999999965512,
+        "corpusEmbedding": 0.0015000000003055902,
+        "queryEmbedding": 9.136999999999716,
+        "semantic": 0.10510000000067521,
+        "assembly": 0.2845999999999549
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-design-6",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#design"
+      ],
+      "evidence": [
+        "/work/orbit#design"
+      ],
+      "retrievalMs": 11.214600000000246,
+      "stages": {
+        "keyword": 0.09320000000025175,
+        "corpusEmbedding": 0.0014000000001033186,
+        "queryEmbedding": 10.880199999999604,
+        "semantic": 0.08060000000023138,
+        "assembly": 0.2677000000003318
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-research-1",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/prism#research",
+        "/work/signal#research",
+        "/work/orbit#testing"
+      ],
+      "evidence": [
+        "/work/prism#research",
+        "/work/signal#research",
+        "/work/orbit#testing"
+      ],
+      "retrievalMs": 8.407099999999446,
+      "stages": {
+        "keyword": 0.37620000000060827,
+        "corpusEmbedding": 0.0018000000000029104,
+        "queryEmbedding": 7.628200000000106,
+        "semantic": 0.1610000000000582,
+        "assembly": 0.27340000000003783
+      },
+      "recall": 1,
+      "precision": 0.3333333333333333,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 2,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-research-2",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/prism#research"
+      ],
+      "evidence": [
+        "/work/prism#research"
+      ],
+      "retrievalMs": 9.104599999999664,
+      "stages": {
+        "keyword": 0.10189999999965949,
+        "corpusEmbedding": 0.0015000000003055902,
+        "queryEmbedding": 8.626400000000103,
+        "semantic": 0.08359999999993306,
+        "assembly": 0.8096000000014101
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-research-3",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/prism#implementation",
+        "/work/prism#research"
+      ],
+      "evidence": [
+        "/work/prism#implementation",
+        "/work/prism#research"
+      ],
+      "retrievalMs": 7.951399999999921,
+      "stages": {
+        "keyword": 0.24020000000018626,
+        "corpusEmbedding": 0.0018000000000029104,
+        "queryEmbedding": 7.409899999999652,
+        "semantic": 0.11509999999998399,
+        "assembly": 0.33470000000033906
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 0.5,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-research-4",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/prism#research",
+        "/work/prism#implementation"
+      ],
+      "evidence": [
+        "/work/prism#research",
+        "/work/prism#implementation"
+      ],
+      "retrievalMs": 7.844599999999446,
+      "stages": {
+        "keyword": 0.22199999999975262,
+        "corpusEmbedding": 0.0016000000005078618,
+        "queryEmbedding": 7.365499999999884,
+        "semantic": 0.08389999999963038,
+        "assembly": 0.24510000000009313
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-research-5",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/prism#research"
+      ],
+      "evidence": [
+        "/work/prism#research"
+      ],
+      "retrievalMs": 8.595000000000255,
+      "stages": {
+        "keyword": 0.09820000000036089,
+        "corpusEmbedding": 0.002800000000206637,
+        "queryEmbedding": 8.078799999999319,
+        "semantic": 0.0864000000001397,
+        "assembly": 0.9533000000001266
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-research-6",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/prism#research"
+      ],
+      "evidence": [
+        "/work/prism#research"
+      ],
+      "retrievalMs": 9.820799999999508,
+      "stages": {
+        "keyword": 0.09429999999974825,
+        "corpusEmbedding": 0.001900000000205182,
+        "queryEmbedding": 9.51130000000012,
+        "semantic": 0.057500000000800355,
+        "assembly": 0.25089999999909196
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-implementation-1",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/prism#implementation",
+        "/work/prism#research"
+      ],
+      "evidence": [
+        "/work/prism#implementation",
+        "/work/prism#research"
+      ],
+      "retrievalMs": 8.256599999999708,
+      "stages": {
+        "keyword": 0.2643000000007305,
+        "corpusEmbedding": 0.0013000000008105417,
+        "queryEmbedding": 7.776300000000447,
+        "semantic": 0.08960000000024593,
+        "assembly": 0.29460000000017317
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-implementation-2",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/prism#implementation"
+      ],
+      "evidence": [
+        "/work/prism#implementation"
+      ],
+      "retrievalMs": 7.751499999999396,
+      "stages": {
+        "keyword": 0.17929999999978463,
+        "corpusEmbedding": 0.0018000000000029104,
+        "queryEmbedding": 7.277200000000448,
+        "semantic": 0.10019999999985885,
+        "assembly": 0.3568999999997686
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-implementation-3",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/prism#implementation",
+        "/work/prism#research"
+      ],
+      "evidence": [
+        "/work/prism#implementation",
+        "/work/prism#research"
+      ],
+      "retrievalMs": 6.933199999999488,
+      "stages": {
+        "keyword": 0.15210000000024593,
+        "corpusEmbedding": 0.001999999999497959,
+        "queryEmbedding": 6.46140000000014,
+        "semantic": 0.11279999999987922,
+        "assembly": 0.3367000000007465
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-implementation-4",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/prism#implementation",
+        "/work/prism#research"
+      ],
+      "evidence": [
+        "/work/prism#implementation",
+        "/work/prism#research"
+      ],
+      "retrievalMs": 7.279700000000048,
+      "stages": {
+        "keyword": 0.16170000000056461,
+        "corpusEmbedding": 0.0018000000000029104,
+        "queryEmbedding": 6.871000000000095,
+        "semantic": 0.08590000000003783,
+        "assembly": 0.28960000000006403
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-implementation-5",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [],
+      "evidence": [],
+      "retrievalMs": 9.066200000000208,
+      "stages": {
+        "keyword": 0.10890000000017608,
+        "corpusEmbedding": 0.0014000000001033186,
+        "queryEmbedding": 8.62670000000071,
+        "semantic": 0.07300000000032014,
+        "assembly": 0.3040000000000873
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "noEvidence": true
+    },
+    {
+      "id": "prism-implementation-6",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/prism#implementation"
+      ],
+      "evidence": [
+        "/work/prism#implementation"
+      ],
+      "retrievalMs": 8.825900000000729,
+      "stages": {
+        "keyword": 0.10579999999936263,
+        "corpusEmbedding": 0.0018000000000029104,
+        "queryEmbedding": 8.393299999999726,
+        "semantic": 0.0860000000002401,
+        "assembly": 0.34429999999974825
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "harbor-research-1",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/harbor#research"
+      ],
+      "evidence": [
+        "/work/harbor#research"
+      ],
+      "retrievalMs": 9.57129999999961,
+      "stages": {
+        "keyword": 0.2157999999999447,
+        "corpusEmbedding": 0.0020000000004074536,
+        "queryEmbedding": 8.884000000000015,
+        "semantic": 0.14019999999982247,
+        "assembly": 0.5177000000003318
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "harbor-research-2",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/harbor#research",
+        "/work/signal#research",
+        "/work/orbit#testing",
+        "/work/arbor#testing"
+      ],
+      "evidence": [
+        "/work/harbor#research",
+        "/work/signal#research",
+        "/work/orbit#testing",
+        "/work/arbor#testing"
+      ],
+      "retrievalMs": 10.527900000000045,
+      "stages": {
+        "keyword": 0.6594999999997526,
+        "corpusEmbedding": 0.0020000000004074536,
+        "queryEmbedding": 9.381999999999607,
+        "semantic": 0.2118000000000393,
+        "assembly": 0.4297000000005937
+      },
+      "recall": 1,
+      "precision": 0.25,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 3,
+      "noEvidence": false
+    },
+    {
+      "id": "harbor-research-3",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/harbor#research"
+      ],
+      "evidence": [
+        "/work/harbor#research",
+        "/work/harbor#design"
+      ],
+      "retrievalMs": 6.9111000000002605,
+      "stages": {
+        "keyword": 0.16080000000056316,
+        "corpusEmbedding": 0.002300000000104774,
+        "queryEmbedding": 6.3858000000000175,
+        "semantic": 0.09509999999954744,
+        "assembly": 0.29759999999987485
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "harbor-research-4",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/harbor#research"
+      ],
+      "evidence": [
+        "/work/harbor#research"
+      ],
+      "retrievalMs": 6.434600000000501,
+      "stages": {
+        "keyword": 0.16789999999946303,
+        "corpusEmbedding": 0.0018999999992956873,
+        "queryEmbedding": 6.005599999999504,
+        "semantic": 0.08120000000053551,
+        "assembly": 0.3282000000008338
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "harbor-research-5",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/harbor#research"
+      ],
+      "evidence": [
+        "/work/harbor#research"
+      ],
+      "retrievalMs": 8.912400000000162,
+      "stages": {
+        "keyword": 0.09820000000036089,
+        "corpusEmbedding": 0.0020000000004074536,
+        "queryEmbedding": 8.348500000000058,
+        "semantic": 0.0838000000003376,
+        "assembly": 0.3078000000004977
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "harbor-research-6",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/harbor#research"
+      ],
+      "evidence": [
+        "/work/harbor#research"
+      ],
+      "retrievalMs": 9.171000000000276,
+      "stages": {
+        "keyword": 0.10049999999955617,
+        "corpusEmbedding": 0.0018000000000029104,
+        "queryEmbedding": 8.789200000000164,
+        "semantic": 0.07139999999981228,
+        "assembly": 0.3194000000003143
+      },
+      "recall": 1,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "harbor-design-1",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/harbor#design",
+        "/work/harbor#research"
+      ],
+      "evidence": [
+        "/work/harbor#design",
+        "/work/harbor#research"
+      ],
+      "retrievalMs": 9.44549999999981,
+      "stages": {
+        "keyword": 0.20280000000002474,
+        "corpusEmbedding": 0.002300000000104774,
+        "queryEmbedding": 8.90520000000015,
+        "semantic": 0.10720000000037544,
+        "assembly": 0.32039999999960855
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "harbor-design-2",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/harbor#design",
+        "/work/harbor#research"
+      ],
+      "evidence": [
+        "/work/harbor#design",
+        "/work/harbor#research"
+      ],
+      "retrievalMs": 9.340400000000045,
+      "stages": {
+        "keyword": 0.18809999999939464,
+        "corpusEmbedding": 0.0020999999997002305,
+        "queryEmbedding": 8.850500000000466,
+        "semantic": 0.09649999999965075,
+        "assembly": 0.3437999999996464
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "harbor-design-3",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/harbor#design",
+        "/work/harbor#research"
+      ],
+      "evidence": [
+        "/work/harbor#design",
+        "/work/harbor#research"
+      ],
+      "retrievalMs": 8.046100000000479,
+      "stages": {
+        "keyword": 0.20130000000062864,
+        "corpusEmbedding": 0.0016999999998006388,
+        "queryEmbedding": 7.568699999999808,
+        "semantic": 0.09240000000045256,
+        "assembly": 0.33470000000124855
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "harbor-design-4",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/harbor#design",
+        "/work/harbor#research"
+      ],
+      "evidence": [
+        "/work/harbor#design",
+        "/work/harbor#research"
+      ],
+      "retrievalMs": 6.161099999999351,
+      "stages": {
+        "keyword": 0.15020000000004075,
+        "corpusEmbedding": 0.0027000000000043656,
+        "queryEmbedding": 5.725499999999556,
+        "semantic": 0.10009999999965657,
+        "assembly": 0.2804999999998472
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "harbor-design-5",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/harbor#design",
+        "/work/harbor#research"
+      ],
+      "evidence": [
+        "/work/harbor#design",
+        "/work/harbor#research"
+      ],
+      "retrievalMs": 8.719900000000052,
+      "stages": {
+        "keyword": 0.12470000000030268,
+        "corpusEmbedding": 0.0018999999992956873,
+        "queryEmbedding": 8.271899999999732,
+        "semantic": 0.10930000000007567,
+        "assembly": 0.37889999999970314
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "harbor-design-6",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/harbor#design",
+        "/work/harbor#research"
+      ],
+      "evidence": [
+        "/work/harbor#design",
+        "/work/harbor#research"
+      ],
+      "retrievalMs": 9.543800000000374,
+      "stages": {
+        "keyword": 0.12330000000019936,
+        "corpusEmbedding": 0.0015999999995983671,
+        "queryEmbedding": 9.084900000000744,
+        "semantic": 0.10030000000006112,
+        "assembly": 0.35340000000087457
+      },
+      "recall": 1,
+      "precision": 0.5,
+      "rr": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-follow-up",
+      "split": "development",
+      "answerable": true,
+      "matches": [],
+      "evidence": [
+        "/work/lantern#research"
+      ],
+      "retrievalMs": 8.426800000000185,
+      "stages": {
+        "keyword": 0.15360000000055152,
+        "corpusEmbedding": 0.0020999999997002305,
+        "queryEmbedding": 7.304699999999684,
+        "semantic": 0.07250000000021828,
+        "assembly": 1.1055999999998676
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-compare-0",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#design",
+        "/work/lantern#research"
+      ],
+      "evidence": [
+        "/work/lantern#research",
+        "/work/signal#implementation",
+        "/work/lantern#design"
+      ],
+      "retrievalMs": 7.321800000000621,
+      "stages": {
+        "keyword": 0.13280000000031578,
+        "corpusEmbedding": 0.001999999999497959,
+        "queryEmbedding": 6.8159999999998035,
+        "semantic": 0.12139999999999418,
+        "assembly": 1.4560999999994237
+      },
+      "recall": 0.5,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 0.75,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-compare-1",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#design",
+        "/work/lantern#research"
+      ],
+      "evidence": [
+        "/work/lantern#research",
+        "/work/signal#implementation",
+        "/work/lantern#design"
+      ],
+      "retrievalMs": 7.909599999999955,
+      "stages": {
+        "keyword": 0.13040000000000873,
+        "corpusEmbedding": 0.0015000000003055902,
+        "queryEmbedding": 7.454099999999926,
+        "semantic": 0.10429999999996653,
+        "assembly": 0.60609999999906
+      },
+      "recall": 0.5,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 0.75,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "lantern-compare-2",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/lantern#design",
+        "/work/lantern#research"
+      ],
+      "evidence": [
+        "/work/lantern#research",
+        "/work/signal#implementation",
+        "/work/lantern#design"
+      ],
+      "retrievalMs": 7.988400000000183,
+      "stages": {
+        "keyword": 0.10870000000068103,
+        "corpusEmbedding": 0.0015000000003055902,
+        "queryEmbedding": 7.541199999999662,
+        "semantic": 0.12430000000040309,
+        "assembly": 0.8242000000000189
+      },
+      "recall": 0.5,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 0.75,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-follow-up",
+      "split": "development",
+      "answerable": true,
+      "matches": [],
+      "evidence": [
+        "/work/signal#research"
+      ],
+      "retrievalMs": 7.622299999999996,
+      "stages": {
+        "keyword": 0.10900000000037835,
+        "corpusEmbedding": 0.0014999999993960955,
+        "queryEmbedding": 7.160600000000159,
+        "semantic": 0.0860000000002401,
+        "assembly": 0.702699999998913
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-compare-0",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/arbor#implementation"
+      ],
+      "evidence": [
+        "/work/arbor#testing",
+        "/work/signal#implementation",
+        "/work/arbor#implementation"
+      ],
+      "retrievalMs": 7.0710999999992055,
+      "stages": {
+        "keyword": 0.1228000000000975,
+        "corpusEmbedding": 0.0021000000006097252,
+        "queryEmbedding": 6.638700000000426,
+        "semantic": 0.0911999999998443,
+        "assembly": 0.4835000000002765
+      },
+      "recall": 0.25,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 0.75,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-compare-1",
+      "split": "development",
+      "answerable": true,
+      "matches": [],
+      "evidence": [
+        "/work/arbor#testing",
+        "/work/signal#implementation",
+        "/work/arbor#implementation"
+      ],
+      "retrievalMs": 6.979000000000269,
+      "stages": {
+        "keyword": 0.14109999999982392,
+        "corpusEmbedding": 0.0015000000003055902,
+        "queryEmbedding": 6.5546000000003914,
+        "semantic": 0.10580000000027212,
+        "assembly": 0.3644000000003871
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0.75,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "signal-compare-2",
+      "split": "development",
+      "answerable": true,
+      "matches": [
+        "/work/arbor#implementation"
+      ],
+      "evidence": [
+        "/work/arbor#testing",
+        "/work/signal#implementation",
+        "/work/arbor#implementation"
+      ],
+      "retrievalMs": 7.237600000000384,
+      "stages": {
+        "keyword": 0.08299999999962893,
+        "corpusEmbedding": 0.0010999999994965037,
+        "queryEmbedding": 6.8301000000001295,
+        "semantic": 0.1738999999997759,
+        "assembly": 0.5105999999996129
+      },
+      "recall": 0.25,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 0.75,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-follow-up",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [],
+      "evidence": [
+        "/work/orbit#testing"
+      ],
+      "retrievalMs": 7.927499999999782,
+      "stages": {
+        "keyword": 0.1396999999997206,
+        "corpusEmbedding": 0.0020999999997002305,
+        "queryEmbedding": 7.3715000000001965,
+        "semantic": 0.09280000000035216,
+        "assembly": 0.5070999999998094
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-compare-0",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#design"
+      ],
+      "evidence": [
+        "/work/orbit#testing",
+        "/work/prism#research",
+        "/work/orbit#design"
+      ],
+      "retrievalMs": 7.0908999999992375,
+      "stages": {
+        "keyword": 0.1135999999996784,
+        "corpusEmbedding": 0.0017000000007101335,
+        "queryEmbedding": 6.623999999999796,
+        "semantic": 0.10080000000016298,
+        "assembly": 0.46090000000003783
+      },
+      "recall": 0.25,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 0.75,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-compare-1",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#design"
+      ],
+      "evidence": [
+        "/work/orbit#testing",
+        "/work/prism#research",
+        "/work/orbit#design"
+      ],
+      "retrievalMs": 7.707300000000032,
+      "stages": {
+        "keyword": 0.12809999999990396,
+        "corpusEmbedding": 0.0016000000005078618,
+        "queryEmbedding": 7.235100000000784,
+        "semantic": 0.1055000000005748,
+        "assembly": 0.47770000000036816
+      },
+      "recall": 0.25,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 0.75,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "orbit-compare-2",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [
+        "/work/orbit#design"
+      ],
+      "evidence": [
+        "/work/orbit#testing",
+        "/work/prism#research",
+        "/work/orbit#design"
+      ],
+      "retrievalMs": 8.688100000000304,
+      "stages": {
+        "keyword": 0.14059999999972206,
+        "corpusEmbedding": 0.0020999999997002305,
+        "queryEmbedding": 8.142299999999523,
+        "semantic": 0.15430000000014843,
+        "assembly": 0.5085999999992055
+      },
+      "recall": 0.25,
+      "precision": 1,
+      "rr": 1,
+      "coverage": 0.75,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-follow-up",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [],
+      "evidence": [
+        "/work/prism#research"
+      ],
+      "retrievalMs": 8.503700000000208,
+      "stages": {
+        "keyword": 0.1507000000001426,
+        "corpusEmbedding": 0.002300000000104774,
+        "queryEmbedding": 7.781500000000051,
+        "semantic": 0.09789999999975407,
+        "assembly": 0.5794000000005326
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 1,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-compare-0",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [],
+      "evidence": [
+        "/work/harbor#research",
+        "/work/prism#research"
+      ],
+      "retrievalMs": 8.551400000000285,
+      "stages": {
+        "keyword": 0.1617999999998574,
+        "corpusEmbedding": 0.005799999999908323,
+        "queryEmbedding": 8.024800000000141,
+        "semantic": 0.09590000000025611,
+        "assembly": 0.4886999999998807
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0.5,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-compare-1",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [],
+      "evidence": [
+        "/work/harbor#research",
+        "/work/prism#research"
+      ],
+      "retrievalMs": 8.464500000000044,
+      "stages": {
+        "keyword": 0.16750000000047294,
+        "corpusEmbedding": 0.0018000000000029104,
+        "queryEmbedding": 7.998700000000099,
+        "semantic": 0.09430000000065775,
+        "assembly": 0.4916000000002896
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0.5,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "prism-compare-2",
+      "split": "holdout",
+      "answerable": true,
+      "matches": [],
+      "evidence": [
+        "/work/harbor#research",
+        "/work/prism#research"
+      ],
+      "retrievalMs": 8.593400000000656,
+      "stages": {
+        "keyword": 0.11989999999968859,
+        "corpusEmbedding": 0.0018000000000029104,
+        "queryEmbedding": 8.05619999999999,
+        "semantic": 0.15570000000025175,
+        "assembly": 0.4021000000011554
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0.5,
+      "irrelevant": 0,
+      "noEvidence": false
+    },
+    {
+      "id": "unsupported-0",
+      "split": "development",
+      "answerable": false,
+      "matches": [],
+      "evidence": [],
+      "retrievalMs": 9.750300000000607,
+      "stages": {
+        "keyword": 0.3188000000000102,
+        "corpusEmbedding": 0.0024000000003070454,
+        "queryEmbedding": 8.924800000000687,
+        "semantic": 0.277299999999741,
+        "assembly": 0.33799999999973807
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "noEvidence": true
+    },
+    {
+      "id": "unsupported-1",
+      "split": "development",
+      "answerable": false,
+      "matches": [],
+      "evidence": [],
+      "retrievalMs": 10.11239999999998,
+      "stages": {
+        "keyword": 0.3132000000005064,
+        "corpusEmbedding": 0.001999999999497959,
+        "queryEmbedding": 9.148299999999836,
+        "semantic": 0.3541000000004715,
+        "assembly": 0.3011000000005879
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "noEvidence": true
+    },
+    {
+      "id": "unsupported-2",
+      "split": "development",
+      "answerable": false,
+      "matches": [],
+      "evidence": [],
+      "retrievalMs": 9.82049999999981,
+      "stages": {
+        "keyword": 0.35419999999976426,
+        "corpusEmbedding": 0.0024999999995998223,
+        "queryEmbedding": 8.72860000000037,
+        "semantic": 0.4458999999997104,
+        "assembly": 0.39940000000024156
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "noEvidence": true
+    },
+    {
+      "id": "unsupported-3",
+      "split": "development",
+      "answerable": false,
+      "matches": [],
+      "evidence": [],
+      "retrievalMs": 10.356499999999869,
+      "stages": {
+        "keyword": 0.4562999999998283,
+        "corpusEmbedding": 0.002599999999802094,
+        "queryEmbedding": 9.29780000000028,
+        "semantic": 0.2551999999996042,
+        "assembly": 0.48070000000097934
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "noEvidence": true
+    },
+    {
+      "id": "unsupported-4",
+      "split": "development",
+      "answerable": false,
+      "matches": [],
+      "evidence": [],
+      "retrievalMs": 1.0552999999999884,
+      "stages": {
+        "assembly": 0.28690000000005966
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "noEvidence": true
+    },
+    {
+      "id": "unsupported-5",
+      "split": "development",
+      "answerable": false,
+      "matches": [],
+      "evidence": [],
+      "retrievalMs": 11.35950000000048,
+      "stages": {
+        "keyword": 0.7104999999992287,
+        "corpusEmbedding": 0.0024999999995998223,
+        "queryEmbedding": 9.92109999999957,
+        "semantic": 0.43689999999969586,
+        "assembly": 0.3728999999993903
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "noEvidence": true
+    },
+    {
+      "id": "unsupported-6",
+      "split": "holdout",
+      "answerable": false,
+      "matches": [],
+      "evidence": [],
+      "retrievalMs": 8.52140000000054,
+      "stages": {
+        "keyword": 0.3029000000005908,
+        "corpusEmbedding": 0.001900000000205182,
+        "queryEmbedding": 7.741399999999885,
+        "semantic": 0.24909999999999854,
+        "assembly": 0.21709999999984575
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "noEvidence": true
+    },
+    {
+      "id": "unsupported-7",
+      "split": "holdout",
+      "answerable": false,
+      "matches": [],
+      "evidence": [],
+      "retrievalMs": 8.980399999999463,
+      "stages": {
+        "keyword": 0.2452000000002954,
+        "corpusEmbedding": 0.0011999999996987754,
+        "queryEmbedding": 8.238900000000285,
+        "semantic": 0.3161999999992986,
+        "assembly": 0.2837999999992462
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "noEvidence": true
+    },
+    {
+      "id": "unsupported-8",
+      "split": "holdout",
+      "answerable": false,
+      "matches": [],
+      "evidence": [],
+      "retrievalMs": 7.576900000000023,
+      "stages": {
+        "keyword": 0.15899999999965075,
+        "corpusEmbedding": 0.0014000000001033186,
+        "queryEmbedding": 7.0239999999994325,
+        "semantic": 0.16820000000006985,
+        "assembly": 0.16679999999996653
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "noEvidence": true
+    },
+    {
+      "id": "unsupported-9",
+      "split": "holdout",
+      "answerable": false,
+      "matches": [],
+      "evidence": [],
+      "retrievalMs": 6.589399999999841,
+      "stages": {
+        "keyword": 0.10850000000027649,
+        "corpusEmbedding": 0.001299999999901047,
+        "queryEmbedding": 6.153200000000652,
+        "semantic": 0.17619999999988067,
+        "assembly": 0.2750999999998385
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "noEvidence": true
+    },
+    {
+      "id": "unsupported-10",
+      "split": "holdout",
+      "answerable": false,
+      "matches": [],
+      "evidence": [],
+      "retrievalMs": 9.269600000000537,
+      "stages": {
+        "keyword": 0.42659999999978027,
+        "corpusEmbedding": 0.0016999999998006388,
+        "queryEmbedding": 8.337800000000243,
+        "semantic": 0.2941000000000713,
+        "assembly": 0.24729999999999563
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "noEvidence": true
+    },
+    {
+      "id": "unsupported-11",
+      "split": "holdout",
+      "answerable": false,
+      "matches": [],
+      "evidence": [],
+      "retrievalMs": 10.795900000000074,
+      "stages": {
+        "keyword": 0.28360000000066066,
+        "corpusEmbedding": 0.0014999999993960955,
+        "queryEmbedding": 9.96939999999995,
+        "semantic": 0.3348999999998341,
+        "assembly": 0.2870999999995547
+      },
+      "recall": 0,
+      "precision": 0,
+      "rr": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "noEvidence": true
+    }
+  ]
+}
