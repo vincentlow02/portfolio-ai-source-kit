@@ -10,7 +10,7 @@
 | Original 100-question benchmark | Aggregate V2 figures preserved after search fallback; per-case JSON retained. |
 | Independent dataset | Frozen initial and fresh cases recorded; several cross-language/comparison misses remain. |
 | Dependency audit | `npm audit` and `npm audit --omit=dev` zero reported advisories at check time. |
-| Source ZIP and clean reinstall | Git tree `3736ae4` was archived with Windows line conversion disabled; exact blob/manifest and negative archive checks passed. The ZIP was extracted into a fresh D: directory, `npm ci --ignore-scripts` completed, and both `npm run test:offline` (60/60) and Atlas `npm run test:integration` passed. This verifies that archived source state; later report-only updates must be separately re-audited. |
+| Source ZIP and clean reinstall | Git tree `bb56f48` was archived with Windows line conversion disabled; exact blob/manifest and negative archive checks passed. The ZIP was extracted into a fresh D: directory, `npm ci --ignore-scripts` completed, and both `npm run test:offline` (65/65) and Atlas `npm run test:integration` passed. This verifies that archived source state; later report-only updates must be separately re-audited. |
 | Exact GitHub SHA / real LLM / production | NOT VERIFIED; local/mock checks cannot establish these. |
 
 System Chrome: `PUPPETEER_EXECUTABLE_PATH=C:\Program Files\Google\Chrome\Application\chrome.exe`. D: temp/cache were necessary because C: ran out of space. The initial bundled Chromium ICU error and cross-drive Hosted fixture error are environment portability findings, not confirmed application failures.
