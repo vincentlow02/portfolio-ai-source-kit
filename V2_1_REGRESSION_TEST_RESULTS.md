@@ -20,3 +20,5 @@ Additional development check: `npx tsx --test scripts/portfolio-chat/comparison-
 **Follow-up:** the previously failing generic interviewee development case now passes using a strictly scoped explicit-interview supplement; the file now has four passing checks and is included in the offline command. The unrelated specific-subject test remains empty. Earlier failure is retained above as history.
 
 One local-registry run after the interviewee change passed Atlas but the second host's Next build failed while another ONNX test was running; an ONNX allocation error was also observed during that period, but its relationship to the build failure is not established. A subsequent isolated run at `bca2817` passed both hosts.
+
+**Additional local test:** `npm run test:offline` passed 67/67 at `b85b1fe`. The newly added fixture checks that unsupported price, wage and manufacturer requests, including verified selections, do not reserve model quota and that supported examples can pass the evidence gate. Final integration and archive checks need rerunning after these source changes.

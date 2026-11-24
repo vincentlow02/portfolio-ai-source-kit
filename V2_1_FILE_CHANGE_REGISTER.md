@@ -42,3 +42,12 @@ Compared with V2 commit `f370bebfb158f9a92d26502f6946d6a89ed76b44`. This registe
 | `scripts/portfolio-chat/comparison-development.test.mts` | Development comparison regression and unrelated-subject checks |
 | `docs/v2-1-evaluation/original-v2-1-latest.json` | Latest original benchmark per-case run |
 | `docs/v2-1-evaluation/v2-1-latest.json` | Latest independent benchmark per-case run |
+| `docs/v2-1-evaluation/cross-language-dev-after.json` | Specific-intent regression, evaluation, or per-case evidence |
+| `docs/v2-1-evaluation/cross-language-dev-before.json` | Specific-intent regression, evaluation, or per-case evidence |
+| `docs/v2-1-evaluation/intent-holdout-v2-1.json` | Specific-intent regression, evaluation, or per-case evidence |
+| `docs/v2-1-evaluation/intent-holdout-v2.json` | Specific-intent regression, evaluation, or per-case evidence |
+| `docs/v2-1-evaluation/original-v2-1-intent.json` | Specific-intent regression, evaluation, or per-case evidence |
+| `docs/v2-1-evaluation/v2-1-intent.json` | Specific-intent regression, evaluation, or per-case evidence |
+| `scripts/portfolio-chat/cross-language-development.mts` | Specific-intent regression, evaluation, or per-case evidence |
+| `scripts/portfolio-chat/specific-intent-holdout.mts` | Specific-intent regression, evaluation, or per-case evidence |
+| `scripts/portfolio-chat/specific-intent.test.mts` | Specific-intent regression, evaluation, or per-case evidence |

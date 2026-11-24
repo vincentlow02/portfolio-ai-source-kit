@@ -18,3 +18,7 @@ The documented original Japanese case is `Prism は字幕をどこに保存し�
 The fresh ambiguity case `f5` duplicates an added pronoun regression question, so its 1/1 clarification is not independent evidence. The other fresh cases were not used for tuning.
 
 After the English interviewee and negative-action changes, the frozen sets were rerun for regression at `bca2817`: original benchmark totals are unchanged, and `f2`/`f4` still abstain. Because the fresh-set outputs had been inspected before this rerun, the repeated result is regression evidence, not a new blind estimate. See `original-v2-1-latest.json` and `v2-1-latest.json`.
+
+## Specific-intent evidence gate follow-up
+
+An independent Japanese development probe exposed three unsupported manufacturer, salary or purchase questions that proceeded to generation because semantically similar passages lacked the requested fact. After the narrow gate and selection-path fix, all six unsupported development questions abstained; the six supported development questions retained evidence. A separately authored eight-question confirmation yielded four supported retained in both versions; V2 proceeded to generation for three of four unsupported questions, while V2.1 abstained on all four. Per-query results, corpus and limitations are in `docs/v2-1-evaluation`. This is not evidence that arbitrary unsupported queries are safely handled; it covers a small list of factual intents and can cause false negatives. The 100-question original aggregate metrics remain unchanged.

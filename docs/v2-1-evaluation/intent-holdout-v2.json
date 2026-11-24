@@ -1,0 +1,141 @@
+{
+  "corpusHash": "52871a3ac389d7b2880c42c9f33d706672215f3216ae87053cd37f9997730df1",
+  "rows": [
+    {
+      "id": "p1",
+      "q": "Aurora の利用料金はいくらですか？",
+      "expected": "/work/aurora#access",
+      "language": "ja",
+      "qualified": [
+        {
+          "id": "9a87aa7aa7e06d93d312c108",
+          "url": "/work/aurora#access",
+          "score": 0.46349364481523503
+        }
+      ],
+      "evidence": [
+        "/work/aurora#access"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "p2",
+      "q": "Which company manufactures the Beacon sensors?",
+      "expected": "/work/beacon#sensors",
+      "language": "en",
+      "qualified": [
+        {
+          "id": "2f82506b293ff53d2cfe3485",
+          "url": "/work/beacon#sensors",
+          "score": 0.9272261978097576
+        }
+      ],
+      "evidence": [
+        "/work/beacon#sensors"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "p3",
+      "q": "Ridge 技术人员的工资是多少？",
+      "expected": "/work/ridge#work",
+      "language": "zh",
+      "qualified": [
+        {
+          "id": "f8b4704236d8eb12df13007b",
+          "url": "/work/ridge#work",
+          "score": 0.6163386234750847
+        }
+      ],
+      "evidence": [
+        "/work/ridge#work"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "p4",
+      "q": "What is the Aurora price for schools?",
+      "expected": "/work/aurora#access",
+      "language": "en",
+      "qualified": [
+        {
+          "id": "9a87aa7aa7e06d93d312c108",
+          "url": "/work/aurora#access",
+          "score": 0.7082785583212985
+        }
+      ],
+      "evidence": [
+        "/work/aurora#access"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "n1",
+      "q": "Grove を購入するにはいくらですか？",
+      "expected": null,
+      "language": "ja",
+      "qualified": [
+        {
+          "id": "0fae9b5227c09a05f4c6409d",
+          "url": "/work/grove#prototype",
+          "score": 0.37735795243302833
+        }
+      ],
+      "evidence": [
+        "/work/grove#prototype"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "n2",
+      "q": "Who manufactures the Grove lights?",
+      "expected": null,
+      "language": "en",
+      "qualified": [
+        {
+          "id": "0fae9b5227c09a05f4c6409d",
+          "url": "/work/grove#prototype",
+          "score": 0.6852214465986991
+        }
+      ],
+      "evidence": [
+        "/work/grove#prototype"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "n3",
+      "q": "Grove 工作人员的薪水是多少？",
+      "expected": null,
+      "language": "zh",
+      "qualified": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true
+    },
+    {
+      "id": "n4",
+      "q": "What does the Grove prototype cost?",
+      "expected": null,
+      "language": "en",
+      "qualified": [
+        {
+          "id": "0fae9b5227c09a05f4c6409d",
+          "url": "/work/grove#prototype",
+          "score": 0.7386321264914284
+        }
+      ],
+      "evidence": [
+        "/work/grove#prototype"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    }
+  ]
+}

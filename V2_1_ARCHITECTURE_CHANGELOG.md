@@ -12,3 +12,5 @@ No second model, new external service, API contract change, or unnecessary adapt
 A strictly generic English interviewee question may now include the named projects' public passages that explicitly state past interviews or conversations; specific subjects do not trigger this supplement. See `scripts/portfolio-chat/comparison-development.test.mts`. This development fix does not imply the fresh Japanese and comparison misses were solved.
 
 The `bca2817` source adds a conservative direct negation/action contradiction check. It may reject a valid statement if distinct events share the same verb; it is not a semantic entailment verifier.
+
+Commits `dc83718` and `b85b1fe` add narrow multilingual evidence-type checks for explicit cost, salary and manufacturer questions, including selections. This trades some recall for safer handling and does not prove semantic entailment or address unrelated intents.

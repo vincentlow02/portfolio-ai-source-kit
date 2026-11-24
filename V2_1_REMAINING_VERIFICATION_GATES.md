@@ -12,3 +12,5 @@ The independent PostgreSQL concurrency test and local lockfile advisory checks w
 A further independently authored development probe (`comparison-development.test.mts`) confirmed an English multi-project paraphrase miss. The failing expected-evidence assertion remains in the diagnostic test; the original offline suite does not run this file. A naive `interviews` query expansion also retrieved results after adding an unrelated submarine term, so no expansion was adopted.
 
 **Follow-up:** the English generic interviewee development case now passes using an explicit past-interview supplement; an unrelated subject remains excluded. This does not establish that other paraphrases or the frozen Japanese/comparison cases are resolved.
+
+The narrow specific-intent gate reduces three independently observed unsupported generation paths, but further testing must cover valid paraphrases, mixed-intent questions, unsupported facts outside the three categories, and whether selection responses remain useful. A matching word is not semantic support.

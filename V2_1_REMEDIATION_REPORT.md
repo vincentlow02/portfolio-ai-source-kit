@@ -13,3 +13,5 @@ Further work is required on independent retrieval coverage and claim entailment.
 An additional development probe retained an explicit failing assertion for an English multi-project paraphrase; two other checks in the same file pass. This is an unresolved local retrieval requirement, not an external verification condition. See `V2_1_REGRESSION_TEST_RESULTS.md`.
 
 **Follow-up:** the generic interviewee development case was addressed by a narrow public-evidence supplement, and its unrelated-subject counterexample remains empty. The separate frozen multilingual and comparison misses remain open.
+
+**Further remediation:** commits `dc83718` and `b85b1fe` add a narrow specific-intent evidence gate and close its verified-selection bypass. Independent development and confirmation examples showed reduced unnecessary generation for those explicit intents. The gate is heuristic, can reject valid answers, and cannot cover arbitrary unsupported questions. Frozen Japanese paraphrase and comparison misses remain; final status is unchanged.

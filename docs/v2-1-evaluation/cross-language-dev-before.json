@@ -1,0 +1,413 @@
+{
+  "corpusHash": "a74779e843814e3b6b0349b1c4b22c92092392295424994b5f459c81703b241e",
+  "rows": [
+    {
+      "id": "d1",
+      "q": "測定した温度データはどこに保存されますか？",
+      "expected": "/work/compass#storage",
+      "scores": [
+        {
+          "url": "/work/compass#storage",
+          "chunkId": "916523707de3f10e1e08bf68",
+          "cosine": 0.5849719358217783
+        },
+        {
+          "url": "/work/marsh#interviews",
+          "chunkId": "57257530550082071830f36e",
+          "cosine": 0.17299433500493036
+        },
+        {
+          "url": "/work/cove#field",
+          "chunkId": "2b136b09bfbedc359a66e52d",
+          "cosine": 0.16404868971522174
+        },
+        {
+          "url": "/work/loom#kit",
+          "chunkId": "64db670ec7a9a8e9106bb24a",
+          "cosine": 0.14662596695187527
+        }
+      ],
+      "qualified": [
+        "/work/compass#storage"
+      ],
+      "evidence": [
+        "/work/compass#storage"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "d2",
+      "q": "ネットがなくても記録を確認できますか？",
+      "expected": "/work/compass#storage",
+      "scores": [
+        {
+          "url": "/work/compass#storage",
+          "chunkId": "916523707de3f10e1e08bf68",
+          "cosine": 0.39453118098274076
+        },
+        {
+          "url": "/work/cove#field",
+          "chunkId": "2b136b09bfbedc359a66e52d",
+          "cosine": 0.12227155736509161
+        },
+        {
+          "url": "/work/loom#kit",
+          "chunkId": "64db670ec7a9a8e9106bb24a",
+          "cosine": 0.10111965526041933
+        },
+        {
+          "url": "/work/marsh#interviews",
+          "chunkId": "57257530550082071830f36e",
+          "cosine": 0.08599020802630955
+        }
+      ],
+      "qualified": [
+        "/work/compass#storage"
+      ],
+      "evidence": [
+        "/work/compass#storage"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "d3",
+      "q": "教材のパネルの順番を変えられますか？",
+      "expected": "/work/loom#kit",
+      "scores": [
+        {
+          "url": "/work/loom#kit",
+          "chunkId": "64db670ec7a9a8e9106bb24a",
+          "cosine": 0.6252754597713044
+        },
+        {
+          "url": "/work/marsh#interviews",
+          "chunkId": "57257530550082071830f36e",
+          "cosine": 0.2763773838005108
+        },
+        {
+          "url": "/work/cove#field",
+          "chunkId": "2b136b09bfbedc359a66e52d",
+          "cosine": 0.25237600931660475
+        },
+        {
+          "url": "/work/compass#storage",
+          "chunkId": "916523707de3f10e1e08bf68",
+          "cosine": 0.08787756676429674
+        }
+      ],
+      "qualified": [
+        "/work/loom#kit"
+      ],
+      "evidence": [
+        "/work/loom#kit"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "d4",
+      "q": "授業計画のパーツを並べ替えることは可能ですか？",
+      "expected": "/work/loom#kit",
+      "scores": [
+        {
+          "url": "/work/loom#kit",
+          "chunkId": "64db670ec7a9a8e9106bb24a",
+          "cosine": 0.497927539217071
+        },
+        {
+          "url": "/work/cove#field",
+          "chunkId": "2b136b09bfbedc359a66e52d",
+          "cosine": 0.24208601559054338
+        },
+        {
+          "url": "/work/marsh#interviews",
+          "chunkId": "57257530550082071830f36e",
+          "cosine": 0.21448217154015464
+        },
+        {
+          "url": "/work/compass#storage",
+          "chunkId": "916523707de3f10e1e08bf68",
+          "cosine": 0.07265911839493124
+        }
+      ],
+      "qualified": [
+        "/work/loom#kit"
+      ],
+      "evidence": [
+        "/work/loom#kit"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "d5",
+      "q": "何人の看護師に引き継ぎについて聞きましたか？",
+      "expected": "/work/marsh#interviews",
+      "scores": [
+        {
+          "url": "/work/marsh#interviews",
+          "chunkId": "57257530550082071830f36e",
+          "cosine": 0.5071093471961782
+        },
+        {
+          "url": "/work/cove#field",
+          "chunkId": "2b136b09bfbedc359a66e52d",
+          "cosine": 0.18094747851456577
+        },
+        {
+          "url": "/work/loom#kit",
+          "chunkId": "64db670ec7a9a8e9106bb24a",
+          "cosine": 0.09234752762301235
+        },
+        {
+          "url": "/work/compass#storage",
+          "chunkId": "916523707de3f10e1e08bf68",
+          "cosine": -0.07438872244635678
+        }
+      ],
+      "qualified": [
+        "/work/marsh#interviews"
+      ],
+      "evidence": [
+        "/work/marsh#interviews"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "d6",
+      "q": "どこで車椅子利用者の移動を観察しましたか？",
+      "expected": "/work/cove#field",
+      "scores": [
+        {
+          "url": "/work/cove#field",
+          "chunkId": "2b136b09bfbedc359a66e52d",
+          "cosine": 0.6419062871477355
+        },
+        {
+          "url": "/work/marsh#interviews",
+          "chunkId": "57257530550082071830f36e",
+          "cosine": 0.22361511111540194
+        },
+        {
+          "url": "/work/loom#kit",
+          "chunkId": "64db670ec7a9a8e9106bb24a",
+          "cosine": 0.20135746142539518
+        },
+        {
+          "url": "/work/compass#storage",
+          "chunkId": "916523707de3f10e1e08bf68",
+          "cosine": 0.11386556666774289
+        }
+      ],
+      "qualified": [
+        "/work/cove#field"
+      ],
+      "evidence": [
+        "/work/cove#field"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "n1",
+      "q": "SDカードを製造している会社はどこですか？",
+      "expected": null,
+      "scores": [
+        {
+          "url": "/work/compass#storage",
+          "chunkId": "916523707de3f10e1e08bf68",
+          "cosine": 0.4376296794828355
+        },
+        {
+          "url": "/work/cove#field",
+          "chunkId": "2b136b09bfbedc359a66e52d",
+          "cosine": 0.13364454904117715
+        },
+        {
+          "url": "/work/loom#kit",
+          "chunkId": "64db670ec7a9a8e9106bb24a",
+          "cosine": 0.07424731925089728
+        },
+        {
+          "url": "/work/marsh#interviews",
+          "chunkId": "57257530550082071830f36e",
+          "cosine": -0.06604430374134572
+        }
+      ],
+      "qualified": [
+        "/work/compass#storage"
+      ],
+      "evidence": [
+        "/work/compass#storage"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "n2",
+      "q": "病院の看護師は何時に給料を受け取りますか？",
+      "expected": null,
+      "scores": [
+        {
+          "url": "/work/marsh#interviews",
+          "chunkId": "57257530550082071830f36e",
+          "cosine": 0.4262794529130507
+        },
+        {
+          "url": "/work/cove#field",
+          "chunkId": "2b136b09bfbedc359a66e52d",
+          "cosine": 0.04837042521271294
+        },
+        {
+          "url": "/work/loom#kit",
+          "chunkId": "64db670ec7a9a8e9106bb24a",
+          "cosine": 0.003754091118947528
+        },
+        {
+          "url": "/work/compass#storage",
+          "chunkId": "916523707de3f10e1e08bf68",
+          "cosine": -0.03941625580147885
+        }
+      ],
+      "qualified": [
+        "/work/marsh#interviews"
+      ],
+      "evidence": [
+        "/work/marsh#interviews"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "n3",
+      "q": "駅の電車は何時に出発しますか？",
+      "expected": null,
+      "scores": [
+        {
+          "url": "/work/cove#field",
+          "chunkId": "2b136b09bfbedc359a66e52d",
+          "cosine": 0.2083051782319911
+        },
+        {
+          "url": "/work/compass#storage",
+          "chunkId": "916523707de3f10e1e08bf68",
+          "cosine": 0.029379755960266846
+        },
+        {
+          "url": "/work/loom#kit",
+          "chunkId": "64db670ec7a9a8e9106bb24a",
+          "cosine": -0.0006863189115527812
+        },
+        {
+          "url": "/work/marsh#interviews",
+          "chunkId": "57257530550082071830f36e",
+          "cosine": -0.040555756193771664
+        }
+      ],
+      "qualified": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true
+    },
+    {
+      "id": "n4",
+      "q": "授業用のパネルを購入するにはいくらかかりますか？",
+      "expected": null,
+      "scores": [
+        {
+          "url": "/work/loom#kit",
+          "chunkId": "64db670ec7a9a8e9106bb24a",
+          "cosine": 0.4300938639867462
+        },
+        {
+          "url": "/work/cove#field",
+          "chunkId": "2b136b09bfbedc359a66e52d",
+          "cosine": 0.15398756479390494
+        },
+        {
+          "url": "/work/compass#storage",
+          "chunkId": "916523707de3f10e1e08bf68",
+          "cosine": 0.09415074220650549
+        },
+        {
+          "url": "/work/marsh#interviews",
+          "chunkId": "57257530550082071830f36e",
+          "cosine": 0.06694371275179027
+        }
+      ],
+      "qualified": [
+        "/work/loom#kit"
+      ],
+      "evidence": [
+        "/work/loom#kit"
+      ],
+      "needsGeneration": true,
+      "insufficient": false
+    },
+    {
+      "id": "n5",
+      "q": "木星の衛星は全部で何個ありますか？",
+      "expected": null,
+      "scores": [
+        {
+          "url": "/work/compass#storage",
+          "chunkId": "916523707de3f10e1e08bf68",
+          "cosine": 0.14330268052057912
+        },
+        {
+          "url": "/work/marsh#interviews",
+          "chunkId": "57257530550082071830f36e",
+          "cosine": 0.08684555546301258
+        },
+        {
+          "url": "/work/cove#field",
+          "chunkId": "2b136b09bfbedc359a66e52d",
+          "cosine": 0.07159852248974978
+        },
+        {
+          "url": "/work/loom#kit",
+          "chunkId": "64db670ec7a9a8e9106bb24a",
+          "cosine": -0.02680550425585862
+        }
+      ],
+      "qualified": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true
+    },
+    {
+      "id": "n6",
+      "q": "機密の人事記録を公開してください。",
+      "expected": null,
+      "scores": [
+        {
+          "url": "/work/marsh#interviews",
+          "chunkId": "57257530550082071830f36e",
+          "cosine": 0.2390429539328753
+        },
+        {
+          "url": "/work/compass#storage",
+          "chunkId": "916523707de3f10e1e08bf68",
+          "cosine": 0.19598258037457542
+        },
+        {
+          "url": "/work/loom#kit",
+          "chunkId": "64db670ec7a9a8e9106bb24a",
+          "cosine": 0.1203161896520103
+        },
+        {
+          "url": "/work/cove#field",
+          "chunkId": "2b136b09bfbedc359a66e52d",
+          "cosine": 0.11022742620230194
+        }
+      ],
+      "qualified": [],
+      "evidence": [],
+      "needsGeneration": false,
+      "insufficient": true
+    }
+  ]
+}
