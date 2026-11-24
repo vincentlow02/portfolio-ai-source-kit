@@ -2,10 +2,10 @@
 
 | Check | Result and scope |
 |---|---|
-| Original offline + added tests | `npm run test:offline` passed 60/60 at `5623571` with Node 24, installed Chrome and `--test-concurrency=1`; full existing assertions retained. A parallel attempt failed due to ONNX memory allocation and revealed a Chinese overbroad clarification; the rule was narrowed and the sequential full run passed. |
+| Original offline + added tests | `npm run test:offline` passed 65/65 at `bca2817`, with Node 24, installed Chrome and `--test-concurrency=1`; full existing assertions retained. A parallel attempt failed due to ONNX memory allocation and revealed a Chinese overbroad clarification; the rule was narrowed and the sequential full run passed. |
 | Atlas integration | Passed at `1eeefe6` using mock provider, fixture quota and a D: temporary directory; authorization, privacy, selections, citations, follow-up, cancellation and concurrency were exercised. |
-| Hosted integration | Passed at `437bd50` with default cross-drive temp; rerun at `5623571` passed webpack, excerpt/model, origin and fail-closed quota. |
-| Local registry / two portfolios | Passed at `5623571` via local registry, fresh install, builds, type checks and mock/browser integration in both hosts. Exact remote GitHub installation is separate and remains unverified. |
+| Hosted integration | Passed at `437bd50` with default cross-drive temp; reruns at `5623571`, `9f32942` and `bca2817` passed webpack, excerpt/model, origin and fail-closed quota. |
+| Local registry / two portfolios | Passed at `bca2817` via local registry, fresh install, builds, type checks and mock/browser integration in both hosts, after an intervening failed run. Exact remote GitHub installation is separate and remains unverified. |
 | PostgreSQL | Passed on fresh 16.16 instance; 12 concurrent, 5 accepted/7 rejected; rollback lock test passed. See security report. |
 | Original 100-question benchmark | Aggregate V2 figures preserved after search fallback; per-case JSON retained. |
 | Independent dataset | Frozen initial and fresh cases recorded; several cross-language/comparison misses remain. |
@@ -16,3 +16,7 @@
 System Chrome: `PUPPETEER_EXECUTABLE_PATH=C:\Program Files\Google\Chrome\Application\chrome.exe`. D: temp/cache were necessary because C: ran out of space. The initial bundled Chromium ICU error and cross-drive Hosted fixture error are environment portability findings, not confirmed application failures.
 
 Additional development check: `npx tsx --test scripts/portfolio-chat/comparison-development.test.mts` returned 2 pass / 1 fail. The failing assertion requires both project research passages for a paraphrase that currently retrieves none. The original `test:offline` command remains at 60/60; it does not include this explicitly failing diagnostic. See `docs/v2-1-evaluation/README.md`.
+
+**Follow-up:** the previously failing generic interviewee development case now passes using a strictly scoped explicit-interview supplement; the file now has four passing checks and is included in the offline command. The unrelated specific-subject test remains empty. Earlier failure is retained above as history.
+
+One local-registry run after the interviewee change passed Atlas but the second host's Next build failed while another ONNX test was running; an ONNX allocation error was also observed during that period, but its relationship to the build failure is not established. A subsequent isolated run at `bca2817` passed both hosts.

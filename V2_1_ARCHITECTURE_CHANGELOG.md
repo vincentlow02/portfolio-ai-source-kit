@@ -8,3 +8,7 @@
 - `203bd30`, `dbd3ef6`, `a2dda1d`, `9b0523d`: frozen evaluation data, V2/V2.1 per-case evidence, mock call counts/timings, fresh confirmation cases and quota boundary documentation.
 
 No second model, new external service, API contract change, or unnecessary adapter unification was introduced. Eligibility checks are not semantic proof; see `V2_1_SECURITY_AND_QUOTA_REPORT.md`.
+
+A strictly generic English interviewee question may now include the named projects' public passages that explicitly state past interviews or conversations; specific subjects do not trigger this supplement. See `scripts/portfolio-chat/comparison-development.test.mts`. This development fix does not imply the fresh Japanese and comparison misses were solved.
+
+The `bca2817` source adds a conservative direct negation/action contradiction check. It may reject a valid statement if distinct events share the same verb; it is not a semantic entailment verifier.

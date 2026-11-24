@@ -16,3 +16,5 @@ The first independent holdout was used to investigate a cross-language assembly 
 The documented original Japanese case is `Prism は字幕をどこに保存しますか？`, corpus hash `28c76e7d2f349a4e822abf2e07223f2320d68524b4c2382c357c9d496c60b83e`, expected chunk `ae78b79ec8fe17308264f702`. This machine's rerun of V2 and V2.1 retrieved it; V2 score was 0.53478. The historical report says it missed, but its exact model artifact and raw score are not available, so the reason for the discrepancy is NOT VERIFIED. Do not claim a multilingual model improvement from this case.
 
 The fresh ambiguity case `f5` duplicates an added pronoun regression question, so its 1/1 clarification is not independent evidence. The other fresh cases were not used for tuning.
+
+After the English interviewee and negative-action changes, the frozen sets were rerun for regression at `bca2817`: original benchmark totals are unchanged, and `f2`/`f4` still abstain. Because the fresh-set outputs had been inspected before this rerun, the repeated result is regression evidence, not a new blind estimate. See `original-v2-1-latest.json` and `v2-1-latest.json`.
