@@ -16,3 +16,5 @@ The `bca2817` source adds a conservative direct negation/action contradiction ch
 Commits `dc83718` and `b85b1fe` add narrow multilingual evidence-type checks for explicit cost, salary and manufacturer questions, including selections. This trades some recall for safer handling and does not prove semantic entailment or address unrelated intents.
 
 Commits `a6de258` and `2c52e83` add counted Chinese/Japanese numeral checks and personal-role checks for first-person and selected female pronouns. These are conservative lexical controls, with known coverage and false-rejection limits described in the security report.
+
+`01f3f6c` adds a limited people-count association check; `07299e4` covers equivalent participant terminology. This complements numeric-presence checking but does not validate arbitrary units or facts.
