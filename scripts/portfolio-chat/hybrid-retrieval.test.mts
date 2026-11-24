@@ -294,6 +294,28 @@ test("Japanese testing comparisons preserve participant and method relations acr
   }
 });
 
+test("cross-language participant-count retrieval keeps every original qualifier",async()=>{
+  const fixture=await buildKnowledgeCorpus([
+    {access:"public",format:"rendered",page:{url:"/work/canal",title:"Canal",language:"en",kind:"case-study",projectId:"canal"},sections:[{title:"Field research",anchor:"field",text:"Eight commuters tested the transit panel during an interview session at a railway station."}]},
+    {access:"public",format:"rendered",page:{url:"/work/orbit",title:"Orbit",language:"en",kind:"case-study",projectId:"orbit"},sections:[{title:"Field research",anchor:"field",text:"Six gardeners tested the seed calendar during a workshop in a community garden."}]},
+    {access:"public",format:"rendered",page:{url:"/work/forest",title:"Forest",language:"en",kind:"case-study",projectId:"forest"},sections:[{title:"Field research",anchor:"field",text:"Nine librarians tested the library catalogue at a school."}]},
+  ],"participant-cross-language-development",async()=>{});
+  const prior=[...question("Compare Canal and Orbit"),{role:"assistant" as const,content:"Two projects."}];
+  for(const text of ["両方のプロジェクトは何人で検証されましたか？","両方のプロジェクトの検証に参加した人は何人ですか？"]){
+    const result=await prepareAnswer({corpus:fixture,messages:[...prior,...question(text)],language:"ja",config:{ownerName:"Example"}});
+    assert.equal(result.answer,null,text);
+    assert.deepEqual(new Set(result.pack.entries.map(entry=>entry.chunk.sourceUrl)),new Set(["/work/canal#field","/work/orbit#field"]),text);
+  }
+  for(const text of ["両方のプロジェクトの火星での検証に参加した人は何人ですか？","両方のプロジェクトで検証した潜水艦の参加者は何人ですか？","両方のプロジェクトは何人で検証されませんでしたか？"]){
+    let reservations=0;
+    const model=createModelReply(fixture,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
+    const messages=[...prior,...question(text)];
+    assert.deepEqual((await model(messages,"ja",undefined,{reserve:async()=>{reservations++;return false;}})).sources,[],text);
+    assert.equal(reservations,0,text);
+    assert.deepEqual((await excerptReply(fixture,messages,"ja")).sources,[],text);
+  }
+});
+
 test("the default retrieves an approved English excerpt for a Chinese question", async () => {
   const reply = await excerptReply(corpus, question("哪里可以用望远镜观察夜空？"), "zh");
   assert.equal(reply.answer, observatory);

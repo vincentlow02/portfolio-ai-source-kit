@@ -139,15 +139,16 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
       retrieval = await retrieveEvidence(corpus, [{role:"user",content:stripped}], config, timing, projects);
     }
   }
-  // Japanese verification and testing are common paraphrases. If a carried
-  // comparison has no qualified evidence, retry once with only this synonym
-  // substituted, preserving every other query word, project scope and score
-  // threshold. The original query still governs evidence eligibility below.
+  // Retain the full original participant-count question alongside a small
+  // cross-language hint. Other Japanese verification questions use the
+  // existing testing synonym; the original query still governs eligibility.
+  const japaneseComparisonAlternative = /(?:何人|几人|幾人|多少人)/u.test(query)
+    ? query + " testing participants"
+    : query.replace(/検証/gu,"テスト");
   let japaneseComparisonRetryUsed = false;
   if (!retrieval.qualifiedMatches.length && resolved.carryComparison && !ambiguousTopic &&
       !tooManyComparisonProjects && !tooManyComparisonTerms && !selectedChunk && /検証/u.test(query)) {
-    const alternative=query.replace(/検証/gu,"テスト");
-    retrieval=await retrieveEvidence(corpus,[{role:"user",content:alternative}],config,timing,projects);
+    retrieval=await retrieveEvidence(corpus,[{role:"user",content:japaneseComparisonAlternative}],config,timing,projects);
     japaneseComparisonRetryUsed = true;
   }
   const overview = overviewQuestion.test(query) && !presentationQuestion.test(query);
@@ -164,8 +165,7 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   if (!japaneseComparisonRetryUsed && resolved.carryComparison && !ambiguousTopic &&
       !tooManyComparisonProjects && !tooManyComparisonTerms && !selectedChunk && /検証/u.test(query) &&
       projects.some(id => !coveredProjects.has(id))) {
-    const alternative=query.replace(/検証/gu,"テスト");
-    const retry=await retrieveEvidence(corpus,[{role:"user",content:alternative}],config,timing,projects);
+    const retry=await retrieveEvidence(corpus,[{role:"user",content:japaneseComparisonAlternative}],config,timing,projects);
     for (const chunk of retry.qualifiedMatches) {
       if (!chunk.projectId || coveredProjects.has(chunk.projectId) || !eligible.includes(chunk)) continue;
       retrieval.qualifiedMatches.push(chunk);
