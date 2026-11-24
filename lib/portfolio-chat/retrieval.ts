@@ -85,6 +85,7 @@ export function comparisonTopicMatcher(query: string): (source: string) => boole
   const queryText=query.normalize("NFKC").toLocaleLowerCase()
     .replace(/\b(?:the|these|those) two projects?\b/gu,"both projects")
     .replace(/(?:这|這)?(?:两个|兩個|两项|兩項)(?:项目|項目|專案)/gu,"项目");
+  const asksTestingPurpose=/\bwhat\b[^?]{0,100}\btest(?:ed|ing)?\s+for\b/iu.test(queryText);
   const language=/[\u3040-\u30ff]/u.test(queryText)?"ja":/[\u3400-\u9fff]/u.test(queryText)?"zh":"en";
   const terms=[...new Intl.Segmenter(language,{granularity:"word"}).segment(queryText)]
     .filter(part=>part.isWordLike).map(part=>part.segment).filter(term=>!stop.has(term));
@@ -93,7 +94,7 @@ export function comparisonTopicMatcher(query: string): (source: string) => boole
     // Avoid combining anchors across clearly distinct clauses. This still
     // does not establish a semantic relationship within one clause.
     const sentences=sourceBody.split(/(?<=[。！？])|(?<=[.!?])\s+|\n+|[;；]|\b(?:and|or|but|however|whereas|although|while)\b|但是|然而|一方|ただし/iu).filter(Boolean);
-    return sentences.some(sentence=>terms.every(term=>{
+    return sentences.some(sentence=>(!asksTestingPurpose || /\btest(?:ed|ing)?\s+for\b/iu.test(sentence)) && terms.every(term=>{
     if(testWords.has(term)) return /\b(?:test(?:s|ed|ing)?|validat(?:e|ed|ion|ing)|evaluat(?:e|ed|ion|ing))\b|验证|驗證|测试|測試|検証|テスト/iu.test(sentence);
     if(locationWords.has(term)) return /\b(?:location|venue|located|site)\b|地点|地點|場所|位于|位於/iu.test(sentence);
     if(timeWords.has(term)) return /\b(?:19|20)\d{2}\b|\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\b|\d{2,4}年/iu.test(sentence);
