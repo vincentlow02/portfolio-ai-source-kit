@@ -1,0 +1,158 @@
+{
+  "corpusHash": "08355d3c67b6b466af17ba4b189f76dc55c668026db20a1610a5d37ff84afe21",
+  "rows": [
+    {
+      "id": "p1",
+      "prior": "Compare Aurora and Pine",
+      "q": "Testing",
+      "kind": "supported",
+      "projects": [
+        "aurora",
+        "pine"
+      ],
+      "evidence": [
+        {
+          "url": "/work/aurora#research",
+          "id": "0f653c264e15eff8d0ad2ad2"
+        },
+        {
+          "url": "/work/pine#research",
+          "id": "a8cc9aaf391589381012580a"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/aurora#research",
+        "/work/pine#research"
+      ],
+      "elapsedMs": 1146.0414999999998
+    },
+    {
+      "id": "p2",
+      "prior": "Compare Aurora and Pine",
+      "q": "Test?",
+      "kind": "supported",
+      "projects": [
+        "aurora",
+        "pine"
+      ],
+      "evidence": [
+        {
+          "url": "/work/aurora#research",
+          "id": "0f653c264e15eff8d0ad2ad2"
+        },
+        {
+          "url": "/work/pine#research",
+          "id": "a8cc9aaf391589381012580a"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/aurora#research",
+        "/work/pine#research"
+      ],
+      "elapsedMs": 14.22019999999975
+    },
+    {
+      "id": "p3",
+      "prior": "Compare Aurora and Larch",
+      "q": "Testing.",
+      "kind": "supported",
+      "projects": [
+        "aurora",
+        "larch"
+      ],
+      "evidence": [
+        {
+          "url": "/work/aurora#research",
+          "id": "0f653c264e15eff8d0ad2ad2"
+        },
+        {
+          "url": "/work/larch#study",
+          "id": "19b149a1fe25c76d3b7b7db8"
+        }
+      ],
+      "needsGeneration": true,
+      "excerptSources": [
+        "/work/aurora#research",
+        "/work/larch#study"
+      ],
+      "elapsedMs": 8.201900000000023
+    },
+    {
+      "id": "n1",
+      "prior": "Compare Aurora and Pine",
+      "q": "Testing on Mars",
+      "kind": "unknown-place",
+      "projects": [
+        "aurora",
+        "pine"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 10.001099999999951
+    },
+    {
+      "id": "n2",
+      "prior": "Compare Aurora and Pine",
+      "q": "Testing participant names",
+      "kind": "unknown-names",
+      "projects": [
+        "aurora",
+        "pine"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 10.589500000000044
+    },
+    {
+      "id": "n3",
+      "prior": "Compare Pearl and Cove",
+      "q": "Testing",
+      "kind": "planned-negated",
+      "projects": [
+        "cove",
+        "pearl"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 7.29910000000018
+    },
+    {
+      "id": "n4",
+      "prior": "Compare Aurora and Pine",
+      "q": "Testing submarines",
+      "kind": "unknown-subject",
+      "projects": [
+        "aurora",
+        "pine"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 10.871200000000044
+    },
+    {
+      "id": "n5",
+      "prior": "Compare Aurora and Pearl",
+      "q": "Testing",
+      "kind": "one-sided",
+      "projects": [
+        "aurora",
+        "pearl"
+      ],
+      "evidence": [
+        {
+          "url": "/work/aurora#research",
+          "id": "0f653c264e15eff8d0ad2ad2"
+        }
+      ],
+      "needsGeneration": false,
+      "excerptSources": [],
+      "elapsedMs": 7.237099999999828
+    }
+  ]
+}

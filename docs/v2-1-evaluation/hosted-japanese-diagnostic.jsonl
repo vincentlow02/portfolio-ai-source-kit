@@ -1,0 +1,34 @@
+{"q":"両方のプロジェクトはどう検証されましたか？","qualified":["/work/spruce#research"],"scores":[["b08d64bf1e6ce299b07be9f5",0.38536991747794364]]}
+{"q":"両方のプロジェクトはどうテストされましたか？","qualified":["/work/spruce#research"],"scores":[["b08d64bf1e6ce299b07be9f5",0.47200175521632515]]}
+{"q":"両方のプロジェクトはどう検証されましたか？ testing","qualified":["/work/spruce#research"],"scores":[["b08d64bf1e6ce299b07be9f5",0.4988217906630138]]}
+{
+  "projects": [
+    "lantern",
+    "spruce"
+  ],
+  "entries": [
+    "/work/lantern#research",
+    "/work/spruce#research"
+  ],
+  "reply": {
+    "answer": "Lantern: The Lantern team tested tactile signs at six libraries.\n\nSpruce: The Spruce team tested paper maps with five volunteers.",
+    "sources": [
+      {
+        "id": "6223d1e2185ddf2fa7b2a35e",
+        "title": "Lantern",
+        "section": "Research",
+        "url": "/work/lantern#research",
+        "projectId": "lantern"
+      },
+      {
+        "id": "b08d64bf1e6ce299b07be9f5",
+        "title": "Spruce",
+        "section": "Research",
+        "url": "/work/spruce#research",
+        "projectId": "spruce"
+      }
+    ],
+    "recommendations": [],
+    "followUpQuestions": []
+  }
+}
