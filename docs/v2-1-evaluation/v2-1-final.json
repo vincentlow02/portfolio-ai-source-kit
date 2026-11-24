@@ -16,6 +16,14 @@
       "irrelevantEvidenceRatio": 0.5555555555555556,
       "unsupportedAbstention": 1,
       "contextClarification": 1
+    },
+    {
+      "split": "fresh",
+      "recallAt5": 0.5,
+      "evidenceCoverage": 0.5,
+      "irrelevantEvidenceRatio": 0.3333333333333333,
+      "unsupportedAbstention": 1,
+      "contextClarification": 1
     }
   ],
   "rows": [
@@ -44,12 +52,12 @@
       "needsGeneration": true,
       "modelCalls": 1,
       "generationError": null,
-      "answerPathMs": 119.42009999999982,
+      "answerPathMs": 112.69669999999996,
       "recall": 1,
       "coverage": 1,
       "irrelevant": 0,
-      "retrievalMs": 1498.2814999999998,
-      "preparationMs": 18.127399999999852
+      "retrievalMs": 1512.6505,
+      "preparationMs": 21.516399999999976
     },
     {
       "id": "d2",
@@ -74,12 +82,12 @@
       "needsGeneration": true,
       "modelCalls": 1,
       "generationError": null,
-      "answerPathMs": 21.26850000000013,
+      "answerPathMs": 21.59840000000031,
       "recall": 0,
       "coverage": 1,
       "irrelevant": 0,
-      "retrievalMs": 11.019800000000032,
-      "preparationMs": 17.51180000000022
+      "retrievalMs": 11.099800000000414,
+      "preparationMs": 18.700900000000274
     },
     {
       "id": "d3",
@@ -102,12 +110,12 @@
       "needsGeneration": false,
       "modelCalls": 0,
       "generationError": null,
-      "answerPathMs": 20.80580000000009,
+      "answerPathMs": 19.683500000000095,
       "recall": 0,
       "coverage": 0,
       "irrelevant": 0,
-      "retrievalMs": 8.260899999999765,
-      "preparationMs": 19.945400000000063
+      "retrievalMs": 6.169300000000021,
+      "preparationMs": 18.816200000000208
     },
     {
       "id": "d4",
@@ -131,12 +139,12 @@
       "needsGeneration": false,
       "modelCalls": 0,
       "generationError": null,
-      "answerPathMs": 22.53839999999991,
+      "answerPathMs": 22.03359999999975,
       "recall": 0,
       "coverage": 0,
       "irrelevant": 0,
-      "retrievalMs": 10.460900000000038,
-      "preparationMs": 21.61850000000004
+      "retrievalMs": 9.91879999999992,
+      "preparationMs": 20.87609999999995
     },
     {
       "id": "d5",
@@ -157,12 +165,12 @@
       "needsGeneration": false,
       "modelCalls": 0,
       "generationError": null,
-      "answerPathMs": 10.584199999999782,
+      "answerPathMs": 10.77099999999973,
       "recall": null,
       "coverage": null,
       "irrelevant": 0,
-      "retrievalMs": 8.559899999999743,
-      "preparationMs": 9.747699999999895
+      "retrievalMs": 8.255400000000009,
+      "preparationMs": 9.709799999999632
     },
     {
       "id": "d6",
@@ -187,12 +195,12 @@
       "needsGeneration": false,
       "modelCalls": 0,
       "generationError": null,
-      "answerPathMs": 7.043999999999869,
+      "answerPathMs": 6.748999999999796,
       "recall": null,
       "coverage": null,
       "irrelevant": 1,
-      "retrievalMs": 6.4483000000000175,
-      "preparationMs": 5.9374000000002525
+      "retrievalMs": 6.700600000000122,
+      "preparationMs": 5.869900000000143
     },
     {
       "id": "h1",
@@ -219,12 +227,12 @@
       "needsGeneration": true,
       "modelCalls": 1,
       "generationError": null,
-      "answerPathMs": 9.302699999999732,
+      "answerPathMs": 10.795900000000074,
       "recall": 1,
       "coverage": 1,
       "irrelevant": 0,
-      "retrievalMs": 7.765400000000227,
-      "preparationMs": 6.23090000000002
+      "retrievalMs": 7.75649999999996,
+      "preparationMs": 7.221700000000055
     },
     {
       "id": "h2",
@@ -251,12 +259,12 @@
       "needsGeneration": true,
       "modelCalls": 1,
       "generationError": null,
-      "answerPathMs": 16.868999999999687,
+      "answerPathMs": 23.328100000000177,
       "recall": 1,
       "coverage": 1,
       "irrelevant": 0,
-      "retrievalMs": 8.422000000000025,
-      "preparationMs": 14.447599999999966
+      "retrievalMs": 9.115099999999984,
+      "preparationMs": 19.78819999999996
     },
     {
       "id": "h3",
@@ -291,12 +299,12 @@
       "needsGeneration": true,
       "modelCalls": 1,
       "generationError": null,
-      "answerPathMs": 10.975599999999758,
+      "answerPathMs": 14.198300000000017,
       "recall": 1,
       "coverage": 1,
       "irrelevant": 4,
-      "retrievalMs": 7.729200000000219,
-      "preparationMs": 8.305699999999888
+      "retrievalMs": 11.315299999999752,
+      "preparationMs": 10.290300000000116
     },
     {
       "id": "h4",
@@ -331,12 +339,12 @@
       "needsGeneration": true,
       "modelCalls": 1,
       "generationError": null,
-      "answerPathMs": 9.327999999999975,
+      "answerPathMs": 11.642100000000028,
       "recall": 1,
       "coverage": 1,
       "irrelevant": 0,
-      "retrievalMs": 4.9158000000002176,
-      "preparationMs": 6.861599999999726
+      "retrievalMs": 6.817199999999957,
+      "preparationMs": 8.48090000000002
     },
     {
       "id": "h5",
@@ -369,12 +377,12 @@
       "needsGeneration": false,
       "modelCalls": 0,
       "generationError": null,
-      "answerPathMs": 4.690599999999904,
+      "answerPathMs": 6.627899999999954,
       "recall": null,
       "coverage": null,
       "irrelevant": 1,
-      "retrievalMs": 4.032100000000355,
-      "preparationMs": 4.1896999999999025
+      "retrievalMs": 6.15059999999994,
+      "preparationMs": 5.996999999999844
     },
     {
       "id": "h6",
@@ -395,12 +403,187 @@
       "needsGeneration": false,
       "modelCalls": 0,
       "generationError": null,
-      "answerPathMs": 5.571300000000065,
+      "answerPathMs": 9.292999999999665,
       "recall": null,
       "coverage": null,
       "irrelevant": 0,
-      "retrievalMs": 5.279100000000199,
-      "preparationMs": 5.110400000000027
+      "retrievalMs": 8.203499999999622,
+      "preparationMs": 8.61999999999989
+    },
+    {
+      "id": "f1",
+      "split": "fresh",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How can visitors choose using touch?"
+        }
+      ],
+      "expected": [
+        "/work/cairn#design"
+      ],
+      "language": "en",
+      "kind": "supported",
+      "top": [
+        "/work/cairn#design"
+      ],
+      "evidence": [
+        "/work/cairn#design"
+      ],
+      "clarification": false,
+      "insufficient": false,
+      "needsGeneration": true,
+      "modelCalls": 1,
+      "generationError": null,
+      "answerPathMs": 8.859500000000025,
+      "recall": 1,
+      "coverage": 1,
+      "irrelevant": 0,
+      "retrievalMs": 7.37079999999969,
+      "preparationMs": 6.377800000000207
+    },
+    {
+      "id": "f2",
+      "split": "fresh",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Fern の教材は並べ替え可能ですか？"
+        }
+      ],
+      "expected": [
+        "/work/fern#outcome"
+      ],
+      "language": "ja",
+      "kind": "supported",
+      "top": [],
+      "evidence": [],
+      "clarification": false,
+      "insufficient": true,
+      "needsGeneration": false,
+      "modelCalls": 0,
+      "generationError": null,
+      "answerPathMs": 12.596599999999853,
+      "recall": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "retrievalMs": 5.461800000000039,
+      "preparationMs": 12.086499999999887
+    },
+    {
+      "id": "f3",
+      "split": "fresh",
+      "messages": [
+        {
+          "role": "user",
+          "content": "观察过多少个火车站的自行车停放情况？"
+        }
+      ],
+      "expected": [
+        "/work/tide#study"
+      ],
+      "language": "zh",
+      "kind": "supported",
+      "top": [
+        "/work/tide#study",
+        "/work/tide#evaluation"
+      ],
+      "evidence": [
+        "/work/tide#study",
+        "/work/tide#evaluation"
+      ],
+      "clarification": false,
+      "insufficient": false,
+      "needsGeneration": true,
+      "modelCalls": 1,
+      "generationError": null,
+      "answerPathMs": 10.173800000000028,
+      "recall": 1,
+      "coverage": 1,
+      "irrelevant": 1,
+      "retrievalMs": 5.735299999999825,
+      "preparationMs": 7.591400000000249
+    },
+    {
+      "id": "f4",
+      "split": "fresh",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Compare Mosaic and Fern participants."
+        }
+      ],
+      "expected": [
+        "/work/mosaic#discovery",
+        "/work/fern#research"
+      ],
+      "language": "en",
+      "kind": "supported",
+      "top": [],
+      "evidence": [],
+      "clarification": false,
+      "insufficient": true,
+      "needsGeneration": false,
+      "modelCalls": 0,
+      "generationError": null,
+      "answerPathMs": 13.331900000000132,
+      "recall": 0,
+      "coverage": 0,
+      "irrelevant": 0,
+      "retrievalMs": 7.561699999999746,
+      "preparationMs": 12.778900000000249
+    },
+    {
+      "id": "f5",
+      "split": "fresh",
+      "messages": [
+        {
+          "role": "user",
+          "content": "它有什么功能？"
+        }
+      ],
+      "expected": [],
+      "language": "zh",
+      "kind": "ambiguous",
+      "top": [],
+      "evidence": [],
+      "clarification": true,
+      "insufficient": true,
+      "needsGeneration": false,
+      "modelCalls": 0,
+      "generationError": null,
+      "answerPathMs": 4.735299999999825,
+      "recall": null,
+      "coverage": null,
+      "irrelevant": 0,
+      "retrievalMs": 3.9789999999998145,
+      "preparationMs": 4.064899999999852
+    },
+    {
+      "id": "f6",
+      "split": "fresh",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Who won the 1904 marathon?"
+        }
+      ],
+      "expected": [],
+      "language": "en",
+      "kind": "unsupported",
+      "top": [],
+      "evidence": [],
+      "clarification": false,
+      "insufficient": true,
+      "needsGeneration": false,
+      "modelCalls": 0,
+      "generationError": null,
+      "answerPathMs": 4.53020000000015,
+      "recall": null,
+      "coverage": null,
+      "irrelevant": 0,
+      "retrievalMs": 4.0284999999998945,
+      "preparationMs": 4.015200000000277
     }
   ]
 }
