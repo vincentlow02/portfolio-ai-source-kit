@@ -1,6 +1,6 @@
 import type { PortfolioChunk, PortfolioCorpus } from "../portfolio-knowledge";
 import { resolveRecommendations, validateAnswer, type B2Intent, type ChatMessage } from "./core";
-import { comparisonQuestion, isSubstantivePassage, removeProjectLabels, resolveContext, resolveProjects, retrieveEvidence, sourceMatchesSpecificIntent, validationFollowUp, type RetrievalPhase, type RetrievalResult } from "./retrieval";
+import { comparisonQuestion, comparisonTopicMatcher, isSubstantivePassage, removeProjectLabels, resolveContext, resolveProjects, retrieveEvidence, sourceMatchesSpecificIntent, validationFollowUp, type RetrievalPhase, type RetrievalResult } from "./retrieval";
 import { languageInstruction, type ResponseLanguage } from "./language";
 import { audienceStatement, hasEnglishEvidenceAnchor, personalRoleLabel } from "./grounding";
 import { defaultPortfolioChatConfig, projectPath, replaceOwnerMentions, sourcePath as pathnameOf, isInternalSource, type PortfolioChatConfig } from "./engine-config";
@@ -92,7 +92,7 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   const ownerQuery = replaceOwnerMentions(query, config);
   const resolved = resolveContext(messages, corpus, config);
   const explicit = resolved.explicit;
-  const comparison = comparisonQuestion.test(query);
+  const comparison = comparisonQuestion.test(query) || resolved.carryComparison;
   const topic = requestedTopic(query);
   const topicQualified = topic !== null || /\bprojects?\s+(?:focused on|related to|about|involving|using|with|for)\b|(?:项目|專案|作品|プロジェクト).{0,20}(?:关于|涉及|聚焦|有关|関連|について|を使)/iu.test(query);
   const hasCatalog = Boolean(config.projectDirectoryPath || corpus.caseStudies.length);
@@ -138,10 +138,11 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   const retrievalDuration = timing ? performance.now() - retrievalStarted : 0;
   timing?.("retrieval", retrievalDuration);
   const overview = overviewQuestion.test(query) && !presentationQuestion.test(query);
+  const matchesComparisonTopic = resolved.carryComparison ? comparisonTopicMatcher(query) : undefined;
   const eligible = corpus.chunks.filter(c => {
     const sourcePath = pathnameOf(c.sourceUrl);
-    return c.accessLevel === "public" && isSubstantivePassage(c) && corpus.pages.some(p => p.url === c.sourceUrl.split("#")[0]) &&
-      (!projects.length || projects.includes(c.projectId ?? "")) && (!overview || !presentationSection.test(c.sectionTitle)) &&
+    return c.accessLevel === "public" && (!projects.length || projects.includes(c.projectId ?? "")) && isSubstantivePassage(c) && (!matchesComparisonTopic || matchesComparisonTopic(c.content)) && corpus.pages.some(p => p.url === c.sourceUrl.split("#")[0]) &&
+      (!overview || !presentationSection.test(c.sectionTitle)) &&
       (intent !== "PERSONAL_OVERVIEW" || sourcePath === config.profilePath || allowProjectEvidence && c.projectId !== null && (sourcePath === projectPath(corpus, config, c.projectId, c.language) || sourcePath === config.publicOverviewPath));
   });
   const ranked = retrieval.qualifiedMatches.filter(chunk => eligible.includes(chunk));

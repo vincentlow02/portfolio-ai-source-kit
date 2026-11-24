@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
 import { buildB2Pack, parsePageContext, validateB2 } from "../../lib/portfolio-chat/b2";
-import { createEvidenceRetriever, resolveContext } from "../../lib/portfolio-chat/retrieval";
+import { comparisonTopicMatcher, createEvidenceRetriever, resolveContext } from "../../lib/portfolio-chat/retrieval";
 import { createModelReply, excerptReply, validateWidgetQuestion } from "../../lib/portfolio-chat/source-reply";
 import { prepareAnswer } from "../../lib/portfolio-chat/answer-engine";
 import { verifySelection } from "../../lib/portfolio-chat/selection";
@@ -52,6 +52,63 @@ test("clarification avoids reservation and respects explicit history and verifie
   assert.equal(resolveContext(question("List all projects"), projects).ambiguous, false);
   assert.equal(resolveContext(question("Tell me about Alpha"), projects).ambiguous, false);
   assert.equal(resolveContext(question("这个原型用了什么材料？"), projects).ambiguous, false);
+});
+
+test("explicit plural follow-ups retain both compared projects without resolving singular references", async () => {
+  const projects = await buildKnowledgeCorpus([
+    {access:"public",format:"rendered",page:{url:"/work/alpha",title:"Alpha",language:"en",kind:"case-study",projectId:"alpha"},sections:[{title:"Research",anchor:"research",text:"Alpha researchers tested the prototype with six volunteers."}]},
+    {access:"public",format:"rendered",page:{url:"/work/beta",title:"Beta",language:"en",kind:"case-study",projectId:"beta"},sections:[{title:"Research",anchor:"research",text:"Beta researchers tested the prototype with five gardeners."}]},
+    {access:"public",format:"rendered",page:{url:"/work/gamma",title:"Gamma",language:"en",kind:"case-study",projectId:"gamma"},sections:[{title:"Research",anchor:"research",text:"Gamma researchers tested an unrelated classroom tool."}]},
+  ],"plural-comparison-context",async()=>{});
+  const prior=[...question("Compare Alpha and Beta"),{role:"assistant" as const,content:"They are different projects."}];
+  for(const [text,language] of [["How were both projects tested?","en"],["这两个项目分别如何测试？","zh"],["両方のプロジェクトはどう検証しましたか？","ja"]] as const){
+    const messages=[...prior,...question(text)];
+    const context=resolveContext(messages,projects);
+    assert.deepEqual(new Set(context.projects),new Set(["alpha","beta"]),text);
+    assert.equal(context.ambiguous,false,text);
+    const pack=await buildB2Pack(projects,messages,null,language);
+    assert.equal(pack.intent,"COMPARISON",text);
+    assert.deepEqual(new Set(pack.entries.map(entry=>entry.chunk.projectId)),new Set(["alpha","beta"]),text);
+    assert.equal((await prepareAnswer({corpus:projects,messages,language})).answer,null,text);
+    const excerpt=await excerptReply(projects,messages,language);
+    assert.deepEqual(new Set(excerpt.sources.map(source=>source.projectId)),new Set(["alpha","beta"]),text);
+    assert.match(excerpt.answer,/alpha:/iu,text);
+    assert.match(excerpt.answer,/beta:/iu,text);
+  }
+  const singular=[...prior,...question("How was it tested?")];
+  assert.equal(resolveContext(singular,projects).ambiguous,true);
+  const mixed=[...prior,...question("Compare both projects and explain how it was tested.")];
+  assert.equal(resolveContext(mixed,projects).ambiguous,true);
+  for(const text of ["Which of both projects tested with gardeners?","这两个项目哪个用了纸？","両方のプロジェクトのどちらを先に作りましたか？"]){
+    assert.equal(resolveContext([...prior,...question(text)],projects).carryComparison,false,text);
+  }
+  const missing=[...question("How were both projects tested?")];
+  assert.deepEqual(resolveContext(missing,projects).projects,[]);
+  const model=createModelReply(projects,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
+  let reservations=0;
+  const reply=await model([...prior,...question("What about both projects' submarine fuel capacity?")],"en",undefined,{reserve:async()=>{reservations++;return false;}});
+  assert.deepEqual(reply.sources,[]);
+  assert.equal(reservations,0);
+  assert.deepEqual((await excerptReply(projects,[...prior,...question("What about both projects' submarine fuel capacity?")],"en")).sources,[]);
+  const oneSided=await buildKnowledgeCorpus([
+    {access:"public",format:"rendered",page:{url:"/work/alpha",title:"Alpha",language:"en",kind:"case-study",projectId:"alpha"},sections:[{title:"Materials",anchor:"materials",text:"The Alpha prototype is made from cardboard and wood."}]},
+    {access:"public",format:"rendered",page:{url:"/work/beta",title:"Beta",language:"en",kind:"case-study",projectId:"beta"},sections:[{title:"Overview",anchor:"overview",text:"Beta is a calendar for local community events."}]},
+  ],"plural-one-sided",async()=>{});
+  const oneSidedHistory=[...prior,...question("What materials did both projects use?")];
+  assert.deepEqual((await excerptReply(oneSided,oneSidedHistory,"en")).sources,[]);
+  const oneSidedModel=createModelReply(oneSided,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
+  let oneSidedReservations=0;
+  assert.deepEqual((await oneSidedModel(oneSidedHistory,"en",undefined,{reserve:async()=>{oneSidedReservations++;return false;}})).sources,[]);
+  assert.equal(oneSidedReservations,0);
+});
+
+test("comparison topic checks use source body and retain explicit attributes",()=>{
+  assert.equal(comparisonTopicMatcher("How were both projects tested?")("Testing\nThe prototype was tested with volunteers."),true);
+  assert.equal(comparisonTopicMatcher("How were both projects tested in 2021?")("Testing\nThe prototype was tested with volunteers in 2022."),false);
+  assert.equal(comparisonTopicMatcher("Where were both projects tested?")("Testing\nThe prototype was tested with volunteers in 2022."),false);
+  assert.equal(comparisonTopicMatcher("What materials did both projects use?")("Materials\nThe calendar schedules community events."),false);
+  assert.equal(comparisonTopicMatcher("这两个项目分别如何测试地点？")("Testing\nThe prototype was tested with volunteers."),false);
+  assert.equal(comparisonTopicMatcher("両方のプロジェクトの参加者の名前は？")("Testing\nResearchers tested the prototype with volunteers."),false);
 });
 
 test("the default retrieves an approved English excerpt for a Chinese question", async () => {

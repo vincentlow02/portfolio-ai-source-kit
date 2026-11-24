@@ -1,5 +1,5 @@
 import type { PortfolioCorpus } from "../portfolio-knowledge";
-import { parsePageContext } from "./b2";
+import { buildB2Pack, parsePageContext } from "./b2";
 import { generateAnswer, prepareAnswer } from "./answer-engine";
 import { validateAnswer, validateMessages, type ChatMessage } from "./core";
 import { resolveGuardianReply } from "./guardian";
@@ -57,7 +57,19 @@ export function createModelReply(corpus: PortfolioCorpus, env: NodeJS.ProcessEnv
 export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessage[], language: ResponseLanguage, quote?: VerifiedQuote) {
   const guardian = resolveGuardianReply(messages.at(-1)!.content, language);
   if (guardian) return { answer: guardian.answer, sources: [], recommendations: [] };
-  if (!quote && resolveContext(messages, corpus).ambiguous) return { answer: { en: "Which project do you mean?", zh: "你指的是哪个项目？", ja: "どのプロジェクトについてですか？" }[language], sources: [], recommendations: [] };
+  const context = !quote ? resolveContext(messages, corpus) : undefined;
+  if (context?.ambiguous) return { answer: { en: "Which project do you mean?", zh: "你指的是哪个项目？", ja: "どのプロジェクトについてですか？" }[language], sources: [], recommendations: [] };
+  // A plural comparison must not be answered with only one project's excerpt.
+  // Assemble a bounded public passage for each subject or return insufficient.
+  if (context?.carryComparison) {
+    if (context.projects.length > 18) return validateAnswer({language,insufficient:true,answer:"",sourceIds:[],recommendedProjectIds:[]},corpus);
+    const pack = await buildB2Pack(corpus, messages, null, language, undefined, undefined, undefined, true);
+    const matches = context.projects.map(id => pack.entries.find(entry => entry.chunk.projectId === id)?.chunk);
+    if (matches.some(chunk => !chunk)) return validateAnswer({language,insufficient:true,answer:"",sourceIds:[],recommendedProjectIds:[]},corpus);
+    const chunks = matches.filter((chunk): chunk is NonNullable<typeof chunk> => Boolean(chunk));
+    const result = validateAnswer({language,insufficient:false,answer:"Matching portfolio passages.",sourceIds:chunks.map(chunk=>chunk.chunkId),recommendedProjectIds:[]},corpus);
+    return {...result,answer:chunks.map(chunk=>`${chunk.projectId}: ${chunk.content.slice(chunk.content.indexOf("\n")+1)}`).join("\n\n"),followUpQuestions:[]};
+  }
   const retrieval = quote ? undefined : await retrieveEvidence(corpus, messages);
   const match = quote && sourceMatchesSpecificIntent(messages.at(-1)!.content, quote.chunk.content) ? quote.chunk : quote ? undefined : retrieval?.chunks[0];
   const result = validateAnswer({

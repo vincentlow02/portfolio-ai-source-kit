@@ -63,7 +63,45 @@ function names(text: string, corpus: PortfolioCorpus, config: PortfolioChatConfi
 }
 
 function isContextualFollowUp(query: string) {
-  return reference.test(query) || validationFollowUp.test(query.trim()) || /\b(?:how (?:did|was|were) (?:the team|they|he|she|that)|why (?:did|was|were) (?:they|he|she|that)|(?:validate|test|design|choose) that|what about|tell me more)\b|为什么(?:这么做|这样做)|それはなぜ|(?:团队|他们).{0,10}(?:如何验证|如何测试)|どうやって(?:検証|テスト)/iu.test(query);
+  return reference.test(query) || pluralProjectReference(query) || validationFollowUp.test(query.trim()) || /\b(?:how (?:did|was|were) (?:the team|they|he|she|that)|why (?:did|was|were) (?:they|he|she|that)|(?:validate|test|design|choose) that|what about|tell me more)\b|为什么(?:这么做|这样做)|それはなぜ|(?:团队|他们).{0,10}(?:如何验证|如何测试)|どうやって(?:検証|テスト)/iu.test(query);
+}
+
+// Only an explicit plural reference may carry all subjects of an earlier
+// comparison. Singular "it" remains ambiguous after multiple projects.
+function pluralProjectReference(query: string) {
+  return /\b(?:both projects?|both of (?:the )?projects?|both of them|(?:the|these|those) two projects?|their (?:research|stud(?:y|ies)|tests?|testing|designs?|roles?|participants?|projects?))\b|(?:两个|兩個|两项|兩項)(?:项目|項目|專案)|(?:两者|兩者)(?:的|分别|分別)|(?:両方|両者|それぞれ)の(?:プロジェクト|作品)/iu.test(query);
+}
+
+// A carried multi-project comparison must keep every explicit topic word in
+// each source body. Unknown terms are matched literally; a small multilingual
+// map covers common testing vocabulary. This is conservative, not entailment.
+export function comparisonTopicMatcher(query: string): (source: string) => boolean {
+  const stop = new Set(["what","how","were","was","are","is","did","do","does","both","the","these","those","two","projects","project","of","them","they","their","about","and","or","in","on","for","with","each","respectively","这","這","两","兩","个","個","项","項","项目","項目","專案","两者","兩者","分别","分別","的","如何","怎么","怎麼","什么","什麼","両方","両者","それぞれ","プロジェクト","作品","の","は","が","を","に","どう","どの","よう","し","しま","まし","した","です","ます","か"]);
+  const testWords = new Set(["test","tests","tested","testing","validate","validated","validation","验证","驗證","测试","測試","検証","テスト"]);
+  const locationWords = new Set(["where","哪里","哪裡","何处","何處","地点","地點","どこ","場所"]);
+  const timeWords = new Set(["when","何时","何時","何年","什么时候","什麼時候","いつ"]);
+  const personWords = new Set(["who","谁","誰"]);
+  const reasonWords = new Set(["why","为什么","為什麼","为何","為何","なぜ"]);
+  const queryText=query.normalize("NFKC").toLocaleLowerCase();
+  const language=/[\u3040-\u30ff]/u.test(queryText)?"ja":/[\u3400-\u9fff]/u.test(queryText)?"zh":"en";
+  const terms=[...new Intl.Segmenter(language,{granularity:"word"}).segment(queryText)]
+    .filter(part=>part.isWordLike).map(part=>part.segment).filter(term=>!stop.has(term));
+  return source=>{
+    const sourceBody=source.normalize("NFKC").toLocaleLowerCase().split("\n").slice(1).join("\n");
+    return terms.every(term=>{
+    if(testWords.has(term)) return /\b(?:test(?:s|ed|ing)?|validat(?:e|ed|ion|ing)|evaluat(?:e|ed|ion|ing))\b|验证|驗證|测试|測試|検証|テスト/iu.test(sourceBody);
+    if(locationWords.has(term)) return /\b(?:location|venue|located|site)\b|地点|地點|場所|位于|位於/iu.test(sourceBody);
+    if(timeWords.has(term)) return /\b(?:19|20)\d{2}\b|\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\b|\d{2,4}年/iu.test(sourceBody);
+    if(personWords.has(term)) return /\b(?:people|person|users?|participants?|volunteers?|researchers?|team|staff|they|we|i)\b|参与者|參與者|志愿者|志願者|参加者|チーム|担当者/iu.test(sourceBody);
+    if(reasonWords.has(term)) return /\b(?:because|since|therefore|so that|in order to)\b|因为|因為|所以|ため|理由/iu.test(sourceBody);
+    if (/^\d+$/u.test(term)) return new RegExp("(?<!\\d)"+term+"(?!\\d)","u").test(sourceBody);
+    if (/^[a-z]+$/u.test(term)) {
+      const stem=term.length>4 ? term.replace(/(?:ing|ed|es|s)$/u,"") : term;
+      return new RegExp("(?<![a-z])"+stem+"(?:s|es|ed|ing)?(?![a-z])","iu").test(sourceBody);
+    }
+    return sourceBody.includes(term);
+    });
+  };
 }
 
 // A bare reference cannot identify a project on its own. Keep this narrow so
@@ -77,11 +115,15 @@ export function resolveContext(messages: ChatMessage[], corpus: PortfolioCorpus,
   const explicit = names(query, corpus, config);
   const contextual = isContextualFollowUp(query);
   const priorQuestions = contextual ? messages.slice(0, -1).reverse().filter(message => message.role === "user") : [];
-  const prior = priorQuestions.map(message => names(message.content, corpus, config)).find(ids => ids.length > 0) ?? [];
+  const priorQuestion = priorQuestions.find(message => names(message.content, corpus, config).length > 0);
+  const prior = priorQuestion ? names(priorQuestion.content, corpus, config) : [];
   const comparesPrior = explicit.length === 1 && prior.length === 1 && prior[0] !== explicit[0] &&
     comparisonQuestion.test(query) && reference.test(query);
-  const projects = comparesPrior ? [prior[0], explicit[0]] : explicit.length ? explicit : prior.length === 1 ? prior : [];
-  const ambiguous = !explicit.length && (contextual && prior.length > 1 || prior.length === 0 && unresolvedProjectReference(query));
+  const selectsOneProject = /\b(?:which (?:one|of)|which project|either project)\b|(?:哪一个|哪一個|哪个|哪個|哪项|哪項)|(?:どちら|どのプロジェクト)/iu.test(query);
+  const carryComparison = !explicit.length && prior.length > 1 && Boolean(priorQuestion && comparisonQuestion.test(priorQuestion.content)) &&
+    pluralProjectReference(query) && !reference.test(query) && !selectsOneProject;
+  const projects = comparesPrior ? [prior[0], explicit[0]] : explicit.length ? explicit : prior.length === 1 || carryComparison ? prior : [];
+  const ambiguous = !explicit.length && (contextual && prior.length > 1 && !carryComparison || prior.length === 0 && unresolvedProjectReference(query));
   const previous = priorQuestions[0]?.content;
   // Carry a small topic hint only for elliptical questions. A fresh named
   // project or a specific follow-up can be retrieved from its own wording.
@@ -89,7 +131,7 @@ export function resolveContext(messages: ChatMessage[], corpus: PortfolioCorpus,
     (validationFollowUp.test(query.trim()) || /\b(?:why (?:was|were|did) (?:it|that|they)|tell me more|what about (?:it|that))\b|为什么(?:这么做|这样做)|それはなぜ/iu.test(query))
     ? searchTerms(previous, projects, corpus, config)
       .replace(/\b(?:problems?|solve|addresses?|did|use|uses)\b/giu, " ").replace(/\s+/gu, " ").trim().slice(0, 120) : "";
-  return { projects, explicit, ambiguous, topic, multiplePriorProjects: contextual && !explicit.length && prior.length > 1 };
+  return { projects, explicit, ambiguous, topic, carryComparison, multiplePriorProjects: contextual && !explicit.length && prior.length > 1 && !carryComparison };
 }
 
 export function resolveProjects(messages: ChatMessage[], corpus: PortfolioCorpus, config = defaultPortfolioChatConfig): string[] {
