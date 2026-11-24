@@ -60,9 +60,15 @@ export function createModelReply(corpus: PortfolioCorpus, env: NodeJS.ProcessEnv
 }
 
 export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessage[], language: ResponseLanguage) {
-  const { scores } = await retrieveEvidence(corpus, messages);
-  const match = corpus.chunks.filter(chunk => (scores.get(chunk.chunkId) ?? 0) > 0 && b2Substantive(chunk))
-    .sort((a, b) => scores.get(b.chunkId)! - scores.get(a.chunkId)!)[0];
+  const { scores, terms } = await retrieveEvidence(corpus, messages);
+  const normalize = (text: string) => text.normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  const phrase = normalize(terms);
+  const ranked = corpus.chunks.filter(chunk => b2Substantive(chunk))
+    .sort((a, b) => (scores.get(b.chunkId) ?? 0) - (scores.get(a.chunkId) ?? 0));
+  const exact = phrase.includes(" ") && /\p{L}/u.test(phrase)
+    ? ranked.find(chunk => ` ${normalize(chunk.content)} `.includes(` ${phrase} `))
+    : undefined;
+  const match = exact ?? ranked.find(chunk => (scores.get(chunk.chunkId) ?? 0) > 0);
   const result = validateAnswer({
     language, insufficient: !match, answer: "Matching portfolio passage.",
     sourceIds: match ? [match.chunkId] : [], recommendedProjectIds: [],

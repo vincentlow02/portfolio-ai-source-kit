@@ -8,6 +8,7 @@ import { createInterface } from "node:readline";
 import test, { type TestContext } from "node:test";
 import { fileURLToPath } from "node:url";
 import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
+import { excerptReply } from "../../lib/portfolio-chat/source-reply";
 
 const portfolioOrigin = "http://127.0.0.1:5173";
 const article = "The prototype used a recycled steel frame.";
@@ -78,6 +79,18 @@ test("local chat returns a source excerpt and links only to an approved portfoli
   assert.deepEqual(result.sources, []);
   assert.equal((await request("recycled steel", portfolioOrigin)).status, 403);
   assert.equal((await fetch(new URL(".portfolio-knowledge/local-preview.json", chatUrl))).status, 404);
+});
+
+test("source excerpts prefer a full phrase over a number shared by another project", async () => {
+  const corpus = await buildKnowledgeCorpus([
+    { access: "public", format: "rendered", page: { url: "/measurements", title: "Measurements", language: "en", kind: "page" },
+      sections: [{ title: "500 samples", text: "The sensor recorded 500 samples." }] },
+    { access: "public", format: "rendered", page: { url: "/research", title: "Research", language: "en", kind: "page" },
+      sections: [{ title: "Market data", text: "The analysis used the F&X 500 index alongside rolling averages and public economic indicators." }] },
+  ], "fixture", async () => {});
+  const reply = await excerptReply(corpus, [{ role: "user", content: "F&X 500" }], "en");
+  assert.match(reply.answer, /F&X 500/u);
+  assert.deepEqual(reply.sources.map(source => source.url), ["/research"]);
 });
 
 test("local model preview sends differently worded questions with evidence and rejects invalid citations", async t => {
