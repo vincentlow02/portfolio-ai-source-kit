@@ -4,6 +4,7 @@ import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
 import { buildB2Pack, validateB2 } from "../../lib/portfolio-chat/b2";
 import { createEvidenceRetriever, resolveContext } from "../../lib/portfolio-chat/retrieval";
 import { excerptReply, validateWidgetQuestion } from "../../lib/portfolio-chat/source-reply";
+import { prepareAnswer } from "../../lib/portfolio-chat/answer-engine";
 
 const observatory = "Visitors look at the night sky using two reflecting telescopes.";
 const garden = "Volunteers grow mint and basil in the courtyard.";
@@ -15,6 +16,16 @@ const corpus = await buildKnowledgeCorpus([
 ], "fixture", async () => {});
 
 const question = (content: string) => [{ role: "user" as const, content }];
+
+test("unresolved pronouns clarify without selecting evidence in three languages", async () => {
+  for (const [text, language] of [["How was it tested?", "en"], ["它是怎么测试的？", "zh"], ["それはどうやってテストしましたか？", "ja"]] as const) {
+    const result = await prepareAnswer({ corpus, messages: question(text), language });
+    assert.equal(result.answer?.clarification, true);
+    assert.deepEqual(result.answer?.sources, []);
+    const excerpt = await excerptReply(corpus, question(text), language);
+    assert.deepEqual(excerpt.sources, []);
+  }
+});
 
 test("the default retrieves an approved English excerpt for a Chinese question", async () => {
   const reply = await excerptReply(corpus, question("哪里可以用望远镜观察夜空？"), "zh");

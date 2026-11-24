@@ -44,6 +44,12 @@ function isContextualFollowUp(query: string) {
   return reference.test(query) || validationFollowUp.test(query.trim()) || /\b(?:how (?:did|was|were) (?:the team|they|he|she|that)|why (?:did|was|were) (?:they|he|she|that)|(?:validate|test|design|choose) that|what about|tell me more)\b|为什么(?:这么做|这样做)|それはなぜ|(?:团队|他们).{0,10}(?:如何验证|如何测试)|どうやって(?:検証|テスト)/iu.test(query);
 }
 
+// A bare reference cannot identify a project on its own. Keep this narrow so
+// ordinary global questions and questions with a named subject still search.
+export function unresolvedProjectReference(query: string) {
+  return /^(?:how (?:was|is|did) (?:it|that)(?:\s+(?:tested|validated|built|designed|work))?|why (?:was|is|did) (?:it|that)(?:\s+\w+)*|(?:它|这|这个|该项目)(?:是)?(?:怎么|如何|为什么).{0,30}|(?:它|这|这个|该项目).{0,15}(?:如何|怎么)(?:测试|验证)|(?:それ|そのプロジェクト|このプロジェクト)(?:は|を)?(?:どう|どのように|なぜ).{0,30}|どうやって(?:検証|テスト)しましたか)[?？。!！\s]*$/iu.test(query.trim());
+}
+
 export function resolveContext(messages: ChatMessage[], corpus: PortfolioCorpus, config = defaultPortfolioChatConfig) {
   const query = messages.at(-1)?.content ?? "";
   const explicit = names(query, corpus, config);
@@ -53,7 +59,7 @@ export function resolveContext(messages: ChatMessage[], corpus: PortfolioCorpus,
   const comparesPrior = explicit.length === 1 && prior.length === 1 && prior[0] !== explicit[0] &&
     comparisonQuestion.test(query) && reference.test(query);
   const projects = comparesPrior ? [prior[0], explicit[0]] : explicit.length ? explicit : prior.length === 1 ? prior : [];
-  const ambiguous = contextual && !explicit.length && prior.length > 1;
+  const ambiguous = !explicit.length && (contextual && prior.length > 1 || prior.length === 0 && unresolvedProjectReference(query));
   const previous = priorQuestions[0]?.content;
   // Carry a small topic hint only for elliptical questions. A fresh named
   // project or a specific follow-up can be retrieved from its own wording.
