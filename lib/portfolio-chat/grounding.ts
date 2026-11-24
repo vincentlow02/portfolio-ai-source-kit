@@ -55,9 +55,9 @@ export function validateB2(output: ModelClaims, corpus: PortfolioCorpus, pack: A
     const citedChunks = claim.evidenceKeys.map(key => evidence.get(key)!);
     const cited = citedChunks.map(chunk => chunk.content);
     const sourceNumbers = new Set(cited.flatMap(digits));
-    // Only claims containing numeric digits are checked; prose such as "one
-    // approach" is not necessarily a numeric assertion.
-    const claimNumbers = digits(claim.text.replace(/\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b/giu, ""));
+    // "One" is often a discourse marker ("one approach"); other written
+    // numbers and digits require matching cited evidence.
+    const claimNumbers = digits(claim.text.replace(/\bone\b/giu, ""));
     if (claimNumbers.some(number => !sourceNumbers.has(number))) return false;
     const namedProjects = resolveProjects([{ role: "user", content: claim.text }], corpus, config);
     if (namedProjects.some(id => !citedChunks.some(chunk => chunk.projectId === id))) return false;

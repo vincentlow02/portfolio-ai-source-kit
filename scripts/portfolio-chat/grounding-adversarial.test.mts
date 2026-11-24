@@ -17,7 +17,7 @@ function check(text:string, evidenceKeys = ["E1"], language:"en"|"zh"|"ja" = "en
 
 test("adversarial claims reject numeric and date substitutions, forged citations and wrong projects", () => {
   assert.equal(check("Beacon tested the prototype with 6 visitors in 2021.").insufficient,false);
-  for (const text of ["Beacon tested the prototype with 9 visitors in 2021.", "Beacon tested the prototype with 6 visitors in 2024.", "Orchard tested the prototype with 6 visitors in 2021."]) assert.equal(check(text).insufficient,true,text);
+  for (const text of ["Beacon tested the prototype with 9 visitors in 2021.", "Beacon tested the prototype with nine visitors in 2021.", "Beacon tested the prototype with 6 visitors in 2024.", "Orchard tested the prototype with 6 visitors in 2021."]) assert.equal(check(text).insufficient,true,text);
   assert.equal(check("Beacon tested the prototype with 6 visitors.",["E999"]).insufficient,true);
   assert.equal(check("Beacon 于2024年测试了原型。",["E1"],"zh").insufficient,true);
   assert.equal(check("Beacon は2024年に試作品をテストしました。",["E1"],"ja").insufficient,true);
