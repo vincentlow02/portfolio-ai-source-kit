@@ -50,6 +50,18 @@ function countedCjkNumbers(text: string): string[] {
   }
   return values;
 }
+// Check a deliberately limited class of numeric associations: explicit
+// counts of people. Other units and the relationship between a count and an
+// event still require semantic review.
+function peopleCounts(text: string): string[] {
+  const values: string[] = [];
+  const pattern = /(?<![a-z0-9零〇一二两兩三四五六七八九十百千])(\d+|[零〇一二两兩三四五六七八九十百千]{1,8})\s*(?:(?:[a-z-]+\s+){0,2}(?:people|participants?|visitors?|users?|passengers?|volunteers?|gardeners?|nurses?|teachers?|researchers?|curators?|archivists?|commuters?)\b|人(?!称|稱)|名(?!詞)|位(?=访客|訪客|来访者|來訪者|用户|用戶|来場者|参加者|利用者))/giu;
+  for (const match of normalizedNumbers(text).matchAll(pattern)) {
+    const value = /^\d+$/u.test(match[1]) ? match[1] : countedCjkNumbers(match[1] + "人")[0];
+    if (value !== undefined) values.push(value);
+  }
+  return values;
+}
 function actionStem(word: string) {
   return word.toLowerCase().replace(/(?:ed|ing|s)$/u, "");
 }
@@ -88,6 +100,8 @@ export function validateB2(output: ModelClaims, corpus: PortfolioCorpus, pack: A
     // numbers and digits require matching cited evidence.
     const claimNumbers = [...digits(claim.text.replace(/\bone\b/giu, "")), ...countedCjkNumbers(claim.text)];
     if (claimNumbers.some(number => !sourceNumbers.has(number))) return false;
+    const citedPeopleCounts = new Set(cited.flatMap(peopleCounts));
+    if (citedPeopleCounts.size && peopleCounts(claim.text).some(count => !citedPeopleCounts.has(count))) return false;
     // Very short or generic project IDs can coincide with ordinary prose
     // (for example, project "a" and the article "a"). Do not infer an
     // attribution from those ambiguous names.
