@@ -4,7 +4,8 @@ import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
 import { buildB2Pack, parsePageContext, validateB2 } from "../../lib/portfolio-chat/b2";
 import { comparisonTopicClarification, comparisonTopicMatcher, createEvidenceRetriever, resolveContext } from "../../lib/portfolio-chat/retrieval";
 import { createModelReply, excerptReply, validateWidgetQuestion } from "../../lib/portfolio-chat/source-reply";
-import { prepareAnswer } from "../../lib/portfolio-chat/answer-engine";
+import { generateAnswer, prepareAnswer } from "../../lib/portfolio-chat/answer-engine";
+import { configureModel } from "../../lib/portfolio-chat/provider";
 import { verifySelection } from "../../lib/portfolio-chat/selection";
 
 const observatory = "Visitors look at the night sky using two reflecting telescopes.";
@@ -198,6 +199,13 @@ test("Japanese passive verification preserves project scope and requested attrib
   const result=await prepareAnswer({corpus:projects,messages:supported,language:"ja",config:{ownerName:"Example"}});
   assert.equal(result.answer,null);
   assert.deepEqual(new Set(result.pack.entries.map(entry=>entry.chunk.sourceUrl)),new Set(["/work/harvest#study","/work/signal#study"]));
+  let modelCalls=0;
+  const fake=configureModel({QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_JSON_MODE:"object"},async()=>{
+    modelCalls++;
+    return Response.json({id:"fixture",object:"chat.completion",created:1,model:"qwen3.7-flash",choices:[{index:0,finish_reason:"stop",message:{role:"assistant",content:JSON.stringify({language:"ja",insufficient:true,claims:[],recommendedProjectIds:[],followUpQuestions:[]})}}],usage:{prompt_tokens:20,completion_tokens:10,total_tokens:30}});
+  })!;
+  await generateAnswer({corpus:projects,messages:supported,language:"ja",config:{ownerName:"Example"}},result.pack,fake,true);
+  assert.equal(modelCalls,1);
   const model=createModelReply(projects,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
   let reservations=0;
   for(const text of ["両方のプロジェクトは火星でどのように検証されましたか？","両方のプロジェクトの検証費用はいくらですか？","両方のプロジェクトはどこで検証されましたか？","両方のプロジェクトは検証されませんでしたか？"]){
