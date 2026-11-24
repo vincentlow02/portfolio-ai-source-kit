@@ -163,6 +163,8 @@ test("comparison topic checks use source body and retain explicit attributes",()
   assert.equal(participantCount.matches("Research\nThe team tested the prototype with six museum staff."),true);
   assert.equal(participantCount.matches("Research\nSeven commuters tested the prototype."),true);
   assert.equal(participantCount.matches("Research\nThe team tested six devices."),false);
+  assert.equal(participantCount.matches("Research\nThe team tested the application with six user accounts."),false);
+  assert.equal(participantCount.matches("Research\nThe team tested the prototype with six staff members."),true);
   assert.equal(participantCount.matches("Research\nSix staff built a prototype that tested seven devices."),false);
   assert.equal(participantCount.matches("Research\nThe team did not test the prototype with six volunteers."),false);
   assert.equal(comparisonTopicMatcher("それぞれのプロジェクトはどう検証されましたか？").matches("Research\nThe team tested the prototype with volunteers."),true);
@@ -243,6 +245,7 @@ test("Japanese generic method and participant count require relevant public evid
   const countQuestion=[...prior,...question("両方のプロジェクトは何人で検証されましたか？")];
   for(const [first,second] of [
     ["The team tested eight devices.","Researchers tested five sensors."],
+    ["The team tested the app with eight user accounts.","Researchers tested a tool with five volunteer devices."],
     ["Eight librarians built a prototype that tested five devices.","Five rangers built a prototype that tested eight sensors."],
     ["The team did not test a prototype with eight librarians.","Researchers never tested a prototype with five rangers."],
   ] as const){

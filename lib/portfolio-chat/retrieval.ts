@@ -10,6 +10,8 @@ export const comparisonQuestion = /compare|different|difference|相比|比较|�
 // Shared vocabulary for explicitly counted people; this deliberately omits
 // arbitrary nouns so counts of devices or dates are not treated as people.
 export const countedPeopleNouns = String.raw`(?:people|persons?|participants?|visitors?|users?|passengers?|volunteers?|gardeners?|nurses?|teachers?|researchers?|curators?|archivists?|commuters?|staff|employees?|residents?|patients?|librarians?|rangers?|artists?|students?|designers?|developers?|workers?)`;
+// These compounds count artefacts or groups, not necessarily individual people.
+export const nonHumanCountSuffix = String.raw`(?![\s-]+(?:accounts?|profiles?|personas?|devices?|groups?|teams?|hours?|minutes?|sessions?|interviews?|responses?|records?|roles?|positions?|badges?|studies|tests?|surveys?|journeys?|stories|levels?)\b)`;
 export const comparisonTopicClarification = {
   en:"What would you like to compare about the projects?",
   zh:"你想比较这些项目的哪方面？",
@@ -81,7 +83,9 @@ function pluralProjectReference(query: string) {
 }
 
 const countNumber = String.raw`(?:\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)`;
-const countedPeople = countNumber + String.raw`\s+(?:[a-z-]+\s+){0,2}` + countedPeopleNouns + String.raw`\b`;
+// Require the human noun phrase to end before a modifier/action; e.g. six
+// user accounts must not be interpreted as six users.
+const countedPeople = countNumber + String.raw`\s+(?:[a-z-]+\s+){0,2}` + countedPeopleNouns + String.raw`\b` + nonHumanCountSuffix + String.raw`(?:\s+members?)?(?=\s*(?:[.,;:!?)\]—-]|$)|\s+(?:in|at|on|during|who|that|from|participated|tested|tried|evaluated|used|took|were|was|are|is|and|or|to|for|of)\b)`;
 const testedWithCountedPeople = new RegExp(String.raw`\b(?:test(?:ed|ing)?|validat(?:ed|ing)?|evaluat(?:ed|ing)?|trial(?:led|ed)?)\b[^.!?;]{0,140}\b(?:with|among)\s+(?:(?:a\s+group\s+of|approximately|about|around)\s+)?` + countedPeople,"iu");
 const countedPeopleTesting = new RegExp(String.raw`\b` + countedPeople + String.raw`\s+(?:tested|tried|evaluated|participated)\b`,"iu");
 function hasCountedTestParticipants(sentence:string):boolean {

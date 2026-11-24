@@ -75,3 +75,13 @@ test("staff count cannot be confused with a cited year",async()=>{
   assert.equal(validate("Copper tested a prototype with six museum staff in 2021.").insufficient,false);
   assert.equal(validate("Copper tested a prototype with 2021 museum staff in year six.").insufficient,true);
 });
+
+test("account and device counts do not establish a human participant count",async()=>{
+  const fixture=await buildKnowledgeCorpus([{access:"public",format:"rendered",page:{url:"/work/copper",title:"Copper",language:"en",kind:"case-study",projectId:"copper"},sections:[{title:"Research",anchor:"trial",text:"The team tested the application with six user accounts and seven volunteer devices."}]}],"non-person-counts",async()=>{});
+  const initial=await buildB2Pack(fixture,[{role:"user",content:"Copper research"}],null,"en",undefined,undefined,{ownerName:"Example"});
+  const scoped={...initial,projects:["copper"],entries:[{key:"E1",chunk:fixture.chunks[0],reason:"qualified-match"}]};
+  const validate=(text:string)=>validateB2({language:"en",insufficient:false,claims:[{text,evidenceKeys:["E1"]}],recommendedProjectIds:[]},fixture,scoped);
+  assert.equal(validate("Copper tested the application with six users.").insufficient,true);
+  assert.equal(validate("Copper tested the application with seven volunteers.").insufficient,true);
+  assert.equal(validate("Copper tested the application with six user accounts.").insufficient,false);
+});
