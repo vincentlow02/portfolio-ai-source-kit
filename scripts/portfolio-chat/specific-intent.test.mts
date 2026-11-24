@@ -20,18 +20,19 @@ test("specific factual intent requires corresponding evidence, including cross-l
   ["工资是多少？","护理人员参加了访谈。","护理人员的工资是每月5000元。"],
   ["購入にはいくらかかりますか？","元々この道具は紙でできています。","月額５００円です。"],
   ["Loom のパネルは何枚ありますか？","The kit contains removable panels.","The kit includes eight panels."],
-  ["Moss の教材はいつから使われていますか？","Teachers use the kit for workshops.","The kit was launched in 2022."],
+  ["Moss の教材はいつから使われていますか？","Teachers use the kit for workshops.","The kit has been in use since 2022."],
   ["How many gardeners tested Moss?","Moss has a garden.","Moss was tested by five gardeners."],
   ["How many gardeners tested Moss?","Moss launched in 2021.","In 2021, five gardeners tested Moss."],
+  ["Loom の道具はいつから使われていますか？","The tool was designed in 2020.","The tool has been used by teachers since 2021."],
  ] as const){assert.equal(sourceMatchesSpecificIntent(q,negative),false,q);assert.equal(sourceMatchesSpecificIntent(q,positive),true,q);}
  assert.equal(sourceMatchesSpecificIntent("How much experience does the team have?","The team has five years of experience."),true);
  assert.equal(sourceMatchesSpecificIntent("When humidity falls, what happens?","When humidity falls, the sensor warns the gardener."),true);
 });
 
-test("unsupported price, salary and manufacturer questions skip quota and generation",async()=>{
+test("unsupported price, salary, manufacturer, count and date questions skip quota and generation",async()=>{
  const model=createModelReply(corpus,{PORTFOLIO_AI_PROVIDER:"qwen",QWEN_API_KEY:"fixture-only",QWEN_BASE_URL:"https://fixture.invalid/v1",QWEN_MODEL:"qwen3.7-flash"});
  let reservations=0;
- for(const q of ["SDカードを製造している会社はどこですか？","病院の看護師は何時に給料を受け取りますか？","授業用のパネルを購入するにはいくらかかりますか？"]){
+ for(const q of ["SDカードを製造している会社はどこですか？","病院の看護師は何時に給料を受け取りますか？","授業用のパネルを購入するにはいくらかかりますか？","Loom のパネルは何枚ありますか？","Loom の教材はいつから使われていますか？"]){
   const reply=await model(user(q),"ja",undefined,{reserve:async()=>{reservations++;return false;}});
   assert.deepEqual(reply.sources,[],q);
   const excerpt=await excerptReply(corpus,user(q),"ja");

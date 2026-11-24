@@ -39,6 +39,8 @@ export function sourceMatchesSpecificIntent(query: string, source: string): bool
       /(?:(?<!\d)(?!(?:19|20)\d{2}(?!\d))\d+(?!\d)|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|several|dozens?)\b|[零〇一二两兩三四五六七八九十百千万]+(?:人|名|个|個|枚|台|件|回|次|站|駅|所|月|日|位)|数(?:人|名|个|個|枚|回)|複数)/iu],
     [/(?:いつから|何年|哪一年|哪年|\bwhen\s+(?:did|was|were)\b[^?]{0,100}\b(?:launch|launched|release|released|start|started|open|opened|complete|completed)\b)/iu,
       /(?:\b(?:19|20)\d{2}\b|[零〇一二三四五六七八九十百千\d]{2,}年|\b(?:launched|released|opened|started|since|before|after|during|first)\b|開始|开始|開業|开业|公開|公开|发布|發布)/iu],
+    [/(?:いつから[^?？。]{0,35}(?:使わ|使い|使用|利用)|(?:何时|何時|什么时候|什麼時候)[^?？。]{0,20}(?:开始|開始)?(?:使用|利用)|\b(?:when|since when)\b[^?]{0,100}\b(?:start(?:ed)? using|began using|put into use|in use|used)\b)/iu,
+      /(?:\b(?:used|using|in use|put into use|operated|in operation|deployed|adopted)\b|使わ|使い|使用|利用|運用|运用)/iu],
   ];
   const normalizedQuery = query.normalize("NFKC"), normalizedSource = source.normalize("NFKC");
   return checks.every(([intent, evidence]) => !intent.test(normalizedQuery) || evidence.test(normalizedSource));
