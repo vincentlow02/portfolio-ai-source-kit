@@ -1,0 +1,130 @@
+{
+  "corpusHash": "f7f5da9217092ccb3329244543901e42483ae80462177806ccbddea5e3d99d50",
+  "rows": [
+    {
+      "id": "p1",
+      "prior": "Vera と Pine を比べて",
+      "q": "それぞれのプロジェクトは何人で検証されましたか？",
+      "kind": "supported",
+      "projects": [
+        "pine",
+        "vera"
+      ],
+      "evidence": [
+        {
+          "url": "/work/pine#trial",
+          "id": "b73e5d1428d75613fc769aa6"
+        }
+      ],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 1425.7144999999998
+    },
+    {
+      "id": "p2",
+      "prior": "Compare Vera and Pine",
+      "q": "それぞれのプロジェクトはどんな方法で検証されたのですか？",
+      "kind": "supported",
+      "projects": [
+        "pine",
+        "vera"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 23.991999999999734
+    },
+    {
+      "id": "p3",
+      "prior": "Compare Vera and Pine",
+      "q": "両方のプロジェクトの検証に参加した人は何人ですか？",
+      "kind": "supported",
+      "projects": [
+        "pine",
+        "vera"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 45.37469999999985
+    },
+    {
+      "id": "n1",
+      "prior": "Compare Moor and Dale",
+      "q": "両方のプロジェクトは何人で検証されましたか？",
+      "kind": "unsupported",
+      "projects": [
+        "dale",
+        "moor"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 37.20970000000034
+    },
+    {
+      "id": "n2",
+      "prior": "Compare Quay and Lumen",
+      "q": "両方のプロジェクトは何人で検証されましたか？",
+      "kind": "contradicted-assertion",
+      "projects": [
+        "lumen",
+        "quay"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 36.133600000000115
+    },
+    {
+      "id": "n3",
+      "prior": "Compare Vera and Pine",
+      "q": "両方のプロジェクトは何人で火星で検証されましたか？",
+      "kind": "unsupported",
+      "projects": [
+        "pine",
+        "vera"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 40.64350000000013
+    },
+    {
+      "id": "n4",
+      "prior": "Compare Vera and Pine",
+      "q": "両方のプロジェクトの検証費用はいくらですか？",
+      "kind": "unsupported",
+      "projects": [
+        "pine",
+        "vera"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 2.0376000000001113
+    },
+    {
+      "id": "n5",
+      "prior": "Compare Vera and Pine",
+      "q": "両方のプロジェクトの検証参加者の名前は？",
+      "kind": "unsupported",
+      "projects": [
+        "pine",
+        "vera"
+      ],
+      "evidence": [],
+      "needsGeneration": false,
+      "clarification": false,
+      "excerptSources": [],
+      "elapsedMs": 33.39309999999978
+    }
+  ]
+}

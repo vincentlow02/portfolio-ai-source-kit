@@ -131,3 +131,11 @@ Compared with V2 commit `f370bebfb158f9a92d26502f6946d6a89ed76b44`. This registe
 | `scripts/portfolio-chat/japanese-heldout-diagnostic.mts` | Japanese verification evaluation, regression or per-case evidence |
 | `scripts/portfolio-chat/japanese-negation-holdout.mts` | Japanese verification evaluation, regression or per-case evidence |
 | `scripts/portfolio-chat/japanese-verification-holdout.mts` | Japanese verification evaluation, regression or per-case evidence |
+| `docs/v2-1-evaluation/human-count-after.json` | Independent verification case or per-case evidence |
+| `docs/v2-1-evaluation/human-count-before.json` | Independent verification case or per-case evidence |
+| `docs/v2-1-evaluation/japanese-verification-promoted-count.json` | Independent verification case or per-case evidence |
+| `docs/v2-1-evaluation/original-v2-1-count-final.json` | Independent verification case or per-case evidence |
+| `docs/v2-1-evaluation/participant-method-after.json` | Independent verification case or per-case evidence |
+| `docs/v2-1-evaluation/participant-method-before.json` | Independent verification case or per-case evidence |
+| `scripts/portfolio-chat/human-count-confirmation.mts` | Independent verification case or per-case evidence |
+| `scripts/portfolio-chat/participant-method-fresh.mts` | Independent verification case or per-case evidence |

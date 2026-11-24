@@ -1,0 +1,68 @@
+{
+  "rows": [
+    {
+      "id": "a",
+      "source": "The team tested the prototype with 4 user accounts.",
+      "claim": "The team tested the prototype with 4 users.",
+      "accept": false,
+      "actual": false,
+      "correct": true
+    },
+    {
+      "id": "b",
+      "source": "The team tested the prototype with 9 volunteer devices.",
+      "claim": "The team tested the prototype with 9 volunteers.",
+      "accept": false,
+      "actual": false,
+      "correct": true
+    },
+    {
+      "id": "c",
+      "source": "The team tested the prototype with 5 staff roles.",
+      "claim": "The team tested the prototype with 5 staff.",
+      "accept": false,
+      "actual": false,
+      "correct": true
+    },
+    {
+      "id": "d",
+      "source": "The team tested the prototype with 7 user profiles.",
+      "claim": "The team tested the prototype with 7 users.",
+      "accept": false,
+      "actual": false,
+      "correct": true
+    },
+    {
+      "id": "e",
+      "source": "The team tested the prototype with 6 visitors.",
+      "claim": "The team tested the prototype with 6 visitors.",
+      "accept": true,
+      "actual": true,
+      "correct": true
+    },
+    {
+      "id": "f",
+      "source": "The team tested the prototype with 8 staff members.",
+      "claim": "The team tested the prototype with 8 staff.",
+      "accept": true,
+      "actual": true,
+      "correct": true
+    },
+    {
+      "id": "g",
+      "source": "The team tested the prototype with 4 user accounts.",
+      "claim": "The team tested the prototype with 4 user accounts.",
+      "accept": true,
+      "actual": true,
+      "correct": true
+    },
+    {
+      "id": "h",
+      "source": "The team tested the prototype with 3 visitors in 2022.",
+      "claim": "The team tested the prototype with 2022 visitors in 3.",
+      "accept": false,
+      "actual": false,
+      "correct": true
+    }
+  ]
+}

@@ -35,3 +35,7 @@ Commits `a6de258` and `2c52e83` add counted Chinese/Japanese numeral checks and 
 - `f75c164`, `5d065b0`: bound carried comparison work to 18 projects and 32 distinct topic terms, deduplicate repeated terms and fail closed before retrieval; add zero-reservation regressions. Very large valid comparisons can be refused.
 
 - `640ab1c`, `6b08d2b`, `525de60`, `f3e66ea`: recognize affirmative Japanese passive testing forms, retry an empty carried-comparison search with a scoped `検証`→`テスト` synonym while retaining other terms and thresholds, add a narrow negative-testing guard and verify one fake generation call/zero reservations for development examples. Hosted integration checks that its Japanese excerpt never returns only one side. This increases local retrieval work and does not prove semantic equivalence or resolve all method/count questions.
+
+## Latest changes
+
+`6ee7867` adds scoped Japanese test-method and explicit participant-count checks, retaining score thresholds and requiring public test-related evidence. `d361c0e` prevents selected account/device compounds from establishing human counts in retrieval and cited claims. `583492d` and `434a660` freeze separate synthetic confirmation cases before execution. These are bounded heuristics; the new participant/method confirmation still misses 3/3 supported cases, and negative semantics and source-to-claim relationships remain incomplete.
