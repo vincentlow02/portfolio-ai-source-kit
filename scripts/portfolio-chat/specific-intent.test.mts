@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
 import { sourceMatchesSpecificIntent } from "../../lib/portfolio-chat/retrieval";
-import { createModelReply, excerptReply } from "../../lib/portfolio-chat/source-reply";
+import { createModelReply, excerptReply, validateWidgetQuestion } from "../../lib/portfolio-chat/source-reply";
 
 const corpus=await buildKnowledgeCorpus([
  {access:"public",format:"rendered",page:{url:"/work/compass",title:"Compass",language:"en",kind:"case-study",projectId:"compass"},sections:[{title:"Data storage",anchor:"storage",text:"The instrument records temperature measurements on an SD card inside the device."}]},
@@ -32,5 +32,9 @@ test("unsupported price, salary and manufacturer questions skip quota and genera
   const excerpt=await excerptReply(corpus,user(q),"ja");
   assert.deepEqual(excerpt.sources,[],q);
  }
+ const selection=validateWidgetQuestion({messages:user("What does it cost?"),selectionContext:{pagePath:"/work/loom",sectionId:"kit",text:"removable panels"}},corpus);
+ const selectedReply=await model(selection.messages,"en",selection.quote,{reserve:async()=>{reservations++;return false;}});
+ assert.deepEqual(selectedReply.sources,[]);
+ assert.deepEqual((await excerptReply(corpus,selection.messages,"en",selection.quote)).sources,[]);
  assert.equal(reservations,0);
 });

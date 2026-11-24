@@ -6,6 +6,7 @@ import { fallbackFollowUpQuestions, validateFollowUpQuestions } from "./followup
 import { executeGeneration, type ConfiguredModel } from "./generation";
 import { clearlyWrongLanguage, type ResponseLanguage } from "./language";
 import { attachSelectedQuotation, verifySelection } from "./selection";
+import { sourceMatchesSpecificIntent } from "./retrieval";
 import type { RequestTiming } from "./timing";
 
 type EvidencePack = Awaited<ReturnType<typeof buildB2Pack>>;
@@ -37,6 +38,9 @@ export async function prepareAnswer(input: AnswerInput) {
     ...validateAnswer({ answer: "", language, insufficient: true, sourceIds: [], recommendedProjectIds: [] }, corpus, config.ownerName),
     claims: [], insufficient: true, language, followUpQuestions: [],
   });
+  // A verified quotation establishes provenance, but it does not establish a
+  // price, wage or manufacturer that is absent from all assembled evidence.
+  if (selection && !pack.entries.some(entry => sourceMatchesSpecificIntent(messages.at(-1)!.content, entry.chunk.content))) return { pack, answer: insufficient() };
   if (pack.ambiguous) return { pack, answer: { ...insufficient(), clarification: true,
     answer: { en:"Which project do you mean?", zh:"你指的是哪个项目？", ja:"どのプロジェクトについてですか？" }[language] } };
   const catalog = validateProjectCatalog(corpus, pack, language);

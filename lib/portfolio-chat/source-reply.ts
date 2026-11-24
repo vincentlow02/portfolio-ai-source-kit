@@ -5,7 +5,7 @@ import { validateAnswer, validateMessages, type ChatMessage } from "./core";
 import { resolveGuardianReply } from "./guardian";
 import type { ResponseLanguage } from "./language";
 import { configureModel } from "./provider";
-import { isSubstantivePassage, resolveContext, retrieveEvidence } from "./retrieval";
+import { isSubstantivePassage, resolveContext, retrieveEvidence, sourceMatchesSpecificIntent } from "./retrieval";
 import { verifySelection } from "./selection";
 
 type VerifiedQuote = ReturnType<typeof verifySelection>;
@@ -59,7 +59,7 @@ export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessag
   if (guardian) return { answer: guardian.answer, sources: [], recommendations: [] };
   if (!quote && resolveContext(messages, corpus).ambiguous) return { answer: { en: "Which project do you mean?", zh: "你指的是哪个项目？", ja: "どのプロジェクトについてですか？" }[language], sources: [], recommendations: [] };
   const retrieval = quote ? undefined : await retrieveEvidence(corpus, messages);
-  const match = quote?.chunk ?? retrieval?.chunks[0];
+  const match = quote && sourceMatchesSpecificIntent(messages.at(-1)!.content, quote.chunk.content) ? quote.chunk : quote ? undefined : retrieval?.chunks[0];
   const result = validateAnswer({
     language, insufficient: !match, answer: "Matching portfolio passage.",
     sourceIds: match ? [match.chunkId] : [], recommendedProjectIds: [],
