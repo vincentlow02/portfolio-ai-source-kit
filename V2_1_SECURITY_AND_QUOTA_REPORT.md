@@ -39,3 +39,7 @@ IA-18 (P1): a cited passage counting user accounts or volunteer devices could be
 ## Latest temporal-evidence finding
 
 IA-19 is a confirmed P1 potential paid-call and factuality defect: a passage saying a test is planned was treated as evidence that it occurred. The frozen confirmation contains two planned cases; prior code entered generation on both, current selected modal/planning checks abstain on both. `hybrid-retrieval.test.mts` verifies zero fake quota reservations. This is a bounded English grammar guard and does not prove future, conditional, hypothetical or negation relationships in other expressions or languages.
+
+## Explicit comparison excerpt finding
+
+IA-20 is a confirmed P1 relevance defect: local Hosted excerpt mode could return a single unrelated project passage when an explicit comparison requested absent participant names or an unrelated subject. Generation refused both examples. The explicit-comparison excerpt now requires each named project and applies the original-topic matcher to candidate passages; generic participant comparisons use direct counted-study evidence. `comparison-development.test.mts` covers the two prior one-sided examples and zero reservation for unsupported generation. The approach is heuristic and can still miss semantic relationships or abstain on valid paraphrases; no general entailment guarantee is made.

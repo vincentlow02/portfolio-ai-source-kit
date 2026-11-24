@@ -80,3 +80,7 @@ The observed `japanese-verification-holdout` was promoted to development before 
 ## Latest participant confirmation
 
 `participant-method-fresh` was inspected then promoted to development; `participant-method-promoted-update.json` records 3/3 recovered supported pairs and 5/5 negative/unsupported abstentions. A separately frozen `participant-method-confirmation.mts` had 1/4 supported and 6/8 negative abstentions before, 2/4 and 8/8 after. It is now observed; the subsequent diagnostic confirms topic-match eligibility but not semantic qualification for its two missing cases. The English paraphrases in `participant-confirm-diagnostic.jsonl` are diagnostic experiments, not production retrieval changes. Small same-reviewer fictional samples cannot validate generalization.
+
+## Latest independent confirmations
+
+The earlier participant-method confirmation is observed and promoted. The frozen same-reviewer fictional `cross-language-count-confirmation.mts` yielded 3/3 dual excerpts and 9/9 negative abstentions after the retained-query hint; before 2/3 and 9/9. `explicit-participant-fresh.mts` yielded 2/2 supported and 7/7 negative after, versus 0/2 and 7/7 before. `scoped-testing-confirmation.mts` yielded 3/3 and 5/5 after, versus 0/3 and 5/5 before. `single-turn-participant-confirmation.mts` initially uncovered two one-sided excerpt failures and was then promoted to development; initial and promoted outputs are preserved. These small, same-author samples, with overlapping grammar, do not establish real-world performance or entailment.

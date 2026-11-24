@@ -43,3 +43,7 @@ Commits `a6de258` and `2c52e83` add counted Chinese/Japanese numeral checks and 
 ## Scoped testing relation follow-up
 
 `ea807c4` permits one existing Japanese testing-synonym retry for a missing comparison side, scoped to the resolved projects and retaining original eligibility rules, adds bounded method/participant grammar and a guard for selected future/planned testing forms. It adds local retrieval cost and remains a lexical heuristic, not semantic entailment. A frozen 12-case same-reviewer confirmation still misses 2/4 supported cases; 8/8 negative cases abstain. `1fb61b4` froze that set before first execution and `cdfe34c` recorded results and quota checks.
+
+## Latest comparison updates
+
+`4409c26` adds a bounded bilingual hint to a scoped participant-count retry while retaining all original question text and evidence gates. `f11f1d7` supports an explicitly generic two-project participant comparison using selected direct counted-study evidence. `4a178d3` requires both project excerpts and original-topic evidence for explicit Hosted comparisons; this can increase conservative abstention. `7938ba6` avoids embedding project names into an exact bare testing clarification while applying them as retrieval scope; no threshold changed. All rules are incomplete and the Hosted Japanese generic case remains an open miss.
