@@ -208,7 +208,7 @@ try {
       selection.removeAllRanges();
       selection.addRange(range);
     });
-    const highlight = await page.waitForFunction(() => Array.from(document.querySelectorAll("button")).find(button => button.textContent.trim() === "Ask Morgan Reed AI"), { timeout: 12_000 });
+    const highlight = await page.waitForFunction(() => Array.from(document.querySelectorAll("button")).find(button => button.textContent.trim() === "Ask AI Kit"), { timeout: 12_000 });
     await highlight.asElement().click();
     assert.match(await page.$eval("aside", node => node.innerText), /tested tactile signs/u);
     await page.type("aside textarea", "What are the tactile signs?");

@@ -7,6 +7,8 @@ const send = form.querySelector("button");
 const welcome = document.querySelector("#welcome");
 const messages = document.querySelector("#messages");
 const asked = document.querySelector("#asked");
+const askedQuote = document.querySelector("#asked-quote");
+const askedQuoteText = document.querySelector("#asked-quote-text");
 const output = document.querySelector("#output");
 const quotePreview = document.querySelector("#quote");
 const quoteText = document.querySelector("#quote-text");
@@ -36,6 +38,14 @@ function setQuote(selection) {
   const text = selection?.text ?? "";
   quoteText.textContent = text.length > 180 ? `${text.slice(0, 180)}…` : text;
   input.placeholder = selection ? "Ask about this quote..." : "Ask about this portfolio...";
+}
+
+function showQuestion(content, selection) {
+  const text = selection?.text ?? "";
+  asked.textContent = content;
+  askedQuote.hidden = !text;
+  askedQuoteText.textContent = text;
+  askedQuoteText.title = text;
 }
 
 function updateSend() {
@@ -109,7 +119,7 @@ async function ask(value) {
   setQuote(null);
   input.value = "";
   updateSend();
-  asked.textContent = content;
+  showQuestion(content, selectionContext);
   welcome.hidden = true;
   messages.hidden = false;
   document.querySelector("#chat-content").scrollTop = 0;
@@ -148,7 +158,7 @@ document.querySelector("#reset").addEventListener("click", () => {
   pending = null;
   setQuote(null);
   input.value = "";
-  asked.textContent = "";
+  showQuestion("");
   output.replaceChildren();
   messages.hidden = true;
   welcome.hidden = false;

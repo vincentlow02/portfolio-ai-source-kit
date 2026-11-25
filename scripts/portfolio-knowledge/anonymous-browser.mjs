@@ -48,8 +48,17 @@ export function localPreviewOrigin(value) {
   return url.origin;
 }
 
-/** @param {(url: string) => Promise<Partial<import("puppeteer").ResponseForRequest>>} [loadResource] */
-export async function withAnonymousPortfolioPage(browser, origin, url, visitPage, mode = "published", loadResource = undefined) {
+/**
+ * @template T
+ * @param {import("puppeteer").Browser} browser
+ * @param {string} origin
+ * @param {string} url
+ * @param {(page: import("puppeteer").Page) => T | Promise<T>} visitPage
+ * @param {"published" | "local-preview" | "hosted"} [mode]
+ * @param {(url: string) => Promise<Partial<import("puppeteer").ResponseForRequest>>} [loadResource]
+ * @param {{ navigationTimeout?: number, contentTimeout?: number, allowEmpty?: boolean, requireHtml?: boolean }} [options]
+ */
+export async function withAnonymousPortfolioPage(browser, origin, url, visitPage, mode = "published", loadResource = undefined, options = {}) {
   const localPreview = mode === "local-preview";
   const renderedPage = localPreview || mode === "hosted";
   if (localPreview) localPreviewOrigin(origin);
@@ -72,10 +81,14 @@ export async function withAnonymousPortfolioPage(browser, origin, url, visitPage
         if (!request.isInterceptResolutionHandled()) await request.abort().catch(() => {});
       }
     });
-    const response = await page.goto(url, { waitUntil: "load", timeout: 30_000 });
+    const response = await page.goto(url, { waitUntil: "load", timeout: options.navigationTimeout ?? 30_000 });
     if (response?.status() !== 200 || page.url() !== url) throw new Error("Expected an anonymous HTTP 200 at the requested URL");
 
-    if (/\b(?:noindex|none)\b/iu.test(response.headers()["x-robots-tag"] ?? "")) {
+    const headers = response.headers();
+    if (options.requireHtml && !/^(?:text\/html|application\/xhtml\+xml)(?:;|$)/iu.test(headers["content-type"] ?? "")) {
+      throw new Error("Expected an HTML source");
+    }
+    if (/\b(?:noindex|none)\b/iu.test(headers["x-robots-tag"] ?? "")) {
       throw new Error("Source is not indexed (X-Robots-Tag)");
     }
     if (renderedPage) {
@@ -84,7 +97,9 @@ export async function withAnonymousPortfolioPage(browser, origin, url, visitPage
         return Array.from(paragraphs).some(element => element.innerText.trim() &&
           !element.closest('nav,footer,form,[hidden],[inert],[aria-hidden="true" i]') &&
           element.checkVisibility({ opacityProperty: true, visibilityProperty: true, contentVisibilityAuto: true }));
-      }, { timeout: 10_000 });
+      }, { timeout: options.contentTimeout ?? 10_000 }).catch(error => {
+        if (!options.allowEmpty || error?.name !== "TimeoutError") throw error;
+      });
     }
     return await visitPage(page);
   } finally {

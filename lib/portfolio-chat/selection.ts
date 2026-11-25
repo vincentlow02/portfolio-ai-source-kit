@@ -9,7 +9,17 @@ export function verifySelection(value: unknown, corpus: PortfolioCorpus, page: R
   if (Object.keys(selection).some(key => !["pagePath", "text", "sectionId"].includes(key)) || selection.pagePath !== page.path || typeof selection.text !== "string" || selection.text.trim().length < 3 || selection.text.length > 1200 || (selection.sectionId !== null && selection.sectionId !== undefined && typeof selection.sectionId !== "string")) throw new Error("Invalid selection");
   const normalize = (text: string) => text.replace(/\s+/gu, " ").trim();
   const text = normalize(selection.text);
-  const chunk = corpus.chunks.find(c => c.accessLevel === "public" && isSubstantivePassage(c) && new URL(c.sourceUrl, "http://localhost").pathname === page.path && (!page.lang || c.language === page.lang) && (!selection.sectionId || c.sectionId === selection.sectionId) && corpus.pages.some(p => p.url === c.sourceUrl.split("#")[0]) && normalize(c.content).includes(text));
+  const approvedPages = new Set(corpus.pages.map(page => page.url));
+  const matches = corpus.chunks.filter(chunk => {
+    const source = new URL(chunk.sourceUrl, "http://localhost");
+    return source.pathname === page.path && (!page.lang || chunk.language === page.lang) &&
+      approvedPages.has(chunk.sourceUrl.split("#")[0]) && chunk.accessLevel === "public" &&
+      chunk.buildVersion === corpus.contentHash && isSubstantivePassage(chunk) &&
+      normalize(chunk.content).includes(text);
+  });
+  // A published section may cite a heading inside the selected DOM section.
+  const hinted = selection.sectionId && matches.find(chunk => chunk.sectionId === selection.sectionId);
+  const chunk = hinted || matches[0];
   if (!chunk) throw new Error("Selection not in public corpus");
   return { chunk, text };
 }

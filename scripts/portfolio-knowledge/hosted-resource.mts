@@ -3,6 +3,7 @@ import { get } from "node:https";
 import { BlockList } from "node:net";
 import type { ResponseForRequest } from "puppeteer";
 import { hostedPortfolioOrigin } from "../../lib/knowledge/hosted-origin";
+import { launchBrowser } from "./anonymous-browser.mjs";
 
 const nonPublic = new BlockList();
 for (const [network, length] of [
@@ -10,6 +11,14 @@ for (const [network, length] of [
   ["172.16.0.0", 12], ["192.0.0.0", 24], ["192.0.2.0", 24], ["192.88.99.0", 24], ["192.168.0.0", 16],
   ["198.18.0.0", 15], ["198.51.100.0", 24], ["203.0.113.0", 24], ["224.0.0.0", 3],
 ] as const) nonPublic.addSubnet(network, length);
+
+export function launchHostedPortfolioBrowser() {
+  // Only the pinned HTTPS loader can fetch hosted portfolio resources.
+  return launchBrowser([
+    "--proxy-server=http://127.0.0.1:9", "--proxy-bypass-list=<-loopback>", "--disable-quic",
+    "--force-webrtc-ip-handling-policy=disable_non_proxied_udp",
+  ]);
+}
 
 export async function hostedResourceLoader(value: string) {
   const origin = hostedPortfolioOrigin(value);

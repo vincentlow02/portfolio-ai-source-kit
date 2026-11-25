@@ -4,14 +4,14 @@ type Locale = "en" | "zh" | "ja";
 const labels: Record<Locale, PortfolioChatLabels & { recommendations: string; explore: string }> = {
   en: {
     heading: "Ask me anything.",
-    ask: "Ask {owner} AI", askQuote: "Ask about this quote...", askProject: "Ask about {project}...", placeholder: "Ask about {owner}...",
+    ask: "Ask {owner} AI", askSelection: "Ask AI Kit", askQuote: "Ask about this quote...", askProject: "Ask about {project}...", placeholder: "Ask about {owner}...",
     cancel: "Cancel", open: "Open {owner} AI", close: "Close {owner} AI", reset: "Reset conversation", send: "Send message", removeQuote: "Remove selected quote", thinking: "Thinking...",
     yourQuestion: "Your question", response: "{owner} AI response", sources: "Sources", recommendations: "Recommendations", followups: "Suggested follow-up questions", explore: "Explore", projects: "Projects", other: "Other projects",
     errors: {}, unavailable: "The assistant is temporarily unavailable.",
   },
   zh: {
     heading: "随时问我。",
-    ask: "询问 {owner} AI", askQuote: "询问这段引用...", askProject: "询问关于 {project} 的问题...", placeholder: "询问关于 {owner} 的问题...",
+    ask: "询问 {owner} AI", askSelection: "询问 AI Kit", askQuote: "询问这段引用...", askProject: "询问关于 {project} 的问题...", placeholder: "询问关于 {owner} 的问题...",
     cancel: "取消", open: "打开 {owner} AI", close: "关闭 {owner} AI", reset: "重置对话", send: "发送消息", removeQuote: "移除选中的引用", thinking: "思考中...",
     yourQuestion: "你的问题", response: "{owner} AI 的回答", sources: "来源", recommendations: "推荐", followups: "建议的后续问题", explore: "探索", projects: "项目", other: "其他项目",
     errors: {
@@ -22,7 +22,7 @@ const labels: Record<Locale, PortfolioChatLabels & { recommendations: string; ex
   },
   ja: {
     heading: "何でも聞いてください。",
-    ask: "{owner} AIに質問", askQuote: "この引用について質問...", askProject: "{project}について質問...", placeholder: "{owner}について質問...",
+    ask: "{owner} AIに質問", askSelection: "AI Kitに質問", askQuote: "この引用について質問...", askProject: "{project}について質問...", placeholder: "{owner}について質問...",
     cancel: "中止", open: "{owner} AIを開く", close: "{owner} AIを閉じる", reset: "会話をリセット", send: "メッセージを送信", removeQuote: "選択した引用を削除", thinking: "考えています...",
     yourQuestion: "あなたの質問", response: "{owner} AIの回答", sources: "出典", recommendations: "おすすめ", followups: "続けて聞く質問", explore: "見る", projects: "プロジェクト", other: "その他のプロジェクト",
     errors: {

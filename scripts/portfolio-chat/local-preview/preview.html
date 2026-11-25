@@ -28,7 +28,13 @@
         </div>
       </section>
       <section class="messages" id="messages" aria-label="Conversation" hidden>
-        <div class="user" role="group" aria-label="Your question"><p id="asked"></p></div>
+        <div class="user" role="group" aria-label="Your question">
+          <blockquote class="messageQuote" id="asked-quote" hidden>
+            <img src="/widget/quote.svg" alt="">
+            <span id="asked-quote-text"></span>
+          </blockquote>
+          <p id="asked"></p>
+        </div>
         <div id="output" aria-live="polite" aria-atomic="true"></div>
       </section>
     </div>

@@ -18,8 +18,15 @@ body {
 .header { box-sizing: border-box; }
 .header h1 { margin: 0; font: inherit; }
 .composer button:not(:disabled):hover, .quotePreview button:hover { color: #252a28; background: #f0f0ed; }
-.header img, .composer img, .quotePreview img, .suggestions img, .followups img { display: block; flex: none; }
-.quotePreview > img { margin-top: 1px; }
+.header img, .composer img, .quotePreview img, .messageQuote img, .suggestions img, .followups img { display: block; flex: none; }
+.quotePreview > img, .messageQuote > img { margin-top: 1px; }
+.messageQuote { margin: 0 0 10px; }
+.messageQuote > span {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
 .followups img, .suggestions img { margin-top: 2px; }
 .sources a { color: inherit; }
 .sources a:hover { color: #252a28; }

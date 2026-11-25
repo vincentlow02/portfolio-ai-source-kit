@@ -6,26 +6,30 @@ Add a chat box to your portfolio. It searches the public pages you approve and r
 
 For an existing public website, deploy the Kit on Vercel and paste one script into your site.
 
-1. Import a fork of this repository into Vercel. Set these two environment variables, replacing the example site and paths with your own. Deploy the assistant. Each approved URL needs to open without signing in and display its content in `<main>`.
+1. In your Kit checkout, run discovery with the public HTTPS address of your portfolio.
 
-   ```dotenv
-   PORTFOLIO_SITE_ORIGIN=https://portfolio.example.com
-   PORTFOLIO_SOURCE_PATHS=/,/projects
+   ```sh
+   npm ci
+   npm run discover:portfolio -- --origin https://portfolio.example.com
    ```
 
-2. Replace the example script URL with the assistant's deployment URL. Paste the script before `</body>` in your portfolio and publish your site.
+2. Review the paths discovered from the sitemap and site links. Edit the list as needed, then copy the printed `PORTFOLIO_SITE_ORIGIN` and `PORTFOLIO_SOURCE_PATHS` values into your assistant project's Vercel environment variables. Deploy your fork with those approved paths. You can also enter the paths yourself. [Supported sources](docs/integration.md#knowledge-sources)
+
+3. Replace the example script URL with the assistant's deployment URL. Paste the script before `</body>` in your portfolio and publish your site.
 
    ```html
    <script src="https://your-assistant.example.com/embed.js" defer></script>
    ```
 
-3. Open your portfolio, click **Ask about this portfolio**, and ask about something on an approved page. Expand **Sources** and open the linked page to check the answer.
+4. Open your portfolio, click **Ask about this portfolio**, and ask about something on an approved page. Expand **Sources** and open the linked page to check the answer.
 
-Hybrid search runs on the host and needs no model key or database. [Supported sources](docs/integration.md#knowledge-sources) · [Hosting limits](docs/integration.md#hosting-limits-and-retrieval)
+On desktop, select text on an approved portfolio page and click **Ask AI Kit** beside it. The selected passage appears above the question field. You can remove it or send it with your question.
+
+Hybrid search runs on the host and needs no model key or database. [Hosting limits](docs/integration.md#hosting-limits-and-retrieval)
 
 ### Refresh when your portfolio changes
 
-Redeploy the assistant to rebuild its knowledge from the approved pages. You can also trigger a rebuild after each successful portfolio release. [Automatic refresh setup](docs/integration.md#automatic-knowledge-refresh)
+Redeploy the assistant to rebuild its knowledge from the approved pages. Run discovery again when you add pages you want to include, then update the approved paths. You can trigger a rebuild after each successful portfolio release. [Automatic refresh setup](docs/integration.md#automatic-knowledge-refresh)
 
 ### Optional Qwen on the hosted assistant
 

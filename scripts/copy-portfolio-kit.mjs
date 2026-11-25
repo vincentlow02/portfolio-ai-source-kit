@@ -12,6 +12,7 @@ const kitFiles = [
   "components/portfolio-chat/labels.ts",
   "components/portfolio-chat/portfolio-chat-panel.module.css",
   "components/portfolio-chat/portfolio-chat-panel.tsx",
+  "components/portfolio-chat/use-portfolio-selection.ts",
   "lib/knowledge/contract.ts",
   "lib/knowledge/corpus.ts",
   "lib/knowledge/rendered.ts",

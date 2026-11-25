@@ -33,7 +33,7 @@
   .quotePreview, .messageQuote { display: flex; align-items: flex-start; gap: 8px; color: #626a65; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
   .quotePreview { margin: 0 20px 8px; padding: 9px 10px; border-left: 2px solid var(--portfolio-chat-border, var(--border, #deded9)); background: var(--portfolio-chat-surface, var(--background, #fafaf9)); }
   .quotePreview svg, .messageQuote svg { flex: none; margin-top: 1px; }
-  .quotePreview span { flex: 1; min-width: 0; }
+  .quotePreview span { display: -webkit-box; flex: 1; min-width: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
   .quotePreview button { display: grid; flex: none; place-items: center; padding: 0; border: 0; background: transparent; color: #626a65; cursor: pointer; }
   .messageQuote { margin-bottom: 10px; }
   .composer textarea { display: block; flex: 1; box-sizing: border-box; min-width: 0; min-height: 20px; max-height: 120px; margin: 0; padding: 0; resize: none; overflow-y: hidden; border: 0; border-radius: 0; outline: none; box-shadow: none; background: transparent; color: #252a28; font: inherit; font-size: 13px; line-height: 20px; }

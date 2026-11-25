@@ -103,11 +103,15 @@ test("keyword-only preview works without model files and declines unsupported de
   assert.deepEqual((await unsupported.json()).sources, []);
 });
 
-test("the embedded widget sends only the current question and the latest approved page", async t => {
+test("the embedded widget sends one question with its portfolio quote or current approved page", async t => {
   let embedUrl = "";
+  const research = "The Lantern team tested tactile signs at six libraries.";
   const server = createServer((_request, response) => {
     response.setHeader("Content-Type", "text/html");
-    response.end(`<!doctype html><title>Portfolio fixture</title><main>Portfolio</main><script src="${embedUrl}" defer></script>`);
+    response.end(`<!doctype html><title>Portfolio fixture</title>
+      <main><section id="case-study" style="margin-top: 80px">
+        <h2 id="research">Research</h2><p id="passage">${research}</p>
+      </section></main><script src="${embedUrl}" defer></script>`);
   });
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
@@ -118,32 +122,70 @@ test("the embedded widget sends only the current question and the latest approve
   const { chatUrl } = await startPreview(t, false, origin, [{
     access: "public", format: "rendered",
     page: { url: "/projects/lantern", title: "Lantern", language: "en", kind: "case-study", projectId: "lantern" },
-    sections: [{ title: "Research", anchor: "research", text: "The Lantern team tested tactile signs at six libraries." }],
+    sections: [{ title: "Research", anchor: "research", text: research }],
   }]);
   embedUrl = new URL("embed.js", chatUrl).href;
   const browser = await launchBrowser();
   t.after(() => browser.close());
   const page = await browser.newPage();
+  await page.setViewport({ width: 1280, height: 800 });
   const pageErrors: string[] = [];
   page.on("pageerror", error => pageErrors.push(String(error)));
   await page.goto(`${origin}/projects/lantern?tracking=example#research`);
   assert.deepEqual(pageErrors, []);
-  await page.evaluate(() => document.querySelector("portfolio-ai-preview")!.shadowRoot!.querySelector<HTMLButtonElement>(".launcher")!.click());
+  const action = "portfolio-ai-preview >>> .selection-action";
+  const askAboutSelection = async () => {
+    await page.$eval("#passage", passage => {
+      const range = document.createRange();
+      range.selectNodeContents(passage);
+      const selection = window.getSelection()!;
+      selection.removeAllRanges();
+      selection.addRange(range);
+    });
+    await page.waitForSelector(action, { visible: true });
+    assert.equal(await page.$eval(action, button => button.textContent?.trim()), "Ask AI Kit");
+    await page.click(action);
+  };
+  await askAboutSelection();
   const panel = await page.waitForFrame(frame => frame.url() === chatUrl);
-  await panel.waitForSelector("#question", { visible: true });
-  const ask = async (text: string) => {
+  await panel.waitForSelector("#quote", { visible: true });
+  assert.equal(await panel.$eval("#quote-text", quote => quote.textContent), research);
+  assert.equal(await panel.$eval("#question", input => input === document.activeElement), true);
+  const send = async () => {
     const sent = page.waitForRequest(request => new URL(request.url()).pathname === "/api/preview" && request.method() === "POST");
-    await panel.type("#question", text);
     await panel.click('form button[type="submit"]');
     const request = await sent;
     await panel.waitForSelector("#output .assistant");
     return request.fetchPostData().then(data => JSON.parse(data!));
   };
+  const ask = async (text: string) => {
+    await panel.type("#question", text);
+    return send();
+  };
+
+  const question = "How was it tested?";
+  await panel.type("#question", question);
+  await panel.click("#remove-quote");
+  await panel.waitForSelector("#quote", { hidden: true });
+  assert.equal(await panel.$eval("#question", input => (input as HTMLTextAreaElement).value), question);
+  await askAboutSelection();
+  await panel.waitForSelector("#quote", { visible: true });
+  assert.deepEqual(await send(), {
+    messages: [{ role: "user", content: question }],
+    selectionContext: { pagePath: "/projects/lantern", sectionId: "case-study", text: research },
+  });
+  await panel.waitForSelector("#quote", { hidden: true });
+  await panel.waitForSelector(".user #asked-quote", { visible: true });
+  assert.equal(await panel.$eval("#asked-quote-text", quote => quote.textContent), research);
+  assert.equal(await panel.$eval("#output p", answer => answer.textContent), research);
+  assert.equal(await panel.$eval(".sources a", link => link.getAttribute("href")), `${origin}/projects/lantern#research`);
+
   const first = await ask("How was it tested?");
   assert.deepEqual(first, {
     messages: [{ role: "user", content: "How was it tested?" }],
     pageContext: { pathname: "/projects/lantern" },
   });
+  await panel.waitForSelector("#asked-quote", { hidden: true });
   assert.equal(await panel.$eval(".sources a", link => link.getAttribute("href")), `${origin}/projects/lantern#research`);
   await page.evaluate(() => history.pushState(null, "", "/projects"));
   const second = await ask("recycled steel");

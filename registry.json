@@ -56,6 +56,11 @@
           "target": "~/components/portfolio-chat/portfolio-chat-panel.tsx"
         },
         {
+          "path": "components/portfolio-chat/use-portfolio-selection.ts",
+          "type": "registry:file",
+          "target": "~/components/portfolio-chat/use-portfolio-selection.ts"
+        },
+        {
           "path": "lib/knowledge/contract.ts",
           "type": "registry:file",
           "target": "~/lib/knowledge/contract.ts"

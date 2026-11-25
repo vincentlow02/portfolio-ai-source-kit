@@ -10,11 +10,12 @@ import { resolveGuardianReply } from "../../lib/portfolio-chat/guardian";
 import { isSameOriginPath, requestPortfolioChat, type ChatSource, type ChatTurn } from "./chat-adapter";
 import { defaultLabels, defaultQuestions } from "./labels";
 import styles from "./portfolio-chat-panel.module.css";
+import { usePortfolioSelection, type SelectionContext } from "./use-portfolio-selection";
 
 type Locale = "en" | "zh" | "ja";
 type Project = { id: string; name: string };
 export type PortfolioChatLabels = {
-  heading: string; ask: string; askQuote: string; askProject: string; placeholder: string;
+  heading: string; ask: string; askSelection?: string; askQuote: string; askProject: string; placeholder: string;
   open: string; close: string; reset: string; send: string; removeQuote: string; thinking: string; cancel: string;
   yourQuestion: string; response: string; sources: string; followups: string; projects: string; other: string;
   errors: Record<string, string>; unavailable: string;
@@ -52,7 +53,6 @@ export type PortfolioChatPanelProps = {
 };
 
 type Recommendation = { type: "project" | "section"; projectId: string; title: string; url: string; caseStudyUrl: string; thumbnailUrl: string | null; alt: string };
-type SelectionContext = { pagePath: string; text: string; sectionId: string | null };
 type Message = { role: "user" | "assistant"; content: string; language?: "en" | "zh" | "ja"; quote?: SelectionContext; sources?: ChatSource[]; recommendations?: Recommendation[]; suggestions?: string[]; error?: boolean };
 type ProjectTarget = { name: string; url: string; recommendation?: Recommendation };
 
@@ -167,7 +167,6 @@ function PortfolioChatContent({ children, initialLocale = "en", config, host, cl
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [quote, setQuote] = useState<SelectionContext | null>(null);
-  const [selectionAction, setSelectionAction] = useState<{ context: SelectionContext; left: number; top: number } | null>(null);
   const scroll = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const openRef = useRef<HTMLButtonElement>(null);
@@ -177,10 +176,11 @@ function PortfolioChatContent({ children, initialLocale = "en", config, host, cl
   const history = useRef<ChatTurn[]>([]);
   const suggested = useRef<string[]>([]);
   const follow = useRef(true);
-  const actionRef = useRef<HTMLButtonElement>(null);
   const portfolioRef = useRef<HTMLDivElement>(null);
+  const selection = usePortfolioSelection(portfolioRef, knowsPath ? scopeSelector : null, pathname);
 
   useEffect(() => () => pending.current?.abort(), []);
+  useEffect(() => { setQuote(null); }, [pathname, locale]);
   useEffect(() => {
     const media = window.matchMedia("(max-width: 1023px)");
     const update = () => setMobile(media.matches);
@@ -215,30 +215,15 @@ function PortfolioChatContent({ children, initialLocale = "en", config, host, cl
     };
   }, [open, mobile]);
   useEffect(() => { if (follow.current && scroll.current) scroll.current.scrollTop = scroll.current.scrollHeight; }, [messages, busy, open]);
-  useEffect(() => {
-    function updateSelection() {
-      if (document.activeElement === actionRef.current) return;
-      const selection = window.getSelection();
-      if (!selection || selection.isCollapsed || selection.rangeCount !== 1 || window.innerWidth < 1024) { setSelectionAction(null); return; }
-      const text = selection.toString().trim();
-      const range = selection.getRangeAt(0);
-      const scope = knowsPath && scopeSelector ? portfolioRef.current?.querySelector(scopeSelector) : null;
-      const element = (node: Node) => node.nodeType === Node.ELEMENT_NODE ? node as Element : node.parentElement;
-      const start = element(range.startContainer), end = element(range.endContainer);
-      const forbidden = "a, button, nav, input, textarea, select, [contenteditable], [data-portfolio-access='protected']";
-      if (text.length < 3 || text.length > 1200 || !scope || !start || !end || !scope.contains(start) || !scope.contains(end) || scope.closest(forbidden) || start.closest(forbidden) || end.closest(forbidden) || document.querySelector('meta[name="robots"][content*="noindex" i]') || Array.from(scope.querySelectorAll(forbidden)).some(node => range.intersectsNode(node))) { setSelectionAction(null); return; }
-      const startSection = start.closest("section[id]");
-      const endSection = end.closest("section[id]");
-      const rect = range.getBoundingClientRect();
-      if (!rect.width && !rect.height) { setSelectionAction(null); return; }
-      setSelectionAction({ context: { pagePath: pathname, text, sectionId: startSection && startSection === endSection ? startSection.id : null }, left: Math.max(8, Math.min(rect.left, window.innerWidth - 158)), top: Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - 44)) });
-    }
-    function dismiss() { setSelectionAction(null); }
-    document.addEventListener("selectionchange", updateSelection);
-    window.addEventListener("scroll", dismiss, true);
-    window.addEventListener("resize", dismiss);
-    return () => { document.removeEventListener("selectionchange", updateSelection); window.removeEventListener("scroll", dismiss, true); window.removeEventListener("resize", dismiss); };
-  }, [pathname, scopeSelector, knowsPath]);
+  function askAboutSelection() {
+    if (!selection.action) return;
+    setQuote(selection.action.context);
+    selection.dismiss();
+    window.getSelection()?.removeAllRanges();
+    setOpen(true);
+    requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
+  }
+
   async function submit(value: string) {
     const question = value.trim();
     if (!question || pending.current) return;
@@ -280,7 +265,12 @@ function PortfolioChatContent({ children, initialLocale = "en", config, host, cl
 
   return <div className={[styles.shell, className].filter(Boolean).join(" ")} style={style} data-portfolio-chat-open={open}>
     <div className={styles.portfolio} ref={portfolioRef}>{children}</div>
-    {selectionAction && <button ref={actionRef} type="button" className={styles.selectionAction} style={{ left: selectionAction.left, top: selectionAction.top }} onMouseDown={event => event.preventDefault()} onClick={() => { setQuote(selectionAction.context); setSelectionAction(null); setOpen(true); requestAnimationFrame(() => inputRef.current?.focus()); }}><Sparkles size={14} aria-hidden="true" /> {copy.ask}</button>}
+    {selection.action && (
+      <button ref={selection.actionRef} type="button" className={styles.selectionAction}
+        onPointerDown={event => event.preventDefault()} onClick={askAboutSelection}>
+        <Sparkles size={14} aria-hidden="true" /> {copy.askSelection ?? copy.ask}
+      </button>
+    )}
     {!open && <button ref={openRef} className={styles.open} type="button" aria-label={copy.open} onClick={() => { setOpen(true); if (!mobile) requestAnimationFrame(() => inputRef.current?.focus()); }}>{host?.triggerDecoration}<Sparkles className={styles.openIcon} size={18} strokeWidth={1.6} /></button>}
     {open && <aside ref={panelRef} className={styles.panel} role={mobile ? "dialog" : undefined} aria-modal={mobile ? true : undefined} aria-label={name}>
       <header className={styles.header}><span>{name}</span><div className={styles.actions}><button type="button" aria-label={copy.reset} onClick={reset}><RotateCcw size={16} /></button><button ref={closeRef} type="button" aria-label={copy.close} onClick={() => { setOpen(false); requestAnimationFrame(() => openRef.current?.focus({ preventScroll: true })); }}><X size={18} /></button></div></header>

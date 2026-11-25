@@ -13,6 +13,8 @@
 
 For Hosted and Vite preview, approved pages must open at their direct URLs and show their content inside `<main>`. Capture allows same-origin scripts and styles and blocks page-initiated fetch and XHR. Use `/` or lowercase paths with letters, digits and hyphens. The reader treats approved `/projects/<slug>` pages as projects. For another route, mark the main element with an ID such as `<main data-portfolio-project="field-notes">`. Keep one approved page per project ID and language. If a Vite SPA returns 404 at a direct URL, configure a host rewrite. [Vercel Vite rewrites](https://vercel.com/docs/frameworks/frontend/vite#using-vite-to-make-spas)
 
+Discovery checks up to 50 candidate pages from sitemaps and links on the same site. Candidates must open anonymously and contain visible portfolio text. For Hosted, review and edit the printed list before setting the environment variables. Each build uses the exact approved paths or the configured manifest. [Hosted setup](../README.md#hosted-assistant)
+
 Each public entry specifies `access`, `format`, and a `page` with same-origin URL, title, language (`en`, `zh`, or `ja`) and kind. Case studies and project details also need a project ID. List each URL/locale once. A protected entry declares `access: "protected"` and a pathname; no content is read from that path or its descendants.
 
 For Hosted, set `PORTFOLIO_KNOWLEDGE_CONFIG=./portfolio-knowledge.config.ts` and leave `PORTFOLIO_SOURCE_PATHS` unset. For Vite local preview, pass `--manifest ./portfolio-knowledge.config.ts` instead of `--path`. Default-export an object with a `sources` array. Resolve static file paths relative to the directory where you run the publisher. For a separate Hosted deployment, make those files available in the assistant's build checkout and keep their approved public pages up to date. An exact URL list is sufficient if you only need to read your rendered site. [Manifest example](../examples/atlas-portfolio/portfolio-knowledge.config.ts)
@@ -63,13 +65,15 @@ You'll need an existing Vite portfolio, Node.js 24, npm and Chromium. On Windows
    npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
    ```
 
-2. Keep the Vite terminal running. In a second terminal in the Kit checkout, capture the approved content and start the chat service. Use the same port as your portfolio. Repeat `--path` for each approved page.
+2. Keep the Vite terminal running. In a second terminal in the Kit checkout, run discovery and start the chat service after capture. Use the same port as your portfolio.
 
    ```sh
    npm ci
-   npm run preview:local -- --origin http://127.0.0.1:5173 --path /projects
+   npm run preview:local -- --origin http://127.0.0.1:5173
    npm run preview:chat
    ```
+
+   Review the candidate list. Enter `all` or the numbers of specific pages separated by commas. Press Enter on an empty line to cancel. The Kit reuses the approved paths on later runs for the same origin. Add `--discover` when you want to review the list again. For scripted setup, repeat `--path` for each approved page or pass `--manifest` to supply the sources directly.
 
 3. Add this loader before `</body>` in the portfolio's `index.html`. Open the portfolio at `http://127.0.0.1:5173` and ask about an approved page. Use **Sources** to check the excerpt.
 
@@ -83,7 +87,7 @@ You'll need an existing Vite portfolio, Node.js 24, npm and Chromium. On Windows
    </script>
    ```
 
-The capture writes `.portfolio-knowledge/local-preview.json`, which Git ignores. Rebuild it and restart chat after changing approved pages or the portfolio port. If you start chat with `--port`, use that port in the loader. The embedded widget submits one question at a time. It uses the current route when asking about an approved project page. On desktop, select a passage and choose **Ask Portfolio AI** to quote it.
+The capture writes `.portfolio-knowledge/local-preview.json`, which Git ignores. Rebuild it and restart chat after changing approved pages or the portfolio port. If you start chat with `--port`, use that port in the loader. The embedded widget submits one question at a time. It uses the current route when asking about an approved project page. On desktop, select a passage on the page and click **Ask AI Kit** to add it to your question.
 
 ### Preview Qwen locally
 

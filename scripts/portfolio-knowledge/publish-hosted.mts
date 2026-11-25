@@ -7,8 +7,7 @@ import { hostedPortfolioOrigin } from "../../lib/knowledge/hosted-origin";
 import { capturePublishedSource, captureSiteSource, verifyInBrowser } from "../../lib/knowledge/rendered";
 import { prepareEmbeddingModel } from "../../lib/portfolio-chat/embedding-model.mjs";
 import { indexPortfolioCorpus } from "../../lib/portfolio-chat/embeddings";
-import { launchBrowser } from "./anonymous-browser.mjs";
-import { hostedResourceLoader } from "./hosted-resource.mts";
+import { hostedResourceLoader, launchHostedPortfolioBrowser } from "./hosted-resource.mts";
 import { loadKnowledgeSources, type DeclaredSource } from "./source-plan";
 
 try { process.loadEnvFile(".env.local"); } catch (error) {
@@ -25,11 +24,7 @@ for (const path of paths) knowledgePath(path);
 
 await prepareEmbeddingModel();
 const loadResource = await hostedResourceLoader(origin);
-// Only the pinned HTTPS loader can fetch resources for the anonymous browser.
-const browser = await launchBrowser([
-  "--proxy-server=http://127.0.0.1:9", "--proxy-bypass-list=<-loopback>", "--disable-quic",
-  "--force-webrtc-ip-handling-policy=disable_non_proxied_udp",
-]);
+const browser = await launchHostedPortfolioBrowser();
 try {
   const sources = manifest
     ? await loadKnowledgeSources((await import(pathToFileURL(resolve(manifest)).href)).default?.sources as DeclaredSource[],
