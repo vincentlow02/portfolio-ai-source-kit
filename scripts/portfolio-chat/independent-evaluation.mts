@@ -60,7 +60,7 @@ for(const item of cases){
  let generationError: string|null=null;
  if (!result.answer) try { await generateAnswer(input,result.pack,model,true); } catch(error) { generationError=error instanceof Error?error.name:"unknown"; }
  const answerPathMs=performance.now()-start;
- const top=retrieval.chunks.slice(0,5).map(c=>c.sourceUrl), evidence=result.pack.entries.map(e=>e.chunk.sourceUrl);
+ const top=retrieval.qualifiedMatches.slice(0,5).map(c=>c.sourceUrl), evidence=result.pack.entries.map(e=>e.chunk.sourceUrl);
  rows.push({...item,top,evidence,clarification:!!result.answer?.clarification,insufficient:!!result.answer?.insufficient,needsGeneration:result.answer===null,modelCalls,generationError,answerPathMs,
  recall:item.expected.length?top.filter(x=>item.expected.includes(x)).length/item.expected.length:null,coverage:item.expected.length?evidence.filter(x=>item.expected.includes(x)).length/item.expected.length:null,
  irrelevant:evidence.filter(x=>!item.expected.includes(x)).length,retrievalMs,preparationMs});

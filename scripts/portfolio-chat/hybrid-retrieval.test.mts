@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
+import { parsePortfolioCorpus } from "../../lib/knowledge/corpus";
 import { buildB2Pack, parsePageContext, validateB2 } from "../../lib/portfolio-chat/b2";
 import { comparisonTopicClarification, comparisonTopicMatcher, createEvidenceRetriever, resolveContext } from "../../lib/portfolio-chat/retrieval";
 import { createModelReply, excerptReply, validateWidgetQuestion } from "../../lib/portfolio-chat/source-reply";
 import { generateAnswer, prepareAnswer } from "../../lib/portfolio-chat/answer-engine";
 import { configureModel } from "../../lib/portfolio-chat/provider";
+import { indexPortfolioCorpus, type EmbeddingProvider, type EmbeddingPurpose } from "../../lib/portfolio-chat/embeddings";
 import { verifySelection } from "../../lib/portfolio-chat/selection";
 
 const observatory = "Visitors look at the night sky using two reflecting telescopes.";
@@ -18,6 +20,38 @@ const corpus = await buildKnowledgeCorpus([
 ], "fixture", async () => {});
 
 const question = (content: string) => [{ role: "user" as const, content }];
+const fixtureRetriever = (embed: EmbeddingProvider["embed"]) => createEvidenceRetriever({
+  id: "retrieval-fixture", dimensions: 2,
+  calibration: { cosine: 0.365, assistedCosine: 0.30, fused: 0.50 }, embed,
+});
+
+test("published embeddings only require a query vector for a matching snapshot and provider", async () => {
+  const calls: EmbeddingPurpose[] = [];
+  const provider: EmbeddingProvider = {
+    id: "portable-fixture:v1",
+    dimensions: 2,
+    calibration: { cosine: 0.6, assistedCosine: 0.5, fused: 0.7 },
+    async embed(texts, purpose) {
+      calls.push(purpose);
+      return texts.map(text => text.includes("telescope") || text.includes("stargazing") ? [1, 0] : [0, 1]);
+    },
+  };
+  const indexed = await indexPortfolioCorpus(corpus, provider);
+  const reloaded = parsePortfolioCorpus(JSON.parse(JSON.stringify(indexed)));
+  assert.equal(reloaded.embeddingIndex?.model, provider.id);
+  assert.equal(reloaded.contentHash, corpus.contentHash);
+  assert.deepEqual(calls.splice(0), ["passage"]);
+  const query = question("Where do people go stargazing?");
+  assert.equal((await createEvidenceRetriever(provider)(reloaded, query)).qualifiedMatches[0].sourceUrl, "/observatory#optics");
+  assert.deepEqual(calls.splice(0), ["query"]);
+
+  const updatedProvider = { ...provider, id: "portable-fixture:v2" };
+  assert.equal((await createEvidenceRetriever(updatedProvider)(reloaded, query)).qualifiedMatches[0].sourceUrl, "/observatory#optics");
+  assert.deepEqual(calls.splice(0), ["passage", "query"]);
+  const malformed = { ...indexed, embeddingIndex: { ...indexed.embeddingIndex!, vectors: {} } };
+  await createEvidenceRetriever(provider)(malformed, query);
+  assert.deepEqual(calls.splice(0), ["passage", "query"]);
+});
 
 test("unresolved pronouns clarify without selecting evidence in three languages", async () => {
   for (const [text, language] of [["How was it tested?", "en"], ["What does it do?", "en"], ["它是怎么测试的？", "zh"], ["它有什么功能？", "zh"], ["それはどうやってテストしましたか？", "ja"], ["それは何ですか？", "ja"]] as const) {
@@ -384,7 +418,7 @@ test("retrieval combines keyword and semantic scores for approved current passag
   const optics = corpus.chunks.find(chunk => chunk.sectionId === "optics")!;
   const herbs = corpus.chunks.find(chunk => chunk.sectionId === "herbs")!;
   const vector = (cosine: number) => [cosine, Math.sqrt(1 - cosine * cosine)];
-  const search = createEvidenceRetriever(async texts => texts.map(text => {
+  const search = fixtureRetriever(async texts => texts.map(text => {
     assert.doesNotMatch(text, /old build|unapproved/u);
     if (text.includes(observatory)) return vector(0.52);
     if (text.includes(garden)) return vector(0.4);
@@ -398,10 +432,10 @@ test("retrieval combines keyword and semantic scores for approved current passag
       { ...herbs, chunkId: "unlisted", sourceUrl: "/unlisted", content: "Unlisted\nThis paragraph is unapproved." }],
   };
   const related = await search(fixture, question("Which courtyard contains edible plants?"));
-  assert.equal(related.chunks[0].chunkId, herbs.chunkId);
+  assert.equal(related.qualifiedMatches[0].chunkId, herbs.chunkId);
   assert.ok(related.scores.get(herbs.chunkId)! > related.scores.get(optics.chunkId)!);
   const unrelated = await search(fixture, question("Where is Neptune located?"));
-  assert.deepEqual(unrelated.chunks, []);
+  assert.deepEqual(unrelated.qualifiedMatches, []);
 });
 
 test("hybrid preserves exact terms and verified selections", async () => {
@@ -446,7 +480,7 @@ test("context carries one topic, resolves comparisons and resets on a named proj
 test("concurrent cold requests share embeddings and a failure falls back to unique literal public evidence", async () => {
   let corpusBatches = 0;
   let unavailable = true;
-  const search = createEvidenceRetriever(async texts => {
+  const search = fixtureRetriever(async texts => {
     if (texts.length > 1) {
       corpusBatches++;
       await new Promise(resolve => setImmediate(resolve));
@@ -471,7 +505,7 @@ test("concurrent cold requests share embeddings and a failure falls back to uniq
 
 test("a resolved corpus embedding with invalid dimensions is rebuilt on the next request", async () => {
   let corpusBatches = 0;
-  const search = createEvidenceRetriever(async texts => {
+  const search = fixtureRetriever(async texts => {
     if (texts.length > 1 && ++corpusBatches === 1) return texts.map(() => [1]);
     return texts.map(() => [1, 0]);
   });

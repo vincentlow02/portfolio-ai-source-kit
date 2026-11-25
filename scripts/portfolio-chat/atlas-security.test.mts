@@ -32,6 +32,10 @@ test("first-person concept can be attributed but team art direction cannot", () 
   assert.equal(validate("Morgan provided the art direction and visual explorations for Lantern.",team.key).insufficient,true);
   assert.equal(validate("Morgan provided the art direction and visual explorations for Lantern.",personal.key).insufficient,true);
   assert.equal(validate("Morgan provided art direction for Lantern.",direct.key).insufficient,false);
+  const combined = validateB2({ language: "en", insufficient: false, claims: [
+    { text: "Morgan imagined the visual explorations for Lantern.", evidenceKeys: [personal.key, team.key] },
+  ], recommendedProjectIds: [] }, corpus, pack);
+  assert.equal(combined.insufficient, true);
   assert.equal(validate("I provided art direction for Lantern.",team.key).insufficient,true);
   assert.equal(validate("I provided art direction for Lantern.",direct.key).insufficient,false);
   assert.equal(validate("She provided art direction for Lantern.",team.key).insufficient,true);

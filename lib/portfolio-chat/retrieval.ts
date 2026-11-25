@@ -4,6 +4,7 @@ import { createTokenizer as japanese } from "@orama/tokenizers/japanese";
 import type { PortfolioCorpus, PortfolioChunk } from "../portfolio-knowledge";
 import type { ChatMessage } from "./core";
 import { defaultPortfolioChatConfig } from "./engine-config";
+import { embeddingProvider, embedPassageVectors, publishedPassageVectors, type EmbeddingProvider } from "./embeddings";
 
 import type { PortfolioChatConfig } from "./engine-config";
 export const comparisonQuestion = /compare|different|difference|相比|比较|对比|對比|区别|差异|差異|不同|比較|比べ|違い/iu;
@@ -31,6 +32,7 @@ export function isSubstantivePassage(chunk: PortfolioChunk): boolean {
   const lines = chunk.content.trim().split("\n").map(line => line.trim()).filter(Boolean);
   if (lines.length < 2 || chunk.content.trim() === chunk.sectionTitle.trim()) return false;
   return lines.slice(1).some(line => searchable({ ...chunk, content: line }) &&
+    !/^(?:this(?: section| page)? is (?:a )?placeholder\b|(?:coming soon|details forthcoming)\b|(?:内容待补|内容待更新|準備中)[。.!！]?\s*$)/iu.test(line) &&
     !/^(?:\d+\s*\/|solution\s*\d+\s*\/|[\p{P}\p{S}\s]+$)/iu.test(line));
 }
 
@@ -38,7 +40,16 @@ export function isSubstantivePassage(chunk: PortfolioChunk): boolean {
 // fact, not merely the same topic. This deliberately small multilingual gate
 // is conservative and is not a general semantic-entailment classifier.
 export function sourceMatchesSpecificIntent(query: string, source: string): boolean {
-  const checks: Array<[RegExp, RegExp]> = [
+  const normalized = query.normalize("NFKC");
+  const body = source.normalize("NFKC");
+  return specificFactChecks.every(([intent, evidence]) => !intent.test(normalized) || evidence.test(body));
+}
+
+const specificFactChecks: Array<[RegExp, RegExp]> = [
+    [/(?:\bhow much\b.{0,90}\b(?:costs?|charg(?:e[ds]?|ing)|pay|paid|budget|price|salary|spend|spent|subscription)\b|\bwhat (?:is|was) (?:the |its )?(?:total )?(?:price|cost|budget|salary)\b|(?:预算|預算|月费|月費|工资|薪水).{0,18}(?:多少|几)|多少钱|多少錢|多少(?:美元|加元)|いくら)/iu,
+      /(?:[$€£¥]\s*\d|\d[\d,.]*\s*(?:usd|cad|dollars?|euros?|yen|円|元|美元|加元)(?![a-z0-9])|(?:is|was) free\b|at no cost\b|免费使用|免費使用|無料で)/iu],
+    [/(?:\b(?:what|which)\b.{0,55}\b(?:database|cloud provider|hosting provider)\b|(?:数据库|資料庫|云服务商|雲服務商).{0,15}(?:哪|什么|什麼)|どの.{0,15}(?:データベース|クラウド))/iu,
+      /(?:\b(?:built (?:on|with)|hosted (?:on|by)|deployed (?:on|to)|stored in|(?:uses?|used|runs? on)\b.{0,55}(?:database|postgres|mysql|sqlite|mongodb|redis|cloud|aws|azure|firebase|supabase))\b|(?:采用|採用|部署在|存储于|儲存在).{0,45}(?:数据库|資料庫|云|雲)|(?:データベース|クラウド).{0,30}(?:使用|採用))/iu],
     [/(?:\b(?:price|pricing|cost|costs|purchase|buy|buying|expensive)\b|価格|値段|費用|料金|いくら|購入|购买|購買|价格|價格|费用|費用|多少钱|多少錢)/iu,
       /(?:\b(?:price|pricing|cost|costs|purchase|buy|sold|free|budget|dollars?|euros?|yen|usd|sgd)\b|[$€£¥]\s*\d|\d[\d,.]*\s*(?:円|元)|[一二三四五六七八九十百千万]+(?:円|元)|価格|値段|費用|料金|無料|購入|购买|購買|价格|價格|费用|費用|免费|免費|美元)/iu],
     [/(?:\b(?:salary|salaries|wages?|payroll|compensation|payday)\b|給料|給与|賃金|工资|工資|薪水|薪资|薪資)/iu,
@@ -51,17 +62,19 @@ export function sourceMatchesSpecificIntent(query: string, source: string): bool
       /(?:\b(?:19|20)\d{2}\b|[零〇一二三四五六七八九十百千\d]{2,}年|\b(?:launched|released|opened|started|since|before|after|during|first)\b|開始|开始|開業|开业|公開|公开|发布|發布)/iu],
     [/(?:いつから[^?？。]{0,35}(?:使わ|使い|使用|利用)|(?:何时|何時|什么时候|什麼時候)[^?？。]{0,20}(?:开始|開始)?(?:使用|利用)|\b(?:when|since when)\b[^?]{0,100}\b(?:start(?:ed)? using|began using|put into use|in use|used)\b)/iu,
       /(?:\b(?:used|using|in use|put into use|operated|in operation|deployed|adopted)\b|使わ|使い|使用|利用|運用|运用)/iu],
-  ];
-  const normalizedQuery = query.normalize("NFKC"), normalizedSource = source.normalize("NFKC");
-  return checks.every(([intent, evidence]) => !intent.test(normalizedQuery) || evidence.test(normalizedSource));
+];
+
+function projectLabels(id: string, corpus: PortfolioCorpus, config: PortfolioChatConfig) {
+  return [...new Set([...(config.projectAliases?.[id] ?? []), id, id.replaceAll("-", " "),
+    ...corpus.pages.filter(page => page.projectId === id && (page.kind === "case-study" || page.kind === "project-detail")).map(page => page.title)]
+    .map(label => label.normalize("NFKC").trim()).filter(Boolean))].sort((a, b) => b.length - a.length);
 }
 
 function names(text: string, corpus: PortfolioCorpus, config: PortfolioChatConfig): string[] {
-  const lower = text.toLocaleLowerCase();
+  const lower = text.normalize("NFKC").toLocaleLowerCase();
   const known = new Set(corpus.chunks.map((chunk) => chunk.projectId).filter((id): id is string => Boolean(id)));
   return [...known].filter((id) => {
-    const terms = [...(config.projectAliases?.[id] ?? []), id, id.replaceAll("-", " "),
-      ...corpus.caseStudies.filter((project) => project.projectId === id).map((project) => project.title.toLocaleLowerCase())];
+    const terms = projectLabels(id, corpus, config);
     return terms.some((term) => {
     term = term.toLocaleLowerCase();
     const escaped = term.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
@@ -190,22 +203,17 @@ export function resolveProjects(messages: ChatMessage[], corpus: PortfolioCorpus
 }
 
 export type RetrievalResult = {
-  projects: string[];
   candidates: PortfolioChunk[];
   qualifiedMatches: PortfolioChunk[];
   /** Only qualified matches have scoring priority. */
   scores: Map<string, number>;
-  /** Compatibility alias for callers using the original result shape. */
-  chunks: PortfolioChunk[];
   fallback: boolean;
 };
 
 export function removeProjectLabels(query: string, projects: readonly string[], corpus: PortfolioCorpus, config: PortfolioChatConfig): string {
-  let terms = query;
+  let terms = query.normalize("NFKC");
   for (const id of projects) {
-    const labels = [...(config.projectAliases?.[id] ?? []), id, id.replaceAll("-", " "),
-      ...corpus.caseStudies.filter((item) => item.projectId === id).map((item) => item.title)];
-    for (const label of labels) {
+    for (const label of projectLabels(id, corpus, config)) {
       const escaped = label.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
       terms = terms.replace(new RegExp(/[a-z]/iu.test(label)
         ? "(?<![a-z0-9])" + escaped + "(?![a-z0-9])" : escaped, "giu"), " ");
@@ -221,7 +229,7 @@ function searchTerms(query: string, projects: string[], corpus: PortfolioCorpus,
 }
 
 function createIndex(language: "en" | "zh" | "ja") {
-  const schema = { chunkId: "string", text: "string", title: "string", projectId: "string" } as const;
+  const schema = { chunkId: "string", text: "string", title: "string" } as const;
   return language === "en" ? create({ schema, language: "english" })
     : create({ schema, components: { tokenizer: language === "zh" ? chinese() : japanese() } });
 }
@@ -235,7 +243,7 @@ function keywordIndexes(chunks: PortfolioChunk[], key: string) {
     const group = (chunk.projectId ?? "") + "|" + chunk.language;
     if (!indexes.has(group)) indexes.set(group, createIndex(chunk.language));
     insert(indexes.get(group)!, {
-      chunkId: chunk.chunkId, text: chunk.content, title: chunk.sectionTitle, projectId: chunk.projectId ?? "",
+      chunkId: chunk.chunkId, text: chunk.content, title: chunk.sectionTitle,
     });
   }
   keywordCache = { key, indexes };
@@ -257,20 +265,6 @@ async function scoreKeywords(indexes: Map<string, Index>, terms: string, project
   return scores;
 }
 
-type EmbedTexts = (texts: string[]) => Promise<number[][]>;
-
-async function embedPassages(chunks: PortfolioChunk[], embed: EmbedTexts) {
-  const vectors = new Map<string, number[]>();
-  const batchSize = 8;
-  for (let offset = 0; offset < chunks.length; offset += batchSize) {
-    const batch = chunks.slice(offset, offset + batchSize);
-    const rows = await embed(batch.map(chunk => chunk.content));
-    if (rows.length !== batch.length) throw new Error("Could not embed the approved passages");
-    batch.forEach((chunk, index) => vectors.set(chunk.chunkId, rows[index]));
-  }
-  return vectors;
-}
-
 function exactMatch(candidates: PortfolioChunk[], terms: string, question: string, keywords: Map<string, number>, requireUnique = false) {
   const normalize = (text: string) => text.normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
   const phrase = normalize(terms);
@@ -281,19 +275,37 @@ function exactMatch(candidates: PortfolioChunk[], terms: string, question: strin
   return matches.sort((a, b) => (keywords.get(b.chunkId) ?? 0) - (keywords.get(a.chunkId) ?? 0))[0];
 }
 
-export type RetrievalPhase = "keyword" | "corpusEmbedding" | "queryEmbedding" | "semantic";
-export type RetrievalTiming = (phase: RetrievalPhase, milliseconds: number) => void;
-export const defaultRetrievalProfile = { cosine: 0.365, assistedCosine: 0.30, fused: 0.50, keywordWeight: 0.20 };
+const wordSplit = new Intl.Segmenter(undefined, { granularity: "word" });
+function keywordEvidence(terms: string, passage: string) {
+  const words = (text: string) => new Set(Array.from(wordSplit.segment(text.toLowerCase()), part => part.isWordLike ? part.segment : "").filter(Boolean));
+  const queryWords = words(terms);
+  const passageWords = words(passage);
+  const matches = [...queryWords].filter(term => passageWords.has(term)).length;
+  return matches >= 2 && matches >= Math.ceil(queryWords.size / 2);
+}
 
-export function createEvidenceRetriever(embed: EmbedTexts, profile = defaultRetrievalProfile) {
-  let cache: { key: string; vectors: ReturnType<typeof embedPassages> } | undefined;
+/** Combine ranked lists after the evidence thresholds have been applied. */
+function fuseRanks(chunks: PortfolioChunk[], dense: Map<string, number>, lexical: Map<string, number>) {
+  const byDense = chunks.slice().sort((a, b) => dense.get(b.chunkId)! - dense.get(a.chunkId)!);
+  const byKeyword = chunks.filter(c => lexical.has(c.chunkId))
+    .sort((a, b) => lexical.get(b.chunkId)! - lexical.get(a.chunkId)!);
+  const rank = new Map(byDense.map((c, index) => [c.chunkId, 1 / (61 + index)]));
+  byKeyword.forEach((c, index) => rank.set(c.chunkId, rank.get(c.chunkId)! + 0.5 / (61 + index)));
+  return byDense.sort((a, b) => rank.get(b.chunkId)! - rank.get(a.chunkId)!);
+}
+
+export type RetrievalPhase = "keyword" | "indexLoad" | "corpusEmbedding" | "queryEmbedding" | "semantic" | "rankFusion";
+export type RetrievalTiming = (phase: RetrievalPhase, milliseconds: number) => void;
+
+export function createEvidenceRetriever(provider: EmbeddingProvider | null) {
+  let cache: { key: string; vectors: ReturnType<typeof embedPassageVectors> } | undefined;
   return async (corpus: PortfolioCorpus, messages: ChatMessage[], config = defaultPortfolioChatConfig, timing?: RetrievalTiming, scopedProjects?: readonly string[]): Promise<RetrievalResult> => {
     const context = resolveContext(messages, corpus, config);
     const projects = scopedProjects ? [...scopedProjects] : context.projects;
     const { topic } = context;
     const currentQuestion = messages.at(-1)?.content ?? "";
     const question = topic ? currentQuestion + " " + topic : currentQuestion;
-    const terms = searchTerms(question, projects, corpus, config);
+    const terms = searchTerms(question, projects, corpus, config) || (!provider ? question.trim() : "");
     const pages = new Set(corpus.pages.map(page => page.url));
     const approved = corpus.chunks.filter(chunk => chunk.accessLevel === "public" &&
       chunk.buildVersion === corpus.contentHash && pages.has(chunk.sourceUrl.split("#")[0]) && searchable(chunk));
@@ -301,27 +313,39 @@ export function createEvidenceRetriever(embed: EmbedTexts, profile = defaultRetr
     const passages = approved.filter(isSubstantivePassage);
     const candidates = passages.filter(chunk => (!projects.length || projects.includes(chunk.projectId ?? "")) && sourceMatchesSpecificIntent(currentQuestion, chunk.content));
     const scores = new Map<string, number>();
-    if (!question || !candidates.length) return { projects, candidates, scores, chunks: [], qualifiedMatches: [], fallback: true };
+    if (!question || !candidates.length) return { candidates, scores, qualifiedMatches: [], fallback: true };
 
     const keywordStarted = timing ? performance.now() : 0;
     const keywords = await scoreKeywords(keywordIndexes(approved, key), terms, projects, approved.length);
     timing?.("keyword", performance.now() - keywordStarted);
-    const corpusStarted = timing ? performance.now() : 0;
+    if (!provider) {
+      const exact = exactMatch(candidates, terms, question, keywords);
+      const chunks = candidates.filter(chunk => chunk === exact ||
+        (keywords.has(chunk.chunkId) && keywordEvidence(terms, chunk.content)));
+      for (const chunk of chunks) scores.set(chunk.chunkId, chunk === exact ? 2 : keywords.get(chunk.chunkId)!);
+      chunks.sort((a, b) => scores.get(b.chunkId)! - scores.get(a.chunkId)!);
+      return { candidates, scores, qualifiedMatches: chunks, fallback: !chunks.length };
+    }
     if (cache?.key !== key) {
-      const vectors = embedPassages(passages, embed).catch(error => {
-        if (cache?.vectors === vectors) cache = undefined;
-        throw error;
-      });
+      const started = performance.now();
+      const published = publishedPassageVectors(corpus, passages, provider);
+      if (published) timing?.("indexLoad", performance.now() - started);
+      const vectors = published ? Promise.resolve(published) :
+        embedPassageVectors(passages, texts => provider.embed(texts, "passage"))
+          .finally(() => timing?.("corpusEmbedding", performance.now() - started))
+          .catch(error => {
+            if (cache?.vectors === vectors) cache = undefined;
+            throw error;
+          });
       cache = { key, vectors };
     }
-    let vectors: Awaited<ReturnType<typeof embedPassages>>;
+    let vectors: Awaited<ReturnType<typeof embedPassageVectors>>;
     let query: number[];
     try {
       const pending = cache.vectors;
       vectors = await pending;
-      timing?.("corpusEmbedding", performance.now() - corpusStarted);
       const queryStarted = timing ? performance.now() : 0;
-      [query] = await embed([question]);
+      [query] = await provider.embed([question], "query");
       timing?.("queryEmbedding", performance.now() - queryStarted);
       if (!query?.length || candidates.some(chunk => vectors.get(chunk.chunkId)?.length !== query.length)) {
         if (cache?.vectors === pending) cache = undefined;
@@ -332,24 +356,44 @@ export function createEvidenceRetriever(embed: EmbedTexts, profile = defaultRetr
       const literal = exactMatch(candidates, terms, currentQuestion, keywords, true);
       const chunks = literal ? [literal] : [];
       if (literal) scores.set(literal.chunkId, 2);
-      return { projects, candidates, scores, chunks, qualifiedMatches: chunks, fallback: true };
+      return { candidates, scores, qualifiedMatches: chunks, fallback: true };
     }
     const semanticStarted = timing ? performance.now() : 0;
-    if (!query?.length) throw new Error("Invalid question embedding");
+    const { cosine, assistedCosine, fused, keywordWeight = 0.20 } = provider.calibration;
+    const dense = new Map<string, number>();
     for (const { chunkId } of candidates) {
       const vector = vectors.get(chunkId)!;
       const similarity = vector.reduce((sum, component, index) => sum + component * query[index], 0);
-      const score = similarity + profile.keywordWeight * (keywords.get(chunkId) ?? 0);
+      const score = similarity + keywordWeight * (keywords.get(chunkId) ?? 0);
       // Full-text support can admit a match just below the semantic cutoff.
-      if (similarity >= profile.cosine || (similarity >= profile.assistedCosine && score >= profile.fused)) scores.set(chunkId, score);
+      if (similarity >= cosine || (similarity >= assistedCosine && score >= fused)) {
+        scores.set(chunkId, score);
+        dense.set(chunkId, similarity);
+      }
     }
-    const exact = exactMatch(candidates, terms, question, keywords);
-    if (exact) scores.set(exact.chunkId, 2);
-    const chunks = candidates.filter(chunk => scores.has(chunk.chunkId))
-      .sort((a, b) => scores.get(b.chunkId)! - scores.get(a.chunkId)!);
     timing?.("semantic", performance.now() - semanticStarted);
-    return { projects, candidates, scores, chunks, qualifiedMatches: chunks, fallback: !chunks.length };
+    const exact = exactMatch(candidates, terms, question, keywords);
+    const fusionStarted = timing ? performance.now() : 0;
+    const qualified = candidates.filter(chunk => scores.has(chunk.chunkId) && chunk !== exact);
+    const chunks = fuseRanks(qualified, dense, keywords);
+    if (exact) chunks.unshift(exact);
+    if (exact) scores.set(exact.chunkId, 2);
+    timing?.("rankFusion", performance.now() - fusionStarted);
+    return { candidates, scores, qualifiedMatches: chunks, fallback: !chunks.length };
   };
 }
 
-export const retrieveEvidence = createEvidenceRetriever(async texts => (await import("./embeddings")).embedTexts(texts));
+const keywordRetriever = createEvidenceRetriever(null);
+const providerRetrievers = new WeakMap<EmbeddingProvider, ReturnType<typeof createEvidenceRetriever>>();
+
+export function retrieveEvidence(corpus: PortfolioCorpus, messages: ChatMessage[], config = defaultPortfolioChatConfig,
+  timing?: RetrievalTiming, scopedProjects?: readonly string[]) {
+  const provider = embeddingProvider(config.embedding);
+  if (!provider) return keywordRetriever(corpus, messages, config, timing, scopedProjects);
+  let retrieve = providerRetrievers.get(provider);
+  if (!retrieve) {
+    retrieve = createEvidenceRetriever(provider);
+    providerRetrievers.set(provider, retrieve);
+  }
+  return retrieve(corpus, messages, config, timing, scopedProjects);
+}

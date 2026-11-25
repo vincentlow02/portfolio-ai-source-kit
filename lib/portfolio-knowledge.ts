@@ -26,6 +26,15 @@ export type KnowledgeDocument = {
 
 export type PortfolioChunk = KnowledgeDocument & { projectId: string | null };
 
+export type PassageEmbeddingIndex = {
+  version: 1;
+  model: string;
+  contentHash: string;
+  dimensions: number;
+  /** Normalized little-endian float32 vectors encoded as base64 by chunk ID. */
+  vectors: Record<string, string>;
+};
+
 export type PortfolioCorpus = {
   schemaVersion: 1;
   siteBuildId: string;
@@ -35,6 +44,7 @@ export type PortfolioCorpus = {
   media: Array<{ projectId: string; thumbnailUrl: string; alt: string }>;
   report: { exclusions: Array<{ pathname: string; reason: "protected" }> };
   chunks: PortfolioChunk[];
+  embeddingIndex?: PassageEmbeddingIndex;
 };
 
 export async function loadPortfolioCorpus(): Promise<PortfolioCorpus> {

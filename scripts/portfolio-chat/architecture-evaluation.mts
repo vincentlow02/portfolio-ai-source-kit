@@ -1,8 +1,8 @@
 import { performance } from "node:perf_hooks";
 import { buildKnowledgeCorpus, type KnowledgeSource } from "../../lib/knowledge/contract";
 import { buildB2Pack, parsePageContext } from "../../lib/portfolio-chat/b2";
-import { createEvidenceRetriever, defaultRetrievalProfile, retrieveEvidence, type RetrievalPhase } from "../../lib/portfolio-chat/retrieval";
-import { embedTexts } from "../../lib/portfolio-chat/embeddings";
+import { createEvidenceRetriever, retrieveEvidence, type RetrievalPhase } from "../../lib/portfolio-chat/retrieval";
+import { embeddingProvider } from "../../lib/portfolio-chat/embeddings";
 import { configureModel } from "../../lib/portfolio-chat/provider";
 import { executeGeneration } from "../../lib/portfolio-chat/generation";
 import type { ChatMessage } from "../../lib/portfolio-chat/core";
@@ -55,19 +55,22 @@ const corpus = await buildKnowledgeCorpus(sources, "evaluation-fixture", async (
 const config = { ownerName: "Example Portfolio" };
 const mean = (values: number[]) => values.reduce((a,b) => a+b,0)/Math.max(1,values.length);
 const percentile = (values: number[], fraction: number) => [...values].sort((a,b)=>a-b)[Math.max(0, Math.ceil(values.length*fraction)-1)];
+const encoder = embeddingProvider();
+if (!encoder) throw new Error("Run the architecture evaluation with Hybrid retrieval");
+const calibration = encoder.calibration;
 const profiles = [
-  ["loose", { ...defaultRetrievalProfile, cosine: 0.33, assistedCosine: 0.27, fused: 0.47 }],
-  ["default", defaultRetrievalProfile],
-  ["strict", { ...defaultRetrievalProfile, cosine: 0.41, assistedCosine: 0.34, fused: 0.55 }],
-  ["lower-keyword-weight", { ...defaultRetrievalProfile, keywordWeight: 0.10 }],
-  ["higher-keyword-weight", { ...defaultRetrievalProfile, keywordWeight: 0.30 }],
+  ["loose", { ...calibration, cosine: 0.33, assistedCosine: 0.27, fused: 0.47 }],
+  ["default", calibration],
+  ["strict", { ...calibration, cosine: 0.41, assistedCosine: 0.34, fused: 0.55 }],
+  ["lower-keyword-weight", { ...calibration, keywordWeight: 0.10 }],
+  ["higher-keyword-weight", { ...calibration, keywordWeight: 0.30 }],
 ] as const;
 
 if (process.argv.includes("--profiles")) {
   const development = cases.filter(item => item.split === "development");
   const results = [];
   for (const [name, profile] of profiles) {
-    const search = createEvidenceRetriever(embedTexts, profile);
+    const search = createEvidenceRetriever({ ...encoder, calibration: profile });
     const evaluated = [];
     for (const item of development) {
       const { qualifiedMatches } = await search(corpus, item.messages, config);
@@ -95,7 +98,7 @@ for (const item of cases) {
   const retrievalMs = performance.now() - started;
   const language = /[ぁ-んァ-ン]/u.test(item.messages.at(-1)!.content) ? "ja" : /\p{Script=Han}/u.test(item.messages.at(-1)!.content) ? "zh" : "en";
   const pack = await buildB2Pack(corpus, item.messages, parsePageContext(undefined, corpus), language, undefined, (phase, elapsed) => { if (phase === "assembly") stages.assembly = elapsed; }, config);
-  const matches = retrieval.chunks.slice(0, 5).map(chunk => chunk.sourceUrl);
+  const matches = retrieval.qualifiedMatches.slice(0, 5).map(chunk => chunk.sourceUrl);
   const evidence = pack.entries.map(({chunk}) => chunk.sourceUrl);
   const hit = matches.findIndex(url => item.expected.includes(url));
   const retrieved = matches.filter(url => item.expected.includes(url)).length;
@@ -114,7 +117,7 @@ const totals = ["development","holdout"].map(split => {
     irrelevantEvidenceRate:all.reduce((n,row)=>n+row.irrelevant,0)/Math.max(1,all.reduce((n,row)=>n+row.evidence.length,0)),
     noEvidenceOnUnsupported:mean(unsupported.map(row=>Number(row.noEvidence))) };
 });
-const concurrent = createEvidenceRetriever(embedTexts);
+const concurrent = createEvidenceRetriever(encoder);
 const concurrentRssStart = process.memoryUsage().rss;
 const concurrentStarted = performance.now();
 await Promise.all(cases.slice(0, 4).map(item => concurrent(corpus, item.messages, config)));

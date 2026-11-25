@@ -30,6 +30,6 @@ for(const [i,item] of queries.entries()){
  const scores=corpus.chunks.map((chunk,j)=>({url:chunk.sourceUrl,chunkId:chunk.chunkId,cosine:vectors[j].reduce((n,v,k)=>n+v*vector[k],0)})).sort((a,b)=>b.cosine-a.cosine);
  const result=await retrieveEvidence(corpus,[{role:"user",content:item.q}],{ownerName:"Example"});
  const prepared=await prepareAnswer({corpus,messages:[{role:"user",content:item.q}],language:"ja",config:{ownerName:"Example"}});
- rows.push({...item,scores,qualified:result.chunks.map(c=>c.sourceUrl),evidence:prepared.pack.entries.map(e=>e.chunk.sourceUrl),needsGeneration:prepared.answer===null,insufficient:prepared.answer?.insufficient ?? false});
+ rows.push({...item,scores,qualified:result.qualifiedMatches.map(c=>c.sourceUrl),evidence:prepared.pack.entries.map(e=>e.chunk.sourceUrl),needsGeneration:prepared.answer===null,insufficient:prepared.answer?.insufficient ?? false});
 }
 console.log(JSON.stringify({corpusHash:corpus.contentHash,rows},null,2));

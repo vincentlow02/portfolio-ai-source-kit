@@ -5,7 +5,10 @@ type Phase = "knowledge" | "retrieval" | "assembly" | "model" | RetrievalPhase;
 /** Opt-in server-side aggregate timings; never accepts request or evidence text. */
 export class RequestTiming {
   private readonly started = performance.now();
-  private readonly phases: Record<Phase, number> = { knowledge: 0, retrieval: 0, assembly: 0, model: 0, keyword: 0, corpusEmbedding: 0, queryEmbedding: 0, semantic: 0 };
+  private readonly phases: Record<Phase, number> = {
+    knowledge: 0, retrieval: 0, assembly: 0, model: 0,
+    keyword: 0, indexLoad: 0, corpusEmbedding: 0, queryEmbedding: 0, semantic: 0, rankFusion: 0,
+  };
   private inputTokens: number | null = null;
   private outputTokens: number | null = null;
 
@@ -33,8 +36,9 @@ export class RequestTiming {
     console.info(JSON.stringify({ event: "portfolio_ai_timing", totalMs: round(total),
       apiOverheadMs: round(Math.max(0, total - measured)), knowledgeMs: round(this.phases.knowledge),
       retrievalMs: round(this.phases.retrieval), evidenceAssemblyMs: round(this.phases.assembly),
-      keywordMs: round(this.phases.keyword), corpusEmbeddingMs: round(this.phases.corpusEmbedding),
+      keywordMs: round(this.phases.keyword), indexLoadMs: round(this.phases.indexLoad), corpusEmbeddingMs: round(this.phases.corpusEmbedding),
       queryEmbeddingMs: round(this.phases.queryEmbedding), semanticMs: round(this.phases.semantic),
+      rankFusionMs: round(this.phases.rankFusion),
       modelMs: round(this.phases.model), inputTokens: this.inputTokens, outputTokens: this.outputTokens }));
   }
 }

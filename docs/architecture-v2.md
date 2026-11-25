@@ -1,5 +1,7 @@
 # Portfolio AI internal architecture V2
 
+For the current build-time index, retrieval modes and integration flows, see [Architecture and data flow](architecture.md).
+
 > V2.1 update: the shared answer engine remains in place. Bare unresolved references clarify without generation or model quota; a verified selection or unambiguous project context may supply the subject. Empty named-project searches may retry without duplicated labels, using the same qualification thresholds. Grounding adds conservative number, named-project and negative-claim consistency checks; these do not establish factual entailment. See `V2_1_REMEDIATION_REPORT.md` and `V2_1_REMAINING_VERIFICATION_GATES.md` for results and limits. The rest of this document retains the V2 baseline description.
 
 This kit delivers a React panel inside a Next.js portfolio and an iframe widget for a local Vite preview or a standalone Hosted Assistant. The three entry points share the public corpus schema, hybrid retrieval, and the generation executor. Next.js also exposes server-owned claim evidence keys, recommendations and usage metadata. The widget keeps its existing answer, links and follow-up response.

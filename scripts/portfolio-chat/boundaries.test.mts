@@ -16,8 +16,7 @@ test("retrieval works with a fictional public portfolio", async () => {
       buildVersion: "fictional-hash", content: "Atlas\nA fictional accessibility mapping project." }],
   };
   const found = await retrieveEvidence(corpus, [{ role: "user", content: "Tell me about Atlas" }]);
-  assert.deepEqual(found.projects, ["atlas"]);
-  assert.deepEqual(found.chunks.map(chunk => chunk.chunkId), ["fictional-atlas"]);
+  assert.deepEqual(found.qualifiedMatches.map(chunk => [chunk.projectId, chunk.chunkId]), [["atlas", "fictional-atlas"]]);
 });
 
 test("timing is opt-in and logs only aggregate numeric fields", async () => {
@@ -41,8 +40,8 @@ test("timing is opt-in and logs only aggregate numeric fields", async () => {
     on.usage(12, 5);
     on.finish();
     const event = JSON.parse(messages[0]);
-    assert.deepEqual(Object.keys(event).sort(), ["apiOverheadMs", "corpusEmbeddingMs", "event", "evidenceAssemblyMs", "inputTokens", "keywordMs", "knowledgeMs",
-      "modelMs", "outputTokens", "queryEmbeddingMs", "retrievalMs", "semanticMs", "totalMs"].sort());
+    assert.deepEqual(Object.keys(event).sort(), ["apiOverheadMs", "corpusEmbeddingMs", "event", "evidenceAssemblyMs", "indexLoadMs", "inputTokens", "keywordMs", "knowledgeMs",
+      "modelMs", "outputTokens", "queryEmbeddingMs", "rankFusionMs", "retrievalMs", "semanticMs", "totalMs"].sort());
     assert.equal(event.event, "portfolio_ai_timing");
     assert.equal(event.inputTokens, 12);
     assert.equal(event.outputTokens, 5);

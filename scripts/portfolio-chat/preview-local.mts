@@ -13,6 +13,7 @@ import { resolveResponseLanguage } from "../../lib/portfolio-chat/language";
 import { readPortfolioRequest } from "../../lib/portfolio-chat/request-body";
 import { createModelReply, excerptReply, validateWidgetQuestion, widgetResponse } from "../../lib/portfolio-chat/source-reply";
 import { readWidgetAsset, widgetAssets, widgetFramePolicy } from "../../lib/portfolio-chat/widget-assets";
+import { RequestTiming } from "../../lib/portfolio-chat/timing";
 import { localPreviewOrigin } from "../portfolio-knowledge/anonymous-browser.mjs";
 
 const { values } = parseArgs({ options: {
@@ -44,19 +45,16 @@ async function servePreview(port: number, useModel: boolean) {
   const portfolioOrigin = localPreviewOrigin(preview.origin);
   const corpus = b2PublicCorpus(parsePortfolioCorpus(preview.corpus), "local-preview");
   if (!corpus.chunks.length) throw new Error("The preview has no eligible passages");
-  await prepareEmbeddingModel();
-  if (useModel) {
-    try { process.loadEnvFile(".env.local"); } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-    }
+  try { process.loadEnvFile(".env.local"); } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
   }
+  await prepareEmbeddingModel();
   const modelReply = useModel ? createModelReply(corpus) : undefined;
-  const mode = modelReply ? "Model preview" : "Hybrid retrieval";
 
   const kitRoot = fileURLToPath(new URL("../../", import.meta.url));
   const assets = new Map(await Promise.all([...widgetAssets].map(async ([route, { type }]) => [route, {
     type, body: await readWidgetAsset(kitRoot, route, {
-      origin: portfolioOrigin, paths: corpus.pages.map(page => page.url), mode,
+      origin: portfolioOrigin, paths: corpus.pages.map(page => page.url),
     }),
   }] as const)));
 
@@ -90,6 +88,7 @@ async function servePreview(port: number, useModel: boolean) {
 
     const release = enterRequest();
     if (!release) { sendJson(response, 429, {error: "Too many requests. Please try again later."}); return; }
+    const timing = new RequestTiming(process.env.PORTFOLIO_AI_TIMING === "1");
     try {
     let question;
     try {
@@ -104,15 +103,15 @@ async function servePreview(port: number, useModel: boolean) {
       const controller = new AbortController();
       response.once("close", () => controller.abort());
       const result = modelReply
-        ? await modelReply(messages, language, quote, { page, signal: controller.signal })
-        : await excerptReply(corpus, messages, language, quote, page);
+        ? await modelReply(messages, language, quote, { page, signal: controller.signal, timing })
+        : await excerptReply(corpus, messages, language, quote, page, timing);
       sendJson(response, 200, widgetResponse(result, portfolioOrigin));
     } catch (error) {
       const message = modelReply ? describeModelFailure(error) : "The preview could not look up that question.";
       if (modelReply) console.warn(`Model preview: ${message}`);
       if (!response.destroyed) sendJson(response, 502, { error: message });
     }
-    } finally { release(); }
+    } finally { release(); timing.finish(); }
   });
 
   server.listen(port, "127.0.0.1");

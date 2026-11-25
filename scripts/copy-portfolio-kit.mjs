@@ -4,9 +4,10 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
+const installedLicense = "PORTFOLIO_AI_LICENSE";
 
-export const kitFiles = [
-  "PORTFOLIO_AI_LICENSE",
+const kitFiles = [
+  installedLicense,
   "components/portfolio-chat/chat-adapter.ts",
   "components/portfolio-chat/labels.ts",
   "components/portfolio-chat/portfolio-chat-panel.module.css",
@@ -22,6 +23,7 @@ export const kitFiles = [
   "scripts/portfolio-chat/dev-server.mjs",
   "scripts/portfolio-knowledge/anonymous-browser.mjs",
   "scripts/portfolio-knowledge/publish.mts",
+  "scripts/portfolio-knowledge/source-plan.ts",
   "supabase/migrations/202611100001_vincent_ai_analytics.sql",
 ];
 
@@ -38,7 +40,7 @@ export async function copyPortfolioKit(destination) {
   for (const path of kitFiles) {
     const target = join(destination, path);
     await mkdir(dirname(target), { recursive: true });
-    await copyFile(join(root, path), target, constants.COPYFILE_EXCL);
+    await copyFile(join(root, path === installedLicense ? "LICENSE" : path), target, constants.COPYFILE_EXCL);
   }
 }
 

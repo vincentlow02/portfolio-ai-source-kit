@@ -95,7 +95,19 @@ async function inspectPublishedPage(page: Page, language: string, title: string,
       }
     }
     if (current.text.trim()) sections.push(current);
-    return { missing: null, sections };
+    // A preamble and a repeated heading can share a title and page-level link.
+    const pageSections = new Map<string, (typeof sections)[number]>();
+    const merged = [];
+    for (const section of sections) {
+      const previous = section.anchor ? undefined : pageSections.get(section.title);
+      if (previous) {
+        previous.text += "\n" + section.text;
+        continue;
+      }
+      merged.push(section);
+      if (!section.anchor) pageSections.set(section.title, section);
+    }
+    return { missing: null, sections: merged };
   }, { language, title, expected, localPreview });
 }
 
@@ -112,12 +124,13 @@ export function verifyInBrowser(browser: Browser, origin: string, mode: CaptureM
   };
 }
 
-export async function capturePublishedSource(browser: Browser, origin: string, metadata: z.input<typeof pageMetadata>): Promise<KnowledgeSource> {
+export async function capturePublishedSource(browser: Browser, origin: string, metadata: z.input<typeof pageMetadata>,
+  mode: CaptureMode = "published", loadResource?: LoadResource): Promise<KnowledgeSource> {
   const url = originUrl(origin, metadata.url);
   return withAnonymousPortfolioPage(browser, origin, url, async (page: Page): Promise<KnowledgeSource> => {
     const { sections } = await inspectPublishedPage(page, metadata.language, metadata.title);
     return { access: "public", format: "rendered", page: metadata, sections };
-  });
+  }, mode, loadResource);
 }
 
 export async function captureLocalPreviewSource(browser: Browser, origin: string, sourcePath: string): Promise<KnowledgeSource> {
@@ -138,23 +151,11 @@ export async function captureSiteSource(browser: Browser, origin: string, source
       };
     });
     const { sections } = await inspectPublishedPage(page, language, title);
-    // An introduction and a repeated heading can share both a title and page-level citation.
-    const pageSections = new Map<string, (typeof sections)[number]>();
-    const mergedSections = [];
-    for (const section of sections) {
-      const previous = section.anchor ? undefined : pageSections.get(section.title);
-      if (previous) {
-        previous.text += "\n" + section.text;
-        continue;
-      }
-      mergedSections.push(section);
-      if (!section.anchor) pageSections.set(section.title, section);
-    }
     const projectId = project ?? /^\/projects\/([^/]+)$/u.exec(knowledgePath(sourcePath))?.[1] ?? null;
     return {
       access: "public", format: "rendered",
       page: { url: sourcePath, title, language, kind: projectId === null ? "page" : "case-study", projectId },
-      sections: mergedSections,
+      sections,
     };
   }, mode, loadResource);
 }

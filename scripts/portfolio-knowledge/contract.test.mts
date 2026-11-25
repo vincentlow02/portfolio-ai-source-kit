@@ -6,10 +6,10 @@ import { buildKnowledgeCorpus, normalizeKnowledgeSource, validateSourcePlan, typ
 import { parsePortfolioCorpus } from "../../lib/knowledge/corpus";
 import { b2PublicCorpus } from "../../lib/portfolio-chat/b2";
 
-const fixtures = new URL("./fixtures/", import.meta.url);
-const markdown = await readFile(new URL("lantern.md", fixtures), "utf8");
-const mdx = await readFile(new URL("field-notes.mdx", fixtures), "utf8");
-const json = JSON.parse(await readFile(new URL("lumen.json", fixtures), "utf8"));
+const exampleNotes = new URL("../../examples/atlas-portfolio/notes/", import.meta.url);
+const markdown = await readFile(new URL("lantern.md", exampleNotes), "utf8");
+const mdx = await readFile(new URL("field-notes.mdx", exampleNotes), "utf8");
+const json = JSON.parse(await readFile(new URL("./fixtures/lumen.json", import.meta.url), "utf8"));
 const md = { access: "public", format: "markdown", text: markdown, anchors: { Research: "research" },
   page: { url: "/work/lantern", title: "Lantern", language: "en", kind: "case-study", projectId: "lantern" } } as const;
 const docs: readonly KnowledgeSource[] = [

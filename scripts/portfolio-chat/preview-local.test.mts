@@ -16,7 +16,8 @@ import { excerptReply } from "../../lib/portfolio-chat/source-reply";
 const portfolioOrigin = "http://127.0.0.1:5173";
 const article = "The prototype used a recycled steel frame.";
 
-async function startPreview(t: TestContext, model = false, origin = portfolioOrigin, extraSources: KnowledgeSource[] = []) {
+async function startPreview(t: TestContext, model = false, origin = portfolioOrigin, extraSources: KnowledgeSource[] = [],
+  retrievalMode = "hybrid") {
   const corpus = await buildKnowledgeCorpus([{
     access: "public", format: "rendered",
     page: { url: "/projects", title: "Projects", language: "en", kind: "page" },
@@ -27,7 +28,7 @@ async function startPreview(t: TestContext, model = false, origin = portfolioOri
   const file = join(directory, "local-preview.json");
   await mkdir(directory);
   await writeFile(file, JSON.stringify({ origin, corpus }));
-  await cp(embeddingModelDirectory, join(root, embeddingModelDirectory), { recursive: true });
+  if (retrievalMode === "hybrid") await cp(embeddingModelDirectory, join(root, embeddingModelDirectory), { recursive: true });
   const dependencies = new URL("../../node_modules/tsx/dist/loader.mjs", import.meta.url).href;
   const script = fileURLToPath(new URL("./preview-local.mts", import.meta.url));
   const fixture = fileURLToPath(new URL("./mock-local-preview.cjs", import.meta.url));
@@ -36,6 +37,7 @@ async function startPreview(t: TestContext, model = false, origin = portfolioOri
   const child = spawn(process.execPath, [...prefix, "--import", dependencies, script, "--port", "0", ...args], {
     cwd: root, stdio: ["ignore", "pipe", "inherit"], windowsHide: true, env: {
       ...process.env,
+      PORTFOLIO_RETRIEVAL_MODE: retrievalMode,
       ...(model ? {
         PORTFOLIO_AI_PROVIDER: "qwen", QWEN_API_KEY: "test-preview-credential", QWEN_BASE_URL: "https://preview-fixture.invalid/v1",
         QWEN_JSON_MODE: "object", QWEN_MODEL: "qwen3.7-flash", QWEN_ENABLE_THINKING: "false",
@@ -67,7 +69,6 @@ test("local chat returns a source excerpt and links only to an approved portfoli
   const { chatUrl, request } = await startPreview(t);
   const chatPage = await fetch(chatUrl);
   assert.equal(chatPage.status, 200);
-  assert.match(await chatPage.text(), /Hybrid retrieval/u);
   assert.ok(chatPage.headers.get("Content-Security-Policy")?.endsWith(`frame-ancestors ${portfolioOrigin}`));
   assert.equal((await fetch(new URL("embed.js", chatUrl))).status, 200);
   assert.equal((await fetch(new URL("widget/sparkles.svg", chatUrl))).headers.get("Content-Type"), "image/svg+xml");
@@ -90,6 +91,16 @@ test("local chat returns a source excerpt and links only to an approved portfoli
   assert.equal((await request("Explain this quote", undefined, { ...quote, text: "unpublished notes" })).status, 400);
   assert.equal((await request("recycled steel", portfolioOrigin)).status, 403);
   assert.equal((await fetch(new URL(".portfolio-knowledge/local-preview.json", chatUrl))).status, 404);
+});
+
+test("keyword-only preview works without model files and declines unsupported details", async t => {
+  const { request } = await startPreview(t, false, portfolioOrigin, [], "keyword");
+  const supported = await request("steel recycled frame");
+  assert.equal(supported.status, 200);
+  assert.equal((await supported.json()).answer, article);
+  const unsupported = await request("What was the budget for the recycled steel prototype?");
+  assert.equal(unsupported.status, 200);
+  assert.deepEqual((await unsupported.json()).sources, []);
 });
 
 test("the embedded widget sends only the current question and the latest approved page", async t => {

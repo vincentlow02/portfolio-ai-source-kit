@@ -7,6 +7,7 @@ import { captureLocalPreviewSource, capturePublishedSource, captureSiteSource, v
 import { hostedPortfolioOrigin } from "../../lib/knowledge/hosted-origin";
 import { excerptReply } from "../../lib/portfolio-chat/source-reply";
 import { launchBrowser, localPreviewOrigin } from "./anonymous-browser.mjs";
+import { loadKnowledgeSources } from "./source-plan";
 
 test("anonymous publication validation rejects hidden DOM, protected markers and indexing exclusions", async () => {
   const publicText = "Public paragraph with <strong>visible words</strong>.";
@@ -67,6 +68,8 @@ test("hosted capture only loads an approved public page and its same-origin scri
       '<!doctype html><html lang="en"><div id="app"></div><script src="/app.js"></script><script src="https://other.example.com/app.js"></script>' };
     if (url === origin + "/app.js") return { status: 200, contentType: "text/javascript", body:
       `document.querySelector("#app").innerHTML = "<main data-portfolio-project=field-notes><p>Project introduction.</p><h1>Field notes</h1><p>${measurements}</p></main>";` };
+    if (url === origin + "/notes/accessibility") return { status: 200, contentType: "text/html", body:
+      '<!doctype html><html lang="en"><main><h1>Field notes</h1><p>The first route prototype was sketched on paper and tested after sunset.</p><h2 id="lessons">Lessons</h2><p>Readable maps use clear landmarks.</p></main>' };
     throw new Error("Unexpected fixture resource");
   };
   const browser = await launchBrowser(["--proxy-server=http://127.0.0.1:9", "--proxy-bypass-list=<-loopback>"]);
@@ -88,6 +91,17 @@ test("hosted capture only loads an approved public page and its same-origin scri
     assert.match(answer.answer, /recycled steel frame/u);
     assert.deepEqual(answer.sources.map(source => source.url), ["/work/field-notes"]);
     assert.deepEqual([...allowed].sort(), [origin + "/app.js", origin + "/work/field-notes"]);
+
+    const sources = await loadKnowledgeSources([
+      { access: "public", format: "rendered", page: { url: "/work/field-notes", title: "Field notes", language: "en", kind: "case-study", projectId: "field-notes" } },
+      { access: "public", format: "mdx", file: "examples/atlas-portfolio/notes/field-notes.mdx",
+        page: { url: "/notes/accessibility", title: "Field notes", language: "en", kind: "blog" }, anchors: { Lessons: "lessons" } },
+      { access: "protected", url: "/notes/private" },
+    ], process.cwd(), page => capturePublishedSource(browser, origin, page, "hosted", load));
+    const mixed = await buildKnowledgeCorpus(sources, "hosted", verifyInBrowser(browser, origin, "hosted", load));
+    assert.deepEqual(new Set(mixed.pages.map(page => page.url)), new Set(["/work/field-notes", "/notes/accessibility"]));
+    assert.ok(mixed.chunks.some(chunk => chunk.sourceUrl === "/notes/accessibility#lessons" && chunk.content.includes("clear landmarks")));
+    assert.ok(!allowed.has(origin + "/notes/private"));
   } finally { await browser.close(); }
 });
 

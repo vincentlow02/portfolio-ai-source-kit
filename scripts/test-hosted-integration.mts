@@ -1,18 +1,20 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
-import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildKnowledgeCorpus } from "../lib/knowledge/contract";
 import { embeddingModelDirectory } from "../lib/portfolio-chat/embedding-model.mjs";
+import { indexPortfolioCorpus } from "../lib/portfolio-chat/embeddings";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 // On Windows, a junction crossing drives can make Webpack resolve Next's
 // absolute runtime entry points as relative paths. Keep this disposable
 // fixture beside the checkout, on the same volume as its node_modules.
-const fixture = await mkdtemp(join(process.platform === "win32" ? dirname(root) : tmpdir(), "portfolio-ai-hosted-"));
+const fixtureRoot = await realpath(process.platform === "win32" ? dirname(root) : tmpdir());
+const fixture = await mkdtemp(join(fixtureRoot, "portfolio-ai-hosted-"));
 const origin = "https://portfolio.fixture.example";
 const next = "node_modules/next/dist/bin/next";
 const preload = join(root, "scripts/portfolio-chat/mock-atlas.cjs").replaceAll("\\", "/");
@@ -29,8 +31,20 @@ const env = {
 };
 const article = "The Lantern team tested tactile signs at six libraries.";
 
+async function buildHosted(retrieval: "hybrid" | "keyword") {
+  const build = spawn(process.execPath, [next, "build", "--webpack"], {
+    cwd: fixture, env: { ...env, PORTFOLIO_RETRIEVAL_MODE: retrieval }, stdio: "inherit", windowsHide: true,
+  });
+  assert.equal((await once(build, "exit"))[0], 0, "Hosted webpack build or type checking failed");
+  const manifest = await readFile(join(fixture, ".next/server/app/[[...path]]/route.js.nft.json"), "utf8");
+  const { files } = JSON.parse(manifest) as { files: string[] };
+  const assets = new Set(files.map(file => file.replaceAll("\\", "/").split("/embedding-model/")[1]).filter(Boolean));
+  assert.deepEqual([...assets].sort(), retrieval === "keyword" ? [] : ["model_quantized.onnx", "tokenizer.json", "tokenizer_config.json"]);
+}
+
 async function withHosted(mode: {
   model: string;
+  retrieval?: "keyword";
   quota?: "unavailable";
   firewall?: "ready" | "missing" | "unavailable";
   providerUnavailable?: boolean;
@@ -40,6 +54,7 @@ async function withHosted(mode: {
   await writeFile(traffic, "");
   const processEnv: NodeJS.ProcessEnv = {
     ...env, PORTFOLIO_HOSTED_MODEL: mode.model, TEST_ATLAS_QUOTA_MODE: mode.quota,
+    PORTFOLIO_RETRIEVAL_MODE: mode.retrieval ?? "hybrid",
     TEST_ATLAS_REQUEST_LOG: traffic,
   };
   if (mode.withoutCredentials) delete processEnv.QWEN_API_KEY;
@@ -108,9 +123,10 @@ try {
       sections: [{ title: "Trial", anchor: "trial", text: "Four teachers tested paper lesson cards during a workshop at a community centre." }] },
     { access: "protected", url: "/private" },
   ], "hosted", async () => {});
-  await writeFile(join(fixture, ".portfolio-knowledge/hosted.json"), JSON.stringify({ origin, corpus }));
-  const build = spawn(process.execPath, [next, "build", "--webpack"], { cwd: fixture, env, stdio: "inherit", windowsHide: true });
-  assert.equal((await once(build, "exit"))[0], 0, "Hosted webpack build or type checking failed");
+  const indexed = await indexPortfolioCorpus(corpus);
+  assert.equal(Object.keys(indexed.embeddingIndex?.vectors ?? {}).length, corpus.chunks.length);
+  await writeFile(join(fixture, ".portfolio-knowledge/hosted.json"), JSON.stringify({ origin, corpus: indexed }));
+  await buildHosted("hybrid");
 
   await withHosted({ model: "0", quota: "unavailable" }, async (base, calls) => {
     const asset = await fetch(base);
@@ -224,7 +240,20 @@ try {
       assert.deepEqual(await calls(), expectedCalls);
     });
   }
-  console.log("Hosted build, Hybrid, Qwen, Vercel Firewall, Supabase and excerpt fallback passed.");
+  await writeFile(join(fixture, ".portfolio-knowledge/hosted.json"), JSON.stringify({ origin, corpus }));
+  await buildHosted("keyword");
+  await withHosted({ model: "1", retrieval: "keyword", firewall: "ready" }, async (base, calls) => {
+    const result = await ask(base, "tactile signs");
+    assert.equal(result.status, 200);
+    assert.deepEqual((await result.json()).sources, [{ section: "Research", href: origin + "/work/lantern#research" }]);
+    const fallback = await ask(base, "tactile signs");
+    assert.equal(fallback.status, 200);
+    assert.equal((await fallback.json()).answer, article);
+    assert.deepEqual(await calls(), ["firewall", "qwen", "firewall"]);
+  });
+  console.log("Hosted builds, Hybrid, Keyword-only, Qwen, Vercel Firewall, Supabase and excerpt fallback passed.");
 } finally {
-  await rm(fixture, { recursive: true, force: true, maxRetries: 4 });
+  const target = await realpath(fixture);
+  if (dirname(target) !== fixtureRoot || !basename(target).startsWith("portfolio-ai-hosted-")) throw new Error("Unexpected Hosted fixture path");
+  await rm(target, { recursive: true, force: true, maxRetries: 4 });
 }

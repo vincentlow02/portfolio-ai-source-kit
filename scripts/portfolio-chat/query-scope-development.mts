@@ -48,6 +48,6 @@ for (const [i,[question,label]] of cases.entries()) {
   // version; a production fallback would need an explicit trusted scope.
   const namedResult=await retrieveEvidence(corpus,[{role:"user",content:question}],{ownerName:"Example"});
   const strippedResult=await retrieveEvidence(corpus,[{role:"user",content:inputs[i*2+1]}],{ownerName:"Example"});
-  rows.push({question,label,withoutName:inputs[i*2+1],namedCosine:dot(sourceVector,named),withoutNameCosine:dot(sourceVector,withoutName),namedQualified:namedResult.chunks.map(c=>c.sourceUrl),withoutNameQualified:strippedResult.chunks.map(c=>c.sourceUrl)});
+  rows.push({question,label,withoutName:inputs[i*2+1],namedCosine:dot(sourceVector,named),withoutNameCosine:dot(sourceVector,withoutName),namedQualified:namedResult.qualifiedMatches.map(c=>c.sourceUrl),withoutNameQualified:strippedResult.qualifiedMatches.map(c=>c.sourceUrl)});
 }
 console.log(JSON.stringify({passage,scope:"development-only one-project retrieval diagnostic; assembly and multiple-project scoping are not measured",corpusHash:corpus.contentHash,rows},null,2));

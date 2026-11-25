@@ -2,39 +2,31 @@ import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { once } from "node:events";
 import { mkdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
-import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
-import { buildKnowledgeCorpus, validateSourcePlan, type KnowledgeSource } from "../../lib/knowledge/contract";
+import { buildKnowledgeCorpus, validateSourcePlan } from "../../lib/knowledge/contract";
 import { capturePublishedSource, verifyInBrowser } from "../../lib/knowledge/rendered";
-import { embeddingTraceIncludes, prepareEmbeddingModel } from "../../lib/portfolio-chat/embedding-model.mjs";
+import { embeddingModelFiles, prepareEmbeddingModel } from "../../lib/portfolio-chat/embedding-model.mjs";
+import { embeddingProvider, indexPortfolioCorpus, type EmbeddingProvider } from "../../lib/portfolio-chat/embeddings";
 import { launchBrowser } from "./anonymous-browser.mjs";
+import { loadKnowledgeSources, type DeclaredSource } from "./source-plan";
 
-type PublicInput = Extract<KnowledgeSource, { format: "markdown" | "mdx" }>;
 export type KnowledgeBuildConfig = {
-  sources: Array<
-    | { access: "protected"; url: string }
-    | { access: "public"; format: "rendered"; page: PublicInput["page"] }
-    | (Omit<PublicInput, "text"> & { file: string })
-    | { access: "public"; format: "json"; page: PublicInput["page"]; file: string }
-  >;
+  sources: readonly DeclaredSource[];
   /** Server routes that use the corpus. Relative case-only aliases are unsupported. */
   chatRoutes?: readonly string[];
+  embedding?: EmbeddingProvider;
 };
 
 const root = await realpath(process.cwd());
+try { process.loadEnvFile(join(root, ".env.local")); } catch (error) {
+  if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+}
 const next = join(root, "node_modules", "next", "dist", "bin", "next");
 const artifact = join(root, ".portfolio-knowledge", "corpus.json");
 const candidate = join(dirname(artifact), `corpus.${randomUUID()}.tmp`);
 const idFile = join(root, ".next", "BUILD_ID");
 const childEnv = { ...process.env, PORTFOLIO_AI_PUBLIC_ENABLED: "0", PORTFOLIO_AI_PROTECTED_PREVIEW: "0", PORTFOLIO_AI_ACCESS_TOKEN: "" };
-
-async function contentFile(file: string) {
-  if (isAbsolute(file)) throw new Error("Knowledge source files must be within the host directory");
-  const path = await realpath(resolve(root, file));
-  const link = relative(root, path);
-  if (!link || link === ".." || link.startsWith(".." + sep) || isAbsolute(link)) throw new Error("Knowledge source file escapes the host directory");
-  return readFile(path, "utf8");
-}
 
 async function previewOrigin(server: ReturnType<typeof spawn>) {
   return new Promise<string>((res, reject) => {
@@ -51,14 +43,14 @@ async function previewOrigin(server: ReturnType<typeof spawn>) {
   });
 }
 
-async function traceArtifact(route: string) {
+async function traceArtifact(route: string, localEmbedding: boolean) {
   if (!/^\/api\/[a-z0-9-]+(?:\/[a-z0-9-]+)*$/u.test(route)) throw new Error("Invalid chat API trace route: " + route);
   const file = join(root, ".next", "server", "app", route.slice(1), "route.js.nft.json");
   const trace: { files: string[] } = JSON.parse(await readFile(file, "utf8"));
   const tracePath = (target: string) => relative(dirname(file), target).split(sep).join("/");
   const paths = new Set(trace.files.map(path => path.replaceAll("\\", "/")));
   if (!paths.has(tracePath(artifact))) throw new Error("Add the corpus to outputFileTracingIncludes for " + route);
-  for (const modelFile of embeddingTraceIncludes.filter(file => file.startsWith("./.portfolio-knowledge/"))) {
+  for (const modelFile of localEmbedding ? embeddingModelFiles : []) {
     if (!paths.has(tracePath(join(root, modelFile)))) {
       throw new Error("Add embeddingTraceIncludes to outputFileTracingIncludes for " + route);
     }
@@ -75,7 +67,9 @@ let placeholder = false;
 try {
   if (!Array.isArray(config?.sources) || !config.sources.length) throw new Error("Missing knowledge source configuration");
   validateSourcePlan(config.sources);
-  await prepareEmbeddingModel(root);
+  const provider = embeddingProvider(config.embedding);
+  const localEmbedding = Boolean(provider && !config.embedding);
+  if (localEmbedding) await prepareEmbeddingModel(root);
   await mkdir(dirname(artifact), { recursive: true });
   try {
     await writeFile(artifact, "{}\n", { flag: "wx" });
@@ -87,27 +81,15 @@ try {
   const [code] = await once(compile, "exit");
   if (code !== 0) throw new Error("Next.js build failed");
   const buildId = (await readFile(idFile, "utf8")).trim();
-  for (const route of config.chatRoutes ?? ["/api/portfolio-chat"]) await traceArtifact(route);
+  for (const route of config.chatRoutes ?? ["/api/portfolio-chat"]) await traceArtifact(route, localEmbedding);
   const server = spawn(process.execPath, [next, "start", "--hostname", "127.0.0.1", "--port", "0"], { cwd: root, env: childEnv, stdio: ["ignore", "pipe", "inherit"], windowsHide: true });
   let browser: Awaited<ReturnType<typeof launchBrowser>> | undefined;
   try {
     const origin = await previewOrigin(server);
     browser = await launchBrowser();
-    const sources: KnowledgeSource[] = [];
-    for (const input of config.sources) {
-      if (input.access === "protected") {
-        sources.push({ access: "protected", url: input.url });
-      } else if (input.format === "rendered") {
-        sources.push(await capturePublishedSource(browser, origin, input.page));
-      } else if (input.format === "json") {
-        sources.push({ ...input, data: JSON.parse(await contentFile(input.file)) });
-      } else if (input.format === "mdx" || input.format === "markdown") {
-        sources.push({ ...input, text: await contentFile(input.file) });
-      } else {
-        throw new Error("Unsupported knowledge source format");
-      }
-    }
-    const corpus = await buildKnowledgeCorpus(sources, buildId, verifyInBrowser(browser, origin));
+    const sources = await loadKnowledgeSources(config.sources, root, page => capturePublishedSource(browser!, origin, page));
+    const verified = await buildKnowledgeCorpus(sources, buildId, verifyInBrowser(browser, origin));
+    const corpus = await indexPortfolioCorpus(verified, provider);
     await writeFile(candidate, JSON.stringify(corpus) + "\n", { flag: "wx" });
     const previous = placeholder ? undefined : await readFile(artifact);
     await rename(candidate, artifact);

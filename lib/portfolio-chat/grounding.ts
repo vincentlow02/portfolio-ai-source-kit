@@ -129,6 +129,19 @@ export function validateB2(output: ModelClaims, corpus: PortfolioCorpus, pack: A
     if (attribution && !translatedPersonalRole && !cited.some(text => /(?:\b(?:I|my)\s+(?:was responsible|led|created|designed|built|developed|imagined|envisioned|conceived|conceptualized|provided|contributed|work|role)\b|\bportfolioowner\s+(?:was responsible|led|created|designed|built|developed|imagined|envisioned|conceived|conceptualized|provided|contributed)\b|我的职责|我的職責|我负责|我負責|我设计|我設計|私の役割|私が担当)/iu.test(replaceOwnerMentions(text, config)))) return false;
     // A first-person concept statement alone does not establish other work.
     if (attribution && /\b(?:provided|contributed)\b/iu.test(claim.text) && !cited.some(text => /\b(?:I|portfolioowner)\s+(?:provided|contributed|was responsible)\b|\bmy role\b|我的职责|我的職責|我负责|我負責|私の役割|私が担当/iu.test(replaceOwnerMentions(text, config)))) return false;
+    if (attribution && output.language === "en" && citedChunks.every(chunk => chunk.language === "en")) {
+      // The supporting detail must occur in an attributable clause. A separate
+      // team statement cannot supply the missing detail for a personal claim.
+      const individual = cited.flatMap(text => replaceOwnerMentions(text, config)
+        .split(/(?<=[.!?])\s+|\n+|;|\b(?:whereas|while|but)\b/iu)
+        .filter(clause => /\b(?:I|my|portfolioowner)\b/iu.test(clause)));
+      const labels = citedChunks.flatMap(chunk => [chunk.pageTitle, chunk.projectId ?? ""]);
+      const roles = ["responsible", "created", "directed", "led", "designed", "built", "developed", "imagined", "envisioned",
+        "conceived", "conceptualized", "provided", "contributed", "role", "work", "personal", "his", "her"];
+      if (!individual.length || !hasEnglishEvidenceAnchor(claim.text, individual, [
+        config.ownerName, ...(config.ownerAliases ?? []), ...labels, ...roles,
+      ])) return false;
+    }
     const studentBeta = /(?:beta|ベータ|测试|测试版)/iu.test(claim.text) && /(?:students?|学生)/iu.test(claim.text);
     if (studentBeta && !cited.some(text => text.split(/[。.!?\n]/u).some(sentence => /(?:beta|ベータ|测试|测试版)/iu.test(sentence) && /(?:students?|学生)/iu.test(sentence)))) return false;
     // An interactive exhibit or prototype does not itself establish that

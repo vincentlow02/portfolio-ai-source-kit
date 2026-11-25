@@ -1,8 +1,11 @@
 import type { PortfolioCorpus } from "../portfolio-knowledge";
+import type { EmbeddingProvider } from "./embeddings";
 import type { ResponseLanguage } from "./language";
 
 export type PortfolioChatConfig = {
   ownerName: string;
+  embedding?: EmbeddingProvider;
+  allowedPublicModels?: readonly string[];
   ownerAliases?: readonly string[];
   projectAliases?: Readonly<Record<string, readonly string[]>>;
   profilePath?: string;
@@ -59,7 +62,7 @@ export function audienceEvidenceTerms(config: PortfolioChatConfig) {
   return [...new Set(["Notion", "Miro", ...(config.audienceEvidenceTerms ?? [])].map(term => term.trim().toLowerCase()).filter(Boolean))];
 }
 
-export const defaultPortfolioChatConfig: PortfolioChatConfig = { ownerName: "the portfolio owner" };
+export const defaultPortfolioChatConfig: PortfolioChatConfig = { ownerName: "the portfolio owner", profilePath: "/" };
 
 export function portfolioLanguageTerms(config: PortfolioChatConfig): string[] {
   const projects = Object.entries(config.projectAliases ?? {}).flatMap(([id, aliases]) => [id, id.replaceAll("-", " "), ...aliases]);

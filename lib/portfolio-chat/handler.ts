@@ -13,7 +13,7 @@ import { resolveResponseLanguage } from "./language";
 import { resolveGuardianReply } from "./guardian";
 import { verifySelection } from "./selection";
 import { b2PublicCorpus, parsePageContext } from "./b2";
-import { generateAnswer, prepareAnswer, SelectionUnavailable } from "./answer-engine";
+import { excerptFromPack, generateAnswer, prepareAnswer, SelectionUnavailable } from "./answer-engine";
 import { RequestTiming } from "./timing";
 import { readPortfolioRequest } from "./request-body";
 import { createRequestLimiter } from "./request-limits";
@@ -51,8 +51,8 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig) {
     });
     return Response.json({ error: "Unauthorized" }, { status: 401, headers });
   }
-  const session = analyticsSession(request, config.sessionCookieName);
-  if (session.setCookie) headers["Set-Cookie"] = session.setCookie;
+  const session = process.env.PORTFOLIO_AI_ANALYTICS === "1" ? analyticsSession(request, config.sessionCookieName) : null;
+  if (session?.setCookie) headers["Set-Cookie"] = session.setCookie;
   const release = enterRequest();
   if (!release) return Response.json({ error: "Rate limit exceeded" }, { status: 429, headers });
   try {
@@ -81,7 +81,8 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig) {
   let safePath = "/";
   let safeProject: string | null = null;
   let category: AnalyticsEvent["question_category"] = "other";
-  const log = (status: AnalyticsEvent["answer_status"], usage?: { inputTokens?: number; outputTokens?: number }) => recordEvent({ session_id: session.id, event_type: "chat", page_path: safePath, project_id: safeProject, question_category: category, answer_status: status, model: providerModel, input_tokens: usage?.inputTokens ?? null, output_tokens: usage?.outputTokens ?? null, latency_ms: Math.min(120000, Math.round(performance.now() - started)) }, process.env);
+  const log = (status: AnalyticsEvent["answer_status"], usage?: { inputTokens?: number; outputTokens?: number }) =>
+    session && recordEvent({ session_id: session.id, event_type: "chat", page_path: safePath, project_id: safeProject, question_category: category, answer_status: status, model: providerModel, input_tokens: usage?.inputTokens ?? null, output_tokens: usage?.outputTokens ?? null, latency_ms: Math.min(120000, Math.round(performance.now() - started)) }, process.env);
   try {
     const safeCorpus = await timing.measure("knowledge", async () => {
       const corpus = await loadPortfolioCorpus();
@@ -108,7 +109,16 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig) {
         return Response.json({ ...answer, ...metadata }, { headers });
       }
       const configured = configureModel(process.env);
-      if (!configured || ((process.env.PORTFOLIO_AI_PUBLIC_ENABLED === "1" || process.env.PORTFOLIO_AI_PROTECTED_PREVIEW === "1") && (configured.provider !== "qwen" || !/^qwen3\.7-flash(?:-\d{4}-\d{2}-\d{2})?$/u.test(configured.modelId)))) {
+      if (!configured) {
+        const excerpt = excerptFromPack(input, pack);
+        await log(excerpt.insufficient ? "insufficient" : "answered");
+        return Response.json({ ...excerpt, evidence, usage: {
+          model: null, provider: null, inputTokens: 0, outputTokens: 0, cachedInputTokens: 0, latencyMs: latencyMs(),
+        } }, { headers });
+      }
+      const allowedModel = config.allowedPublicModels?.includes(configured.provider + "/" + configured.modelId) ??
+        (configured.provider === "qwen" && /^qwen3\.7-flash(?:-\d{4}-\d{2}-\d{2})?$/u.test(configured.modelId));
+      if ((process.env.PORTFOLIO_AI_PUBLIC_ENABLED === "1" || process.env.PORTFOLIO_AI_PROTECTED_PREVIEW === "1") && !allowedModel) {
         console.warn("Portfolio AI provider configuration is missing or invalid.");
         return Response.json({ error: "AI service is not configured" }, { status: 503, headers });
       }

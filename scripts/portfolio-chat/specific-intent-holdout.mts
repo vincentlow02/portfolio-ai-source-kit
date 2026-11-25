@@ -20,5 +20,5 @@ const questions=[
 ];
 const corpus=await buildKnowledgeCorpus(sources,"specific-intent-fresh-v1",async()=>{});
 const rows=[];
-for(const item of questions){const messages=[{role:"user" as const,content:item.q}];const r=await retrieveEvidence(corpus,messages,{ownerName:"Example"});const a=await prepareAnswer({corpus,messages,language:item.language,config:{ownerName:"Example"}});rows.push({...item,qualified:r.chunks.map(c=>({id:c.chunkId,url:c.sourceUrl,score:r.scores.get(c.chunkId)})),evidence:a.pack.entries.map(e=>e.chunk.sourceUrl),needsGeneration:a.answer===null,insufficient:a.answer?.insufficient ?? false});}
+for(const item of questions){const messages=[{role:"user" as const,content:item.q}];const r=await retrieveEvidence(corpus,messages,{ownerName:"Example"});const a=await prepareAnswer({corpus,messages,language:item.language,config:{ownerName:"Example"}});rows.push({...item,qualified:r.qualifiedMatches.map(c=>({id:c.chunkId,url:c.sourceUrl,score:r.scores.get(c.chunkId)})),evidence:a.pack.entries.map(e=>e.chunk.sourceUrl),needsGeneration:a.answer===null,insufficient:a.answer?.insufficient ?? false});}
 console.log(JSON.stringify({corpusHash:corpus.contentHash,rows},null,2));

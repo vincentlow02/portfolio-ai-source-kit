@@ -1,13 +1,13 @@
 import type { PortfolioCorpus } from "../portfolio-knowledge";
-import { buildB2Pack, isExplicitParticipantComparison, parsePageContext } from "./b2";
-import { generateAnswer, prepareAnswer } from "./answer-engine";
-import { validateAnswer, validateMessages, type ChatMessage } from "./core";
+import { buildB2Pack, parsePageContext } from "./b2";
+import { excerptFromPack, generateAnswer, prepareAnswer } from "./answer-engine";
+import { validateMessages, type ChatMessage } from "./core";
 import { resolveGuardianReply } from "./guardian";
+import { GenerationError } from "./generation";
 import type { ResponseLanguage } from "./language";
 import { configureModel } from "./provider";
-import { comparisonQuestion, comparisonTopicClarification, comparisonTopicMatcher, isSubstantivePassage, removeProjectLabels, resolveContext, retrieveEvidence, sourceMatchesSpecificIntent } from "./retrieval";
-import { defaultPortfolioChatConfig } from "./engine-config";
 import { verifySelection } from "./selection";
+import type { RequestTiming } from "./timing";
 
 type VerifiedQuote = ReturnType<typeof verifySelection>;
 type PageContext = ReturnType<typeof parsePageContext>;
@@ -41,57 +41,32 @@ export function createModelReply(corpus: PortfolioCorpus, env: NodeJS.ProcessEnv
   const objectMode = env.QWEN_JSON_MODE?.trim() === "object";
 
   return async (messages: ChatMessage[], language: ResponseLanguage, quote?: VerifiedQuote,
-    options: { page?: PageContext; signal?: AbortSignal; reserve?: () => Promise<boolean> } = {}) => {
+    options: { page?: PageContext; signal?: AbortSignal; reserve?: () => Promise<boolean>; fallbackToExcerpt?: boolean; timing?: RequestTiming } = {}) => {
     const guardian = resolveGuardianReply(messages.at(-1)!.content, language);
     if (guardian) return { answer: guardian.answer, sources: [] };
-    const input = { corpus, messages, language, page: options.page, selection: quote, allowUnstructuredCatalog: true };
+    const input = { corpus, messages, language, page: options.page, selection: quote, allowUnstructuredCatalog: true, timing: options.timing };
     const { pack, answer } = await prepareAnswer(input);
     if (answer) return answer;
     options.signal?.throwIfAborted();
-    if (options.reserve) {
-      let allowed: boolean;
-      try { allowed = await options.reserve(); } catch { throw new WidgetQuotaError(503); }
-      if (allowed !== true) throw new WidgetQuotaError(429);
+    try {
+      if (options.reserve) {
+        let allowed: boolean;
+        try { allowed = await options.reserve(); } catch { throw new WidgetQuotaError(503); }
+        if (allowed !== true) throw new WidgetQuotaError(429);
+      }
+      return (await generateAnswer(input, pack, provider, objectMode, options.signal)).answer;
+    } catch (error) {
+      if (!options.fallbackToExcerpt || !(error instanceof WidgetQuotaError || error instanceof GenerationError && error.kind !== "cancelled")) throw error;
+      options.signal?.throwIfAborted();
+      return excerptFromPack(input, pack);
     }
-    return (await generateAnswer(input, pack, provider, objectMode, options.signal)).answer;
   };
 }
 
-export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessage[], language: ResponseLanguage, quote?: VerifiedQuote, currentPage?: PageContext) {
+export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessage[], language: ResponseLanguage,
+  quote?: VerifiedQuote, page?: PageContext, timing?: RequestTiming) {
   const guardian = resolveGuardianReply(messages.at(-1)!.content, language);
   if (guardian) return { answer: guardian.answer, sources: [], recommendations: [] };
-  const context = !quote ? resolveContext(messages, corpus) : undefined;
-  const pageProject = context?.ambiguous && !context.multiplePriorProjects ? currentPage?.projectId : undefined;
-  if (context?.ambiguous && !pageProject) return { answer: { en: "Which project do you mean?", zh: "你指的是哪个项目？", ja: "どのプロジェクトについてですか？" }[language], sources: [], recommendations: [] };
-  // A plural comparison must not be answered with only one project's excerpt.
-  // Assemble a bounded public passage for each subject or return insufficient.
-  const explicitComparison = Boolean(context && context.explicit.length > 1 && comparisonQuestion.test(messages.at(-1)!.content));
-  if (context?.carryComparison || (context && explicitComparison)) {
-    if (context.projects.length > 18) return validateAnswer({language,insufficient:true,answer:"",sourceIds:[],recommendedProjectIds:[]},corpus);
-    const pack = await buildB2Pack(corpus, messages, null, language, undefined, undefined, undefined, true);
-    if (pack.ambiguousTopic) return {answer:comparisonTopicClarification[language],sources:[],recommendations:[]};
-    const currentQuery=messages.at(-1)!.content;
-    const explicitTopic = explicitComparison && !isExplicitParticipantComparison(currentQuery,context.explicit,corpus)
-      ? comparisonTopicMatcher(removeProjectLabels(currentQuery,context.explicit,corpus,defaultPortfolioChatConfig)) : undefined;
-    if (explicitTopic?.tooManyTerms) return validateAnswer({language,insufficient:true,answer:"",sourceIds:[],recommendedProjectIds:[]},corpus);
-    const matches = context.projects.map(id => pack.entries.find(entry => entry.chunk.projectId === id &&
-      (!explicitTopic?.hasTopic || explicitTopic.matches(entry.chunk.content)))?.chunk);
-    if (matches.some(chunk => !chunk)) return validateAnswer({language,insufficient:true,answer:"",sourceIds:[],recommendedProjectIds:[]},corpus);
-    const chunks = matches.filter((chunk): chunk is NonNullable<typeof chunk> => Boolean(chunk));
-    const result = validateAnswer({language,insufficient:false,answer:"Matching portfolio passages.",sourceIds:chunks.map(chunk=>chunk.chunkId),recommendedProjectIds:[]},corpus);
-    return {...result,answer:chunks.map(chunk=>`${chunk.pageTitle}: ${chunk.content.slice(chunk.content.indexOf("\n")+1)}`).join("\n\n"),followUpQuestions:[]};
-  }
-  const retrieval = quote ? undefined : await retrieveEvidence(corpus, messages, undefined, undefined, pageProject ? [pageProject] : undefined);
-  const match = quote && sourceMatchesSpecificIntent(messages.at(-1)!.content, quote.chunk.content) ? quote.chunk : quote ? undefined : retrieval?.chunks[0];
-  const result = validateAnswer({
-    language, insufficient: !match, answer: "Matching portfolio passage.",
-    sourceIds: match ? [match.chunkId] : [], recommendedProjectIds: [],
-  }, corpus);
-  if (!match) return result;
-  const page = match.sourceUrl.split("#")[0];
-  const topics = [...new Set(corpus.chunks.filter(chunk => chunk.sourceUrl.split("#")[0] === page && chunk.sectionTitle !== match.sectionTitle &&
-    chunk.buildVersion === corpus.contentHash && chunk.accessLevel === "public" && isSubstantivePassage(chunk))
-    .map(chunk => chunk.sectionTitle))].filter(title => title.length >= 3 && title.length <= 100 && !/[<>\r\n]|https?:\/\//iu.test(title));
-  const questions = topics.slice(0, 2).map(title => ({ en: `What about ${title}?`, zh: `可以介绍「${title}」吗？`, ja: `「${title}」について教えてください。` })[language]);
-  return { ...result, answer: match.content.slice(match.content.indexOf("\n") + 1), followUpQuestions: questions };
+  const pack = await buildB2Pack(corpus, messages, page ?? null, language, quote?.chunk, timing?.record.bind(timing), undefined, true);
+  return excerptFromPack({ corpus, messages, language, page, selection: quote }, pack);
 }

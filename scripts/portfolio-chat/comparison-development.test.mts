@@ -18,9 +18,12 @@ test("unrelated specific comparison cannot use generic project supplements",asyn
  assert.deepEqual(pack.entries,[]);
 });
 test("both named projects retain evidence for a question about their interviewees",async()=>{
- const pack=await buildB2Pack(corpus,query("Who did Quill and Bridge speak to during discovery?"),null,"en",undefined,undefined,{ownerName:"Example"});
+ const question=query("Who did Quill and Bridge speak to during discovery?");
+ const pack=await buildB2Pack(corpus,question,null,"en",undefined,undefined,{ownerName:"Example"});
  assert.deepEqual(new Set(pack.entries.map(e=>e.chunk.projectId)),new Set(["quill","bridge"]));
  assert.ok(pack.entries.every(e=>e.chunk.sourceUrl.endsWith("#research")));
+ const excerpts=await excerptReply(corpus,question,"en");
+ assert.deepEqual(new Set(excerpts.sources.map(source=>source.url)),new Set(["/work/quill#research","/work/bridge#research"]));
 });
 test("interviewee supplement cannot support an unrelated specific subject",async()=>{
  const pack=await buildB2Pack(corpus,query("Who did Quill and Bridge speak to during research about submarines?"),null,"en",undefined,undefined,{ownerName:"Example"});

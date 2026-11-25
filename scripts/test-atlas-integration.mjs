@@ -101,6 +101,8 @@ try {
   assert.ok(corpus.chunks.some(chunk => chunk.sourceUrl === "/work/lantern#research"));
   assert.ok(!JSON.stringify(corpus.chunks).includes("undisclosed"));
   assert.deepEqual(corpus.report.exclusions, [{ pathname: "/work/undisclosed", reason: "protected" }]);
+  assert.equal(corpus.embeddingIndex?.contentHash, corpus.contentHash);
+  assert.equal(Object.keys(corpus.embeddingIndex?.vectors ?? {}).length, corpus.chunks.length);
 
   const rejectedPlan = join(host, "invalid-source-plan.ts");
   await writeFile(rejectedPlan, 'export default { sources: [{ access: "protected", url: "/work" }, { access: "public", format: "markdown", file: "missing.md", page: { url: "/work/lantern", title: "Lantern", language: "en", kind: "case-study", projectId: "lantern" } }] };');
@@ -151,6 +153,17 @@ try {
     assert.equal(declined.usage.inputTokens, 0);
     console.log("Independent production route passed authorization, privacy, highlight validation, two-project citations and insufficient-evidence checks.");
   } finally { await stop(production.app); }
+
+  const excerpts = await start("start", { QWEN_API_KEY: "" });
+  try {
+    const response = await call(excerpts.origin, "tactile signs", { pageContext: { pathname: "/work/lantern", lang: "en" } });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("set-cookie"), null);
+    const answer = await response.json();
+    assert.match(answer.answer, /six libraries/u);
+    assert.ok(answer.sources.some(source => source.url === "/work/lantern#research"));
+    assert.deepEqual([answer.usage.model, answer.usage.inputTokens, answer.usage.outputTokens], [null, 0, 0]);
+  } finally { await stop(excerpts.app); }
 
   for (const [quotaMode, expectedStatus] of [["exhausted",429],["unavailable",503]]) {
     const quota = await start("start", {TEST_ATLAS_QUOTA_MODE:quotaMode});

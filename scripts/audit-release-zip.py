@@ -45,7 +45,7 @@ for item in tree.split(b"\0"):
         fail("Git tree contains a symbolic link or non-regular file: " + path)
     expected[path] = oid
 
-required = {"LICENSE", "PORTFOLIO_AI_LICENSE", "THIRD_PARTY_NOTICES.md", "README.md", "docs/integration.md"}
+required = {"LICENSE", "THIRD_PARTY_NOTICES.md", "README.md", "docs/integration.md"}
 if not required <= expected.keys():
     fail("Required license or documentation is absent from the Git tree")
 

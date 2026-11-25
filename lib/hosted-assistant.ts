@@ -6,11 +6,11 @@ import { join } from "node:path";
 import { hostedPortfolioOrigin } from "./knowledge/hosted-origin";
 import { parsePortfolioCorpus } from "./knowledge/corpus";
 import { b2PublicCorpus } from "./portfolio-chat/b2";
-import { GenerationError } from "./portfolio-chat/generation";
 import { resolveResponseLanguage } from "./portfolio-chat/language";
 import { readPortfolioRequest } from "./portfolio-chat/request-body";
-import { createModelReply, excerptReply, validateWidgetQuestion, widgetResponse, WidgetQuotaError } from "./portfolio-chat/source-reply";
+import { createModelReply, excerptReply, validateWidgetQuestion, widgetResponse } from "./portfolio-chat/source-reply";
 import { reserveQuota } from "./portfolio-chat/supabase";
+import { RequestTiming } from "./portfolio-chat/timing";
 import { readWidgetAsset, widgetAssets, widgetFramePolicy } from "./portfolio-chat/widget-assets";
 
 import { createRequestLimiter } from "./portfolio-chat/request-limits";
@@ -44,9 +44,9 @@ async function loadHostedAssistant() {
   let model;
   if (process.env.PORTFOLIO_HOSTED_MODEL === "1") {
     try {
-      model = createModelReply(corpus, { ...process.env, PORTFOLIO_AI_PROVIDER: "qwen", QWEN_JSON_MODE: process.env.QWEN_JSON_MODE ?? "object" });
+      model = createModelReply(corpus, { ...process.env, QWEN_JSON_MODE: process.env.QWEN_JSON_MODE ?? "object" });
     } catch {
-      console.warn("Portfolio AI will use Hybrid retrieval. Check the hosted Qwen configuration.");
+      console.warn("Portfolio AI will use excerpts. Check the hosted model configuration.");
     }
   }
   return { origin, corpus, model };
@@ -63,9 +63,9 @@ export async function serveHostedAsset(request: Request) {
   const asset = widgetAssets.get(path);
   if (!asset) return new Response("Not found", { status: 404, headers });
   try {
-    const { origin, corpus, model } = await getAssistant();
+    const { origin, corpus } = await getAssistant();
     const body = await readWidgetAsset(process.cwd(), path, {
-      origin, paths: corpus.pages.map(page => page.url), mode: model ? "Model preview" : "Hybrid retrieval",
+      origin, paths: corpus.pages.map(page => page.url),
     });
     return new Response(typeof body === "string" || !body ? body : new Uint8Array(body), { headers: {
       ...headers,
@@ -90,6 +90,7 @@ export async function answerHostedQuestion(request: Request) {
   }
   const release = enterHostedRequest();
   if (!release) return Response.json({ error: "The request limit has been reached. Try again later." }, { status: 429, headers });
+  const timing = new RequestTiming(process.env.PORTFOLIO_AI_TIMING === "1");
   try {
     let body;
     try {
@@ -97,22 +98,18 @@ export async function answerHostedQuestion(request: Request) {
     } catch {
       return Response.json({ error: "Enter a question of up to 2,000 characters." }, { status: 400, headers });
     }
-    const { origin, corpus, model } = await getAssistant();
+    const { origin, corpus, model } = await timing.measure("knowledge", getAssistant);
     let question;
     try { question = validateWidgetQuestion(body, corpus); }
     catch { return Response.json({ error: "Enter a question or select verified public text." }, { status: 400, headers }); }
     const { messages, page, quote } = question;
     const language = resolveResponseLanguage(messages, corpus.pages[0]?.language);
-    let result;
-    try {
-      result = await model?.(messages, language, quote, { page, signal: request.signal, reserve: reserveHostedModelQuota });
-    } catch (error) {
-      if (!(error instanceof WidgetQuotaError || error instanceof GenerationError && error.kind !== "cancelled")) throw error;
-    }
     request.signal.throwIfAborted();
-    result ??= await excerptReply(corpus, messages, language, quote, page);
+    const result = model
+      ? await model(messages, language, quote, { page, signal: request.signal, reserve: reserveHostedModelQuota, fallbackToExcerpt: true, timing })
+      : await excerptReply(corpus, messages, language, quote, page, timing);
     return Response.json(widgetResponse(result, origin), { headers });
   } catch {
     return Response.json({ error: "Portfolio AI could not answer this question." }, { status: 503, headers });
-  } finally { release(); }
+  } finally { release(); timing.finish(); }
 }

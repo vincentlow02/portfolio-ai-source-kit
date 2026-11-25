@@ -31,7 +31,7 @@
       ],
       "files": [
         {
-          "path": "PORTFOLIO_AI_LICENSE",
+          "path": "LICENSE",
           "type": "registry:file",
           "target": "~/PORTFOLIO_AI_LICENSE"
         },
@@ -194,6 +194,11 @@
           "path": "scripts/portfolio-knowledge/publish.mts",
           "type": "registry:file",
           "target": "~/scripts/portfolio-knowledge/publish.mts"
+        },
+        {
+          "path": "scripts/portfolio-knowledge/source-plan.ts",
+          "type": "registry:file",
+          "target": "~/scripts/portfolio-knowledge/source-plan.ts"
         },
         {
           "path": "supabase/migrations/202611100001_vincent_ai_analytics.sql",

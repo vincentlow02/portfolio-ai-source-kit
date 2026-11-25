@@ -14,6 +14,7 @@ import type { PortfolioChatConfig } from "./engine-config";
 export function createPortfolioClickHandler(config: PortfolioChatConfig) {
   return async function POST(request: Request) {
   if (!isLocalDevRequest(request, process.env) && !validPublicOrigin(request, process.env, config)) return new Response(null, { status: 401 });
+  if (process.env.PORTFOLIO_AI_ANALYTICS !== "1") return new Response(null, { status: 204 });
   const cookie = config.sessionCookieName ?? defaultSessionCookie;
   if (!request.headers.get("cookie")?.split(";").some(part => part.trim().startsWith(cookie + "="))) return new Response(null, { status: 204 });
   let body: Record<string, unknown>;
