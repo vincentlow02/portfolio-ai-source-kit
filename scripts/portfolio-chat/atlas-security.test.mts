@@ -48,6 +48,26 @@ test("first-person concept can be attributed but team art direction cannot", () 
   assert.equal(validate("An invented fact.","E999").insufficient,true);
 });
 
+test("a contribution label within a rendered section grounds only the author's work", async () => {
+  const corpus = await buildKnowledgeCorpus([{
+    access: "public", format: "rendered",
+    page: { url: "/work/lantern", title: "Lantern", language: "en", kind: "case-study", projectId: "lantern" },
+    sections: [{ title: "Project at a glance", text:
+      "The project began as a public prototype.\nMy contributions: I handled sign placement.\nThe team conducted the accessibility review." }],
+  }], "role-label", async () => {});
+  const messages = [{ role: "user" as const, content: "what is contribution in lantern" }];
+  const pack = await buildB2Pack(corpus, messages, null, "en", undefined, undefined, config);
+  assert.equal(pack.intent, "PROJECT_ROLE");
+  const entry = pack.entries.find(item => item.chunk.content.includes("My contributions:"));
+  assert.ok(entry);
+  const validate = (text: string) => validateB2({
+    language: "en", insufficient: false, claims: [{ text, evidenceKeys: [entry.key] }],
+    recommendedProjectIds: [],
+  }, corpus, pack);
+  assert.equal(validate("Morgan contributed to sign placement.").insufficient, false);
+  assert.equal(validate("Morgan provided the accessibility review.").insufficient, true);
+});
+
 test("verified selections are separately attributed and private selections fail", () => {
   const selection = verifySelection({pagePath:"/work/lantern",text:"I imagined a navigation concept for public libraries.",sectionId:"concept"},corpus,page);
   const response: Parameters<typeof attachSelectedQuotation>[0] = {answer:"The team explored visuals.", insufficient:false, sources:[], claims:[{text:"The team explored visuals.",evidenceKeys:[team.key]}]};

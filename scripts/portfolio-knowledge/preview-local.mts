@@ -8,9 +8,10 @@ import { captureLocalPreviewSource, capturePublishedSource, verifyInBrowser } fr
 import { prepareEmbeddingModel } from "../../lib/portfolio-chat/embedding-model.mjs";
 import { indexPortfolioCorpus } from "../../lib/portfolio-chat/embeddings";
 import { launchBrowser, localPreviewOrigin } from "./anonymous-browser.mjs";
-import { discoverPortfolioPaths } from "./discover-sources.mts";
+import { discoverPortfolioSources } from "./discover-sources.mts";
 import { confirmDiscoveredPaths, readApprovedPreviewPaths } from "./local-source-selection";
 import { loadKnowledgeSources, type DeclaredSource } from "./source-plan";
+import { printDiscoveryReport, printIndexedSources } from "./source-report";
 
 const { values } = parseArgs({ options: {
   origin: { type: "string" },
@@ -44,9 +45,11 @@ async function previewLocal() {
   const browser = await launchBrowser();
   try {
     if (discover) {
-      const candidates = await discoverPortfolioPaths(browser, origin);
+      const report = await discoverPortfolioSources(browser, origin);
+      printDiscoveryReport(origin, report);
+      const candidates = report.candidates.map(page => page.path);
       if (!candidates.length) throw new Error("No eligible portfolio pages found. Check the homepage or pass a known page with --path");
-      paths = await confirmDiscoveredPaths(origin, candidates);
+      paths = await confirmDiscoveredPaths(candidates);
       if (!paths.length) {
         console.log("No sources approved. Run preview:local again when ready.");
         return;
@@ -57,9 +60,17 @@ async function previewLocal() {
 
     const sources = values.manifest
       ? await loadKnowledgeSources((await import(pathToFileURL(resolve(values.manifest)).href)).default?.sources as DeclaredSource[],
-        process.cwd(), page => capturePublishedSource(browser, origin, page, "local-preview"))
+        process.cwd(), page => capturePublishedSource(browser, origin, page, "local-preview"),
+        url => captureLocalPreviewSource(browser, origin, url))
       : [];
-    for (const source of paths) sources.push(await captureLocalPreviewSource(browser, origin, source));
+    for (const path of paths) {
+      try {
+        sources.push(await captureLocalPreviewSource(browser, origin, path));
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : "Could not read the page";
+        throw new Error(`Could not capture approved page ${path}. ${reason}`, { cause: error });
+      }
+    }
     const verified = await buildKnowledgeCorpus(sources, "local-preview", verifyInBrowser(browser, origin, "local-preview"));
     await prepareEmbeddingModel();
     const corpus = await indexPortfolioCorpus(verified);
@@ -72,7 +83,7 @@ async function previewLocal() {
       await unlink(pending).catch(error => { if (error.code !== "ENOENT") throw error; });
     }
     console.log(`Local knowledge preview: ${corpus.pages.length} pages, ${corpus.chunks.length} passages.`);
-    for (const page of corpus.pages) console.log(new URL(page.url, origin).href);
+    printIndexedSources(corpus, origin);
     console.log("Saved to .portfolio-knowledge/local-preview.json");
   } finally {
     await browser.close();

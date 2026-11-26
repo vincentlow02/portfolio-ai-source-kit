@@ -1,4 +1,5 @@
 import type { PortfolioChunk, PortfolioCorpus } from "../portfolio-knowledge";
+import { isExcludedLink } from "../knowledge/link-url";
 import { resolveRecommendations, validateAnswer, type B2Intent, type ChatMessage } from "./core";
 import { comparisonQuestion, comparisonTopicMatcher, countedPeopleNouns, isSubstantivePassage, nonHumanCountSuffix, removeProjectLabels, resolveContext, resolveProjects, retrieveEvidence, sourceMatchesSpecificIntent, validationFollowUp, type RetrievalPhase, type RetrievalResult } from "./retrieval";
 import { languageInstruction, type ResponseLanguage } from "./language";
@@ -47,8 +48,9 @@ export function isExplicitParticipantComparison(query:string,projects:string[],c
 const roleQuestion = /(?:\b(?:role|responsibilit(?:y|ies)|contribut(?:e|ed|ion|ions))\b|\bwhat did (?:portfolioowner|he|you) do\b|职责|责任|负责|贡献|担当|役割|貢献|何を(?:担当|した))/iu;
 const researchQuestion = /(?:\b(?:research|study|studies|interview(?:ed|s|ing)?|participants?|findings?|insights?|survey|usability test|research method)\b|研究|调研|調研|访谈|訪談|采访|インタビュー|参加者|調査|調査方法|研究方法|研究結果|发现|發現|结果|結果)/iu;
 const personalOverviewQuestion = /(?:\bwho\s+(?:is|was)\s+portfolioowner\b|\blearn\s+(?:more\s+)?about\s+portfolioowner\b|\btell\s+me(?:\s+more)?\s+about\s+(?:portfolioowner|him)\b|\bwhat\s+(?:kind|type)\s+of\s+(?:product\s+)?designer\s+is\s+portfolioowner\b|\bhow\s+(?:does|do)\s+(?:portfolioowner|he)\s+(?:approach|think about)\s+(?:product\s+)?design\b|\bportfolioowner(?:'s)?\s+(?:background|profile|design(?:er)?(?:\s+approach|\s+philosophy)?)\b|\btell\s+me(?:\s+more)?\s+about\s+portfolioowner(?:'s)?\s+(?:design|background|work)\b|(?:告诉我|介绍|说说|了解)[^?？]{0,20}关于\s*portfolioowner|portfolioowner\s*(?:是怎样|是什么样|是谁|的背景|的设计理念|的设计方式)|portfolioowner\s*について(?:教えて|知りたい|紹介|説明|もっと)?|portfolioowner\s*はどんな(?:デザイナー|人)|portfolioowner\s*の(?:プロフィール|背景|デザインへの考え|デザイン哲学)|デザインに対するportfolioownerの考え)/iu;
+const ownerIdentityQuestion = /(?:\bwho\s+owns\s+this\s+portfolio\b|\bwhat(?:['’]s|\s+is)\s+(?:(?:his|her|their|portfolioowner(?:['’]s))\s+name|the\s+name\s+of\s+portfolioowner)\b|(?:作品集主人|作者|站[长長]|portfolioowner)\s*(?:是谁|是誰|的(?:名字|姓名))|(?:ポートフォリオの作成者|portfolioowner)(?:は誰|の名前))/iu;
 const representativeProjectQuestion = /(?:\bwhich\s+projects?\b[^?]{0,80}\b(?:demonstrat|show|reflect)[^?]{0,40}\b(?:design|approach|work)\b|\bwhich\s+project\b[^?]{0,80}\b(?:best\s+)?(?:demonstrat|show|reflect)\b|(?:哪些|哪个|哪個|どの|どんな)[^?？]{0,40}(?:项目|作品|プロジェクト)[^?？]{0,50}(?:体现|展现|示す|表す|设计|設計))/iu;
-const fullProjectList = /(?:\b(?:list|enumerate|show|name|all|every)\b[^?]{0,100}\b(?:projects?|portfolio)\b|\bwhat\s+are\s+(?:his|portfolioowner(?:'s|’s))\s+projects?\b|\b(?:what|which)\s+projects?\s+(?:(?:has|have|did)\b[^?]{0,60}\b(?:worked|created|designed|built|made)\b|(?:are|appear)\b[^?]{0,60}\b(?:portfolio|listed)\b)|(?:所有|全部|哪些|列出|列举|一覧|すべて|全て|どんな|どの)[^?？]{0,50}(?:项目|專案|作品|プロジェクト)|(?:项目|專案|作品|プロジェクト)[^?？]{0,30}(?:有哪些|有哪|一覧|すべて|全て))/iu;
+const fullProjectList = /(?:\b(?:list|enumerate|show|name|all|every)\b[^?]{0,100}\b(?:projects?|portfolio)\b|\bwhat\s+are\s+(?:his|portfolioowner(?:'s|’s))\s+projects?\b|\b(?:what|which)\s+projects?\s+(?:(?:has|have|did)\b[^?]{0,60}\b(?:worked|created|designed|built|made)\b|(?:are|appear)\b[^?]{0,60}\b(?:portfolio|listed|featured)\b)|(?:所有|全部|哪些|列出|列举|一覧|すべて|全て|どんな|どの)[^?？]{0,50}(?:项目|專案|作品|プロジェクト)|(?:项目|專案|作品|プロジェクト)[^?？]{0,30}(?:有哪些|有哪|一覧|すべて|全て))/iu;
 
 function relatedProject(chunk: PortfolioChunk, catalog: PortfolioChunk[], config: PortfolioChatConfig) {
   const parent = config.catalogParentProject && catalog.find(item => item.projectId === config.catalogParentProject);
@@ -90,15 +92,13 @@ function catalogSources(corpus: PortfolioCorpus, language: ResponseLanguage, con
 export function b2PublicCorpus(corpus: PortfolioCorpus, buildId: string, config = defaultPortfolioChatConfig): PortfolioCorpus {
   if (!buildId || corpus.siteBuildId !== buildId) throw new Error("Corpus build mismatch");
   if (!Array.isArray(corpus.report?.exclusions)) throw new Error("Missing publication policy");
-  const excluded = corpus.report.exclusions.filter(e => e.reason === "protected").map(e => e.pathname);
-  const protectedPath = (url: string) => {
-    if (!isInternalSource(url)) return true;
-    const path = pathnameOf(url);
-    if (/^\/(?:api|_next|private|\.portfolio-knowledge)(?:\/|$)/u.test(path)) return true;
-    return excluded.some(p => path === p || path.startsWith(p === "/" ? "/" : p + "/")) || (config.protectedSourcePrefixes ?? []).some(prefix => path === prefix.replace(/\/$/u, "") || path.startsWith(prefix.endsWith("/") ? prefix : prefix + "/"));
-  };
+  const excluded = [...corpus.report.exclusions.filter(entry => entry.reason === "protected").map(entry => entry.pathname),
+    ...(config.protectedSourcePrefixes ?? [])];
+  const protectedPath = (url: string) => !isInternalSource(url) || isExcludedLink(url, excluded);
+  const pages = corpus.pages.filter(p => !protectedPath(p.url)).map(page => page.publicLinks
+    ? { ...page, publicLinks: page.publicLinks.filter(link => !isExcludedLink(link.href, excluded)) } : page);
   const caseStudies = corpus.caseStudies.filter(p => !protectedPath(p.url));
-  return { ...corpus, pages: corpus.pages.filter(p => !protectedPath(p.url)),
+  return { ...corpus, pages,
     caseStudies,
     chunks: corpus.chunks.filter(c => !protectedPath(c.sourceUrl)),
     media: corpus.media.filter(m => caseStudies.some(p => p.projectId === m.projectId) && !protectedPath(m.thumbnailUrl)) };
@@ -129,7 +129,8 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   const hasCatalog = Boolean(config.projectDirectoryPath || corpus.caseStudies.length);
   const listRequested = fullProjectList.test(ownerQuery) && !explicit.length && !comparison &&
     (!allowUnstructuredCatalog || hasCatalog || topicQualified);
-  const personal = !explicit.length && (personalOverviewQuestion.test(ownerQuery) || /(?:介绍|介紹|了解)(?:一下)?\s*portfolioowner\s*[?？。！!]*$|portfolioowner\s*について(?:教えて|知りたい|紹介|説明)/iu.test(ownerQuery));
+  const personal = !explicit.length && (personalOverviewQuestion.test(ownerQuery) || ownerIdentityQuestion.test(ownerQuery) ||
+    /(?:介绍|介紹|了解)(?:一下)?\s*portfolioowner\s*[?？。！!]*$|portfolioowner\s*について(?:教えて|知りたい|紹介|説明)/iu.test(ownerQuery));
   const referencedProject = !explicit.length && !resolved.ambiguous && resolved.projects.length > 0;
   let projects = listRequested || personal ? [] : resolved.projects.length ? resolved.projects : page?.projectId ? [page.projectId] : [];
   if (comparison && projects.length === 1 && explicit.length === 1 && page?.projectId && page.projectId !== explicit[0]) projects = [page.projectId, explicit[0]];
@@ -287,8 +288,10 @@ export async function buildB2Pack(corpus: PortfolioCorpus, messages: ChatMessage
   if (intent === "PROJECT_LIST") {
     // The directory and its direct public support are the complete evidence pack.
   } else if (intent === "PERSONAL_OVERVIEW") {
-    const profile = eligible.filter(c => pathnameOf(c.sourceUrl) === config.profilePath && c.language === language && c.sectionId !== config.excludeProfileSection);
-    const primary = profile.find(c => c.sectionId === null);
+    const profiles = eligible.filter(c => pathnameOf(c.sourceUrl) === config.profilePath && c.sectionId !== config.excludeProfileSection);
+    const localized = profiles.filter(c => c.language === language);
+    const profile = localized.length ? localized : profiles;
+    const primary = profile.find(c => c.sectionTitle === c.pageTitle) ?? profile.find(c => c.sectionId === null);
     if (primary) add(primary, "owner-profile");
     else if (profile[0]) add(profile[0], "owner-profile");
     if (allowProjectEvidence) {

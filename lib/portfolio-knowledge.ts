@@ -2,6 +2,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { parsePortfolioCorpus } from "./knowledge/corpus";
+import type { PublicContacts, PublicLink } from "./knowledge/published-links";
 type Locale = "en" | "zh" | "ja";
 
 export type PortfolioSource = {
@@ -39,7 +40,11 @@ export type PortfolioCorpus = {
   schemaVersion: 1;
   siteBuildId: string;
   contentHash: string;
-  pages: Array<PortfolioSource & { kind: "page" | "blog" | "case-study" | "project-detail" }>;
+  pages: Array<PortfolioSource & {
+    kind: "page" | "blog" | "case-study" | "project-detail";
+    publicContacts?: PublicContacts;
+    publicLinks?: PublicLink[];
+  }>;
   caseStudies: Array<PortfolioSource & { projectId: string }>;
   media: Array<{ projectId: string; thumbnailUrl: string; alt: string }>;
   report: { exclusions: Array<{ pathname: string; reason: "protected" }> };

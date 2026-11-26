@@ -2,6 +2,7 @@ import type { Browser, Page, ResponseForRequest } from "puppeteer";
 import type { z } from "zod";
 import { withAnonymousPortfolioPage } from "../../scripts/portfolio-knowledge/anonymous-browser.mjs";
 import { knowledgeLanguage, knowledgePath, type KnowledgeSource, type VerifyPublishedDocument, type pageMetadata } from "./contract";
+import { hasLegacyContact, legacyContactLinks, readPublishedLinks, type LinkSurface } from "./published-links";
 
 function originUrl(origin: string, source: string) {
   const parsed = new URL(origin);
@@ -13,32 +14,37 @@ function originUrl(origin: string, source: string) {
   return origin + source;
 }
 
-async function inspectPublishedPage(page: Page, language: string, title: string, expected?: Parameters<VerifyPublishedDocument>[0]["sections"], localPreview = false) {
-  return page.evaluate(({ language, title, expected, localPreview }) => {
+async function inspectPublishedPage(page: Page, language: string, title: string, options: {
+  expected?: Parameters<VerifyPublishedDocument>[0]["sections"];
+  localPreview?: boolean;
+  includeLinks?: boolean;
+} = {}) {
+  return page.evaluate(({ language, title, expected, localPreview, includeLinks }) => {
     const robots = Array.from(document.querySelectorAll('meta[name="robots" i],meta[name="googlebot" i]'));
     if (document.documentElement.lang.toLowerCase().split("-")[0] !== language ||
         document.querySelector('[data-portfolio-access="protected"],input[type="password"]') ||
         robots.some(meta => /\b(?:noindex|none)\b/iu.test(meta.getAttribute("content") ?? ""))) {
       throw new Error("Source is protected, not indexed, or served in a different language");
     }
-    const excluded = 'nav,footer,button,form,script,style,noscript,template,[hidden],[inert],[aria-hidden="true" i],[data-portfolio-access="protected"]';
+    const hidden = 'button,form,script,style,noscript,template,[hidden],[inert],[aria-hidden="true" i],[data-portfolio-access="protected"]';
+    const excluded = 'nav,footer,' + hidden;
     const dom = {
       normalize(text: string) { return text.replace(/\s+/gu, " ").trim(); },
-      visible(node: HTMLElement) {
-        return !node.closest(excluded) && node.getClientRects().length > 0 &&
+      visible(node: HTMLElement, selectors = excluded) {
+        return !node.closest(selectors) && node.getClientRects().length > 0 &&
           node.checkVisibility({ opacityProperty: true, visibilityProperty: true, contentVisibilityAuto: true });
       },
-      text(scope: HTMLElement) {
+      text(scope: HTMLElement, selectors = excluded) {
         // An element's innerText can fall back to hidden textContent. Read
         // rendered text ranges and keep excluded descendants out of both adapters.
-        if (!this.visible(scope)) return "";
+        if (!this.visible(scope, selectors)) return "";
         const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
         const range = document.createRange();
         let text = "";
         let previousBlock = null;
         for (let node = walker.nextNode(); node; node = walker.nextNode()) {
           const parent = node.parentElement;
-          if (!parent || !this.visible(parent)) continue;
+          if (!parent || !this.visible(parent, selectors)) continue;
           range.selectNodeContents(node);
           if (!range.getClientRects().length) continue;
           let block: HTMLElement = parent;
@@ -51,10 +57,27 @@ async function inspectPublishedPage(page: Page, language: string, title: string,
         }
         return this.normalize(text);
       },
+      linkSurface(scope: HTMLElement, selectors = excluded): LinkSurface {
+        const anchors = Array.from(scope.querySelectorAll<HTMLAnchorElement>("a[href]")).flatMap(link => {
+          const raw = link.getAttribute("href")?.trim();
+          if (!raw || raw.startsWith("#") || !this.visible(link, selectors)) return [];
+          const label = link.getAttribute("aria-label")?.trim() || this.text(link, selectors) || link.title.trim() ||
+            link.querySelector("img[alt]")?.getAttribute("alt") || link.querySelector("svg > title")?.textContent || "";
+          return [{ label, href: link.href }];
+        });
+        return { anchors, text: this.text(scope, selectors) };
+      },
     };
 
     const main = document.querySelector("main");
     if (!(main instanceof HTMLElement) || !dom.visible(main)) throw new Error("Missing visible public main content");
+
+    let linkSurfaces: LinkSurface[] = [];
+    if (includeLinks) {
+      const footers = Array.from(document.querySelectorAll<HTMLElement>("footer,[role=contentinfo]"))
+        .filter(footer => !footer.closest("main,article,aside,nav") && dom.visible(footer, hidden));
+      linkSurfaces = [dom.linkSurface(main), ...footers.map(footer => dom.linkSurface(footer, "nav," + hidden))];
+    }
 
     if (expected) {
       const missing = expected.find(({ anchor, text, title }) => {
@@ -76,7 +99,7 @@ async function inspectPublishedPage(page: Page, language: string, title: string,
         return !matchesTitle ||
           !text.split(/\r?\n/u).filter(line => line.trim()).every(line => normalized.includes(dom.normalize(line)));
       });
-      return { missing: missing?.title ?? null, sections: [] };
+      return { missing: missing?.title ?? null, sections: [], linkSurfaces };
     }
 
     const sections: Array<{ title: string; anchor: string | null; text: string }> = [];
@@ -107,19 +130,27 @@ async function inspectPublishedPage(page: Page, language: string, title: string,
       merged.push(section);
       if (!section.anchor) pageSections.set(section.title, section);
     }
-    return { missing: null, sections: merged };
-  }, { language, title, expected, localPreview });
+    return { missing: null, sections: merged, linkSurfaces };
+  }, { language, title, ...options });
 }
 
 type CaptureMode = "published" | "local-preview" | "hosted";
 type LoadResource = (url: string) => Promise<Partial<ResponseForRequest>>;
 
 export function verifyInBrowser(browser: Browser, origin: string, mode: CaptureMode = "published", loadResource?: LoadResource): VerifyPublishedDocument {
-  return async ({ page: source, sections }) => {
+  return ({ page: source, sections }) => {
     const url = originUrl(origin, source.url);
-    await withAnonymousPortfolioPage(browser, origin, url, async (page: Page) => {
-      const { missing } = await inspectPublishedPage(page, source.language, source.title, sections, mode !== "published");
+    return withAnonymousPortfolioPage(browser, origin, url, async (page: Page) => {
+      const { missing, linkSurfaces } = await inspectPublishedPage(page, source.language, source.title, {
+        expected: sections, localPreview: mode !== "published", includeLinks: source.publicLinks?.length !== 0 || Boolean(source.publicContacts),
+      });
       if (missing) throw new Error("Source text or section anchor is not visible in the published page: " + source.url + " (" + missing + ")");
+      const published = readPublishedLinks(linkSurfaces, origin, source.language);
+      if (source.publicLinks?.some(link => !published.some(actual => actual.href === link.href && actual.label === link.label)) ||
+          legacyContactLinks(source.publicContacts, source.language).some(link => !hasLegacyContact(link, published))) {
+        throw new Error("Link is not visible in the published page: " + source.url);
+      }
+      return published;
     }, mode, loadResource);
   };
 }
@@ -137,7 +168,7 @@ export async function captureLocalPreviewSource(browser: Browser, origin: string
   return captureSiteSource(browser, origin, sourcePath, "local-preview");
 }
 
-export async function captureSiteSource(browser: Browser, origin: string, sourcePath: string, mode: "local-preview" | "hosted", loadResource?: LoadResource): Promise<KnowledgeSource> {
+export async function captureSiteSource(browser: Browser, origin: string, sourcePath: string, mode: CaptureMode, loadResource?: LoadResource): Promise<KnowledgeSource> {
   const url = originUrl(origin, sourcePath);
   return withAnonymousPortfolioPage(browser, origin, url,
     (page: Page) => captureSitePage(page, sourcePath), mode, loadResource);
@@ -154,8 +185,8 @@ export async function captureSitePage(page: Page, sourcePath: string): Promise<K
       project: document.querySelector("main")?.getAttribute("data-portfolio-project") ?? null,
     };
   });
+  const projectId = project ?? /^\/(?:projects|work|case-studies)\/([^/]+)$/u.exec(knowledgePath(sourcePath))?.[1] ?? null;
   const { sections } = await inspectPublishedPage(page, language, title);
-  const projectId = project ?? /^\/projects\/([^/]+)$/u.exec(knowledgePath(sourcePath))?.[1] ?? null;
   return {
     access: "public", format: "rendered",
     page: { url: sourcePath, title, language, kind: projectId === null ? "page" : "case-study", projectId },

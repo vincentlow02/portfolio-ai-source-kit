@@ -35,9 +35,7 @@ export function parsePageSelection(answer: string, paths: readonly string[]): st
   return paths.filter((_, index) => selected.has(index + 1));
 }
 
-export async function confirmDiscoveredPaths(origin: string, paths: readonly string[]): Promise<string[]> {
-  console.log(`\nPages found on ${origin}\n`);
-  paths.forEach((path, index) => console.log(`  ${index + 1}. ${path}`));
+export async function confirmDiscoveredPaths(paths: readonly string[]): Promise<string[]> {
   const prompt = createInterface({ input: stdin, output: stdout });
   const closed = new AbortController();
   prompt.once("close", () => closed.abort());

@@ -6,7 +6,11 @@ import { audienceEvidenceTerms, projectPath, replaceOwnerMentions, sourcePath as
 import { countedPeopleNouns, nonHumanCountSuffix, resolveProjects } from "./retrieval";
 
 export const audienceStatement = /(?:\b(?:designed|built|intended)\s+for\b|\bfor\s+(?:students?|researchers?|designers?|users?|people|teams?)\b|対象(?:ユーザー|者|として|に)|(?:学生|研究者|利用者|ユーザー).{0,12}(?:のため|向け)|(?:面向|针对).{0,12}(?:用户|使用者|学生|研究者))/iu;
-export const personalRoleLabel = /(?:^|\n)\s*(?:my role|我的职责|我的職責|担当)\s*(?:[:：]|\n)/iu;
+const firstPersonRoleHeading = /my (?:roles?|contributions?|responsibilit(?:y|ies))|我的(?:职责|職責|贡献|貢獻)|私の(?:役割|貢献)/u.source;
+const roleHeadingStart = /(?:^|[\n.!?。！？])\s*/u.source;
+const roleHeadingEnd = /\s*(?:[:：]|\n)/u.source;
+const firstPersonRoleLabel = new RegExp(roleHeadingStart + "(?:" + firstPersonRoleHeading + ")" + roleHeadingEnd, "iu");
+export const personalRoleLabel = new RegExp(roleHeadingStart + "(?:" + firstPersonRoleHeading + "|担当)" + roleHeadingEnd, "iu");
 
 const genericTerms = new Set("about also been being came could design does during from found have having helped interviews interview just made more most much project research same said show take team testing that their them then there these they this those through tool used uses using very were what when where which will with work would your".split(" "));
 
@@ -126,9 +130,11 @@ export function validateB2(output: ModelClaims, corpus: PortfolioCorpus, pack: A
     }
     const attribution = /(?:\b(?:portfolioowner|he|she|i)\b|他|她|我(?!们|們)|私(?:は|が|の)|彼女(?:は|が|の))/iu.test(replaceOwnerMentions(claim.text, config)) && /(?:\b(?:responsible|created|directed|led|designed|built|developed|imagined|envisioned|conceived|conceptualized|provided|contributed)\b|负责|負責|創作|创作|主导|主導|設計|担当|制作)/iu.test(claim.text);
     const translatedPersonalRole = citedChunks.some(chunk => chunk.language === "ja" && chunk.projectId && chunk.sectionId && personalRoleLabel.test(chunk.content) && corpus.chunks.some(other => other.language === "en" && other.projectId === chunk.projectId && other.sectionId === chunk.sectionId && pathnameOf(other.sourceUrl) === pathnameOf(chunk.sourceUrl) && corpus.pages.some(page => page.url === other.sourceUrl.split("#")[0]) && personalRoleLabel.test(other.content)));
-    if (attribution && !translatedPersonalRole && !cited.some(text => /(?:\b(?:I|my)\s+(?:was responsible|led|created|designed|built|developed|imagined|envisioned|conceived|conceptualized|provided|contributed|work|role)\b|\bportfolioowner\s+(?:was responsible|led|created|designed|built|developed|imagined|envisioned|conceived|conceptualized|provided|contributed)\b|我的职责|我的職責|我负责|我負責|我设计|我設計|私の役割|私が担当)/iu.test(replaceOwnerMentions(text, config)))) return false;
+    if (attribution && !translatedPersonalRole && !cited.some(text => firstPersonRoleLabel.test(text) ||
+        /(?:\b(?:I|my)\s+(?:was responsible|led|created|designed|built|developed|imagined|envisioned|conceived|conceptualized|provided|contributed|work|role)\b|\bportfolioowner\s+(?:was responsible|led|created|designed|built|developed|imagined|envisioned|conceived|conceptualized|provided|contributed)\b|我的职责|我的職責|我负责|我負責|我设计|我設計|私の役割|私が担当)/iu.test(replaceOwnerMentions(text, config)))) return false;
     // A first-person concept statement alone does not establish other work.
-    if (attribution && /\b(?:provided|contributed)\b/iu.test(claim.text) && !cited.some(text => /\b(?:I|portfolioowner)\s+(?:provided|contributed|was responsible)\b|\bmy role\b|我的职责|我的職責|我负责|我負責|私の役割|私が担当/iu.test(replaceOwnerMentions(text, config)))) return false;
+    if (attribution && /\b(?:provided|contributed)\b/iu.test(claim.text) && !cited.some(text => firstPersonRoleLabel.test(text) ||
+        /\b(?:I|portfolioowner)\s+(?:provided|contributed|was responsible)\b|\bmy role\b|我的职责|我的職責|我负责|我負責|私の役割|私が担当/iu.test(replaceOwnerMentions(text, config)))) return false;
     if (attribution && output.language === "en" && citedChunks.every(chunk => chunk.language === "en")) {
       // The supporting detail must occur in an attributable clause. A separate
       // team statement cannot supply the missing detail for a personal claim.

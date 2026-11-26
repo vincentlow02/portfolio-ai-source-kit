@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import type { PortfolioChunk, PortfolioCorpus } from "../portfolio-knowledge";
+import { publicContactsSchema, publicLinksSchema } from "./published-links";
 
 const language = z.enum(["en", "zh", "ja"]);
 const identity = z.string().min(1);
@@ -17,7 +18,11 @@ const corpusSchema = z.object({
   schemaVersion: z.literal(1),
   siteBuildId: identity,
   contentHash: identity,
-  pages: z.array(source.extend({ kind: z.enum(["page", "blog", "case-study", "project-detail"]) })).min(1),
+  pages: z.array(source.extend({
+    kind: z.enum(["page", "blog", "case-study", "project-detail"]),
+    publicContacts: publicContactsSchema.optional(),
+    publicLinks: publicLinksSchema.optional(),
+  })).min(1),
   caseStudies: z.array(source.extend({ projectId: identity })),
   media: z.array(z.object({ projectId: identity, thumbnailUrl: identity, alt: z.string() })),
   report: z.object({ exclusions: z.array(z.object({

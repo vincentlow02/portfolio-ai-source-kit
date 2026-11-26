@@ -35,6 +35,17 @@ test("credential requests receive a localized refusal without blocking security 
   assert.equal(resolveGuardianReply("How does password security work?","en",identity),null);
 });
 
+test("the assistant identifies itself without trying to retrieve a portfolio fact", () => {
+  for (const [question, language] of [["who are you", "en"], ["你是谁？", "zh"], ["あなたは誰ですか？", "ja"]] as const) {
+    const reply = resolveGuardianReply(question, language);
+    assert.ok(reply);
+    assert.equal(reply.language, language);
+    assert.equal(reply.insufficient, false);
+    assert.match(reply.answer, /Portfolio AI/u);
+  }
+  assert.equal(resolveGuardianReply("Who is the portfolio owner?"), null);
+});
+
 test("follow-ups reject protected projects, assistant invitations and duplicates", () => {
   const questions = ["What did Lantern research reveal?","What is Archive?","Would you like to learn more?","What did Lantern research reveal?"];
   assert.deepEqual(validateFollowUpQuestions(questions,[user("Tell me about projects")],[],corpus,false,"en",undefined,config),[questions[0]]);

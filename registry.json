@@ -71,6 +71,16 @@
           "target": "~/lib/knowledge/corpus.ts"
         },
         {
+          "path": "lib/knowledge/link-url.ts",
+          "type": "registry:file",
+          "target": "~/lib/knowledge/link-url.ts"
+        },
+        {
+          "path": "lib/knowledge/published-links.ts",
+          "type": "registry:file",
+          "target": "~/lib/knowledge/published-links.ts"
+        },
+        {
           "path": "lib/knowledge/rendered.ts",
           "type": "registry:file",
           "target": "~/lib/knowledge/rendered.ts"
@@ -99,6 +109,11 @@
           "path": "lib/portfolio-chat/core.ts",
           "type": "registry:file",
           "target": "~/lib/portfolio-chat/core.ts"
+        },
+        {
+          "path": "lib/portfolio-chat/link-reply.ts",
+          "type": "registry:file",
+          "target": "~/lib/portfolio-chat/link-reply.ts"
         },
         {
           "path": "lib/portfolio-chat/engine-config.ts",

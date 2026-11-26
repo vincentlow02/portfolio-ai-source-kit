@@ -64,6 +64,8 @@ export function excerptFromPack(input: AnswerInput, pack: EvidencePack): Canonic
   const { corpus, messages, language, selection, config = defaultPortfolioChatConfig } = input;
   const insufficient = () => insufficientAnswer(corpus, language, input.config?.ownerName);
   if (pack.ambiguous || pack.ambiguousTopic) return clarify(insufficient(), pack, language);
+  const catalog = !selection && validateProjectCatalog(corpus, pack, language);
+  if (catalog) return finishAnswer(input, pack, catalog, []);
   const query = messages.at(-1)!.content;
   let chunks: PortfolioChunk[];
   if (selection) {
@@ -99,7 +101,10 @@ export function excerptFromPack(input: AnswerInput, pack: EvidencePack): Canonic
   const followUpQuestions = topics.slice(0, 2).map(title => ({
     en: `What about ${title}?`, zh: `可以介绍「${title}」吗？`, ja: `「${title}」について教えてください。`,
   })[language]);
-  return { ...result, answer: passage(match), language, insufficient: false, claims: [], followUpQuestions };
+  const answer = !selection && pack.intent === "PERSONAL_OVERVIEW"
+    ? match.sectionTitle + "\n\n" + passage(match)
+    : passage(match);
+  return { ...result, answer, language, insufficient: false, claims: [], followUpQuestions };
 }
 
 function finishAnswer(input: AnswerInput, pack: EvidencePack, validated: ReturnType<typeof validateB2>, suggestions: string[]): CanonicalAnswer {

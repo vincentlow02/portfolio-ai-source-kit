@@ -5,7 +5,7 @@ import { mkdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promis
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 import { buildKnowledgeCorpus, validateSourcePlan } from "../../lib/knowledge/contract";
-import { capturePublishedSource, verifyInBrowser } from "../../lib/knowledge/rendered";
+import { capturePublishedSource, captureSiteSource, verifyInBrowser } from "../../lib/knowledge/rendered";
 import { embeddingModelFiles, prepareEmbeddingModel } from "../../lib/portfolio-chat/embedding-model.mjs";
 import { embeddingProvider, indexPortfolioCorpus, type EmbeddingProvider } from "../../lib/portfolio-chat/embeddings";
 import { launchBrowser } from "./anonymous-browser.mjs";
@@ -87,7 +87,8 @@ try {
   try {
     const origin = await previewOrigin(server);
     browser = await launchBrowser();
-    const sources = await loadKnowledgeSources(config.sources, root, page => capturePublishedSource(browser!, origin, page));
+    const sources = await loadKnowledgeSources(config.sources, root, page => capturePublishedSource(browser!, origin, page),
+      url => captureSiteSource(browser!, origin, url, "published"));
     const verified = await buildKnowledgeCorpus(sources, buildId, verifyInBrowser(browser, origin));
     const corpus = await indexPortfolioCorpus(verified, provider);
     await writeFile(candidate, JSON.stringify(corpus) + "\n", { flag: "wx" });

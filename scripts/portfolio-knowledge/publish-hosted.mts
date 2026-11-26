@@ -9,6 +9,7 @@ import { prepareEmbeddingModel } from "../../lib/portfolio-chat/embedding-model.
 import { indexPortfolioCorpus } from "../../lib/portfolio-chat/embeddings";
 import { hostedResourceLoader, launchHostedPortfolioBrowser } from "./hosted-resource.mts";
 import { loadKnowledgeSources, type DeclaredSource } from "./source-plan";
+import { printIndexedSources } from "./source-report";
 
 try { process.loadEnvFile(".env.local"); } catch (error) {
   if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
@@ -28,7 +29,8 @@ const browser = await launchHostedPortfolioBrowser();
 try {
   const sources = manifest
     ? await loadKnowledgeSources((await import(pathToFileURL(resolve(manifest)).href)).default?.sources as DeclaredSource[],
-      process.cwd(), page => capturePublishedSource(browser, origin, page, "hosted", loadResource))
+      process.cwd(), page => capturePublishedSource(browser, origin, page, "hosted", loadResource),
+      url => captureSiteSource(browser, origin, url, "hosted", loadResource))
     : [];
   for (const path of paths) {
     try {
@@ -48,6 +50,7 @@ try {
     await unlink(temporary).catch(error => { if (error.code !== "ENOENT") throw error; });
   }
   console.log(`Hosted knowledge built from ${corpus.pages.length} approved pages and ${corpus.chunks.length} passages.`);
+  printIndexedSources(corpus, origin);
 } finally {
   await browser.close();
 }

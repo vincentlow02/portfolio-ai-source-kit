@@ -6,6 +6,7 @@ import { ArrowDownLeft, ArrowUp, CornerDownRight, Quote, RotateCcw, Sparkles, X 
 import { Children, Suspense, cloneElement, isValidElement, useEffect, useRef, useState, type CSSProperties, type ChangeEvent, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { safeAnswerHref } from "../../lib/knowledge/link-url";
 import { resolveGuardianReply } from "../../lib/portfolio-chat/guardian";
 import { isSameOriginPath, requestPortfolioChat, type ChatSource, type ChatTurn } from "./chat-adapter";
 import { defaultLabels, defaultQuestions } from "./labels";
@@ -135,7 +136,17 @@ function ConversationMessage({ message, onQuestion, showFollowups, locale, copy,
   }
   return <div className={isUser ? styles.user : styles.assistant} role="group" lang={message.error ? locale : message.language} aria-label={isUser ? copy.yourQuestion : copy.response}>
     {message.quote && <div className={styles.messageQuote}><Quote size={14} aria-hidden="true" /><span>{message.quote.text.length > 180 ? `${message.quote.text.slice(0, 180)}…` : message.quote.text}</span></div>}
-    {isUser ? <p>{message.content}</p> : projectLines ? <ProjectList lines={projectLines} label={copy.projects} other={copy.other} targets={targets} onTrack={trackRecommendation} featuredIds={host?.featuredProjects} /> : <div className={styles.answer}><ReactMarkdown remarkPlugins={[remarkGfm]} skipHtml components={{ p: ({ children }) => <p>{linkProjectNames(children)}</p>, li: ({ children }) => <li>{linkProjectNames(children)}</li>, a: ({ children }) => <span>{children}</span>, img: () => null }}>{message.error && locale !== "en" ? copy.errors[message.content] ?? copy.unavailable : message.content}</ReactMarkdown></div>}
+    {isUser ? <p>{message.content}</p> : projectLines ? <ProjectList lines={projectLines} label={copy.projects} other={copy.other} targets={targets} onTrack={trackRecommendation} featuredIds={host?.featuredProjects} /> : <div className={styles.answer}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} skipHtml urlTransform={href => safeAnswerHref(href) ?? ""} components={{
+        p: ({ children }) => <p>{linkProjectNames(children)}</p>,
+        li: ({ children }) => <li>{linkProjectNames(children)}</li>,
+        a: ({ href, children }) => !href ? <>{children}</> : href.startsWith("mailto:")
+          ? <a href={href}>{children}</a> : <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>,
+        img: () => null,
+      }}>
+        {message.error && locale !== "en" ? copy.errors[message.content] ?? copy.unavailable : message.content}
+      </ReactMarkdown>
+    </div>}
     {!isUser && sourcePages.length > 0 && <div className={styles.metadata} lang={locale}>
       <details className={styles.sources} aria-label={copy.sources}><summary>{copy.sources} <span>{String(sourcePages.length).padStart(2, "0")}</span></summary><div>{sourcePages.map(source => <Link key={`${source.name}-${source.url}`} href={source.url}>{source.name} ↗</Link>)}</div></details>
     </div>}

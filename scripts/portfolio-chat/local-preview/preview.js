@@ -79,11 +79,25 @@ function viewSources(sources) {
   return metadata;
 }
 
-function showAnswer(answer, sources = [], questions = []) {
+function showAnswer(answer, sources = [], questions = [], parts = [answer]) {
   const reply = document.createElement("div");
   reply.className = "assistant";
   const text = document.createElement("p");
-  text.textContent = answer;
+  text.className = "answer";
+  for (const part of parts) {
+    if (typeof part === "string") {
+      text.append(part);
+      continue;
+    }
+    const link = document.createElement("a");
+    link.href = part.href;
+    link.textContent = part.text;
+    if (!part.href.startsWith("mailto:")) {
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+    }
+    text.append(link);
+  }
   reply.append(text);
   const citations = viewSources(sources);
   if (citations) reply.append(citations);
@@ -142,7 +156,7 @@ async function ask(value) {
       return;
     }
     if (typeof result.answer !== "string" || !result.answer.trim()) throw new Error("Invalid reply");
-    showAnswer(result.answer, result.sources, result.followUpQuestions);
+    showAnswer(result.answer, result.sources, result.followUpQuestions, result.answerParts);
   } catch {
     if (pending === request) showAnswer("The assistant is temporarily unavailable.");
   } finally {

@@ -1,8 +1,9 @@
 import { parseArgs } from "node:util";
 import { hostedPortfolioOrigin } from "../../lib/knowledge/hosted-origin";
 import { launchBrowser, localPreviewOrigin } from "./anonymous-browser.mjs";
-import { discoverPortfolioPaths } from "./discover-sources.mts";
+import { discoverPortfolioSources } from "./discover-sources.mts";
 import { hostedResourceLoader, launchHostedPortfolioBrowser } from "./hosted-resource.mts";
+import { printDiscoveryReport } from "./source-report";
 
 async function discover() {
   const { values } = parseArgs({ options: {
@@ -22,10 +23,10 @@ async function discover() {
   const loadResource = local ? undefined : await hostedResourceLoader(origin);
   const browser = await (local ? launchBrowser() : launchHostedPortfolioBrowser());
   try {
-    const paths = await discoverPortfolioPaths(browser, origin, loadResource);
+    const report = await discoverPortfolioSources(browser, origin, loadResource);
+    printDiscoveryReport(origin, report);
+    const paths = report.candidates.map(page => page.path);
     if (!paths.length) throw new Error("No eligible portfolio pages found. Check the site's public URLs and rendered main content.");
-    console.log("Review these candidate pages and remove any paths you want to exclude.");
-    for (const path of paths) console.log("  " + path);
 
     if (local) {
       const args = paths.map(path => "--path " + JSON.stringify(path));

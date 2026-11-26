@@ -1,11 +1,35 @@
 import type { Browser, Page, ResponseForRequest } from "puppeteer";
-import { knowledgePath, normalizeKnowledgeSource, validateSourcePlan } from "../../lib/knowledge/contract";
+import { knowledgeLanguage, knowledgePath, normalizeKnowledgeSource, validateSourcePlan } from "../../lib/knowledge/contract";
 import { hostedPortfolioOrigin } from "../../lib/knowledge/hosted-origin";
 import { captureSitePage } from "../../lib/knowledge/rendered";
 import { localPreviewOrigin, withAnonymousPortfolioPage } from "./anonymous-browser.mjs";
 
 type LoadResource = (url: string) => Promise<Partial<ResponseForRequest>>;
-type Candidate = Pick<Extract<ReturnType<typeof normalizeKnowledgeSource>, { access: "public" }>, "access" | "page">;
+type Candidate = Pick<Extract<ReturnType<typeof normalizeKnowledgeSource>, { access: "public" }>, "access" | "page"> & { sections: number };
+
+const skipReason = {
+  restricted: "Restricted or utility route.",
+  url: "Unsupported page URL.",
+  query: "Unsupported query parameters on this link (values omitted).",
+  noindex: "Excluded by noindex.",
+  protected: "Protected page or login required.",
+  language: "Unsupported or missing HTML language (supported: en, zh, ja).",
+  text: "No readable text in a visible <main>.",
+  html: "Expected an HTML page.",
+  access: "Direct anonymous access failed (expected HTTP 200 without redirect).",
+  timeout: "Page did not load in time.",
+  duplicate: "Duplicate case study for the same project and language.",
+  languageMismatch: "Page language does not match its URL.",
+  metadata: "Invalid page or section metadata.",
+} as const;
+
+type SkipReason = typeof skipReason[keyof typeof skipReason];
+type Inspection = { links: string[]; limitReached?: boolean } & ({ source: Candidate } | { reason: SkipReason });
+type DiscoveryReport = {
+  candidates: { path: string; title: string; language: Candidate["page"]["language"]; sections: number }[];
+  skipped: { path: string; reason: SkipReason }[];
+  limitReached: boolean;
+};
 
 const maxPages = 50;
 const maxSitemaps = 8;
@@ -18,19 +42,28 @@ const reservedPath = /^\/(?:api|_next|private|\.portfolio-knowledge)(?:\/|$)/iu;
 function sameOriginUrl(value: string, origin: string) {
   try {
     const url = new URL(value, origin);
-    if (url.origin === origin && !url.username && !url.password) return url;
+    if ((url.protocol === "https:" || url.protocol === "http:") && url.origin === origin && !url.username && !url.password) return url;
   } catch { /* A malformed link is not a candidate. */ }
 }
 
 function pagePath(value: string, origin: string) {
   const url = sameOriginUrl(value, origin);
-  if (!url || utilityRoute.test(url.pathname)) return;
+  if (!url) return;
   const pathname = url.pathname.replace(/\/$/u, "") || "/";
+  if (utilityRoute.test(pathname) || reservedPath.test(pathname)) return { path: pathname, reason: skipReason.restricted };
+  if (url.search) {
+    const language = url.searchParams.get("lang");
+    if (url.search !== `?lang=${language}` || !knowledgeLanguage.safeParse(language).success) {
+      return { path: pathname, reason: skipReason.query };
+    }
+  }
   const path = pathname + url.search;
   try {
     knowledgePath(path);
-    return path;
-  } catch { /* The URL is outside the supported knowledge paths. */ }
+    return { path };
+  } catch {
+    return { path: pathname, reason: skipReason.url };
+  }
 }
 
 async function readMetadata(url: string, contentType: RegExp, loadResource?: LoadResource) {
@@ -68,13 +101,14 @@ async function readMetadata(url: string, contentType: RegExp, loadResource?: Loa
   }
 }
 
-async function sitemapPaths(browser: Browser, origin: string, loadResource?: LoadResource) {
-  const paths = new Set<string>();
+async function readSitemaps(browser: Browser, origin: string, offerLink: (value: string) => void, loadResource?: LoadResource) {
   const sitemaps = new Set<string>();
+  let limitReached = false;
   function queue(value: string) {
     const url = sameOriginUrl(value, origin);
     if (url && !url.hash && !url.search && url.href.length <= 1024 && sitemapPath.test(url.pathname) &&
-        !reservedPath.test(url.pathname) && !utilityRoute.test(url.pathname) && sitemaps.size < maxSitemaps) {
+        !reservedPath.test(url.pathname) && !utilityRoute.test(url.pathname) && !sitemaps.has(url.href)) {
+      if (sitemaps.size >= maxSitemaps) { limitReached = true; return; }
       sitemaps.add(url.href);
     }
   }
@@ -90,89 +124,143 @@ async function sitemapPaths(browser: Browser, origin: string, loadResource?: Loa
     for (const url of pending) {
       const xml = await readMetadata(url, /^(?:application\/xml|text\/xml|text\/plain)(?:;|$)/iu, loadResource);
       if (!xml || /<!DOCTYPE/iu.test(xml)) continue;
-      const { index, locations } = await page.evaluate((source, limit) => {
+      const sitemap = await page.evaluate((source, limit) => {
         const root = new DOMParser().parseFromString(source, "application/xml").documentElement;
         const index = root.localName === "sitemapindex";
         const locations: string[] = [];
         if (index || root.localName === "urlset") for (const child of root.children) {
           if (child.localName !== (index ? "sitemap" : "url")) continue;
           const location = Array.from(child.children).find(item => item.localName === "loc")?.textContent?.trim();
-          if (location) locations.push(location);
-          if (locations.length >= limit) break;
+          if (!location) continue;
+          if (locations.length >= limit) return { index, locations, limitReached: true };
+          locations.push(location);
         }
-        return { index, locations };
+        return { index, locations, limitReached: false };
       }, xml, maxPages * 4);
-      for (const location of locations) {
-        if (index) queue(location);
-        else {
-          const path = pagePath(location, origin);
-          if (path && paths.size < maxPages - 1) paths.add(path);
-        }
+      limitReached ||= sitemap.limitReached;
+      for (const location of sitemap.locations) {
+        if (sitemap.index) queue(location);
+        else offerLink(location);
       }
     }
   } finally {
     await context.close();
   }
-  return paths;
+  return limitReached;
 }
 
-async function inspectCandidate(browser: Browser, origin: string, path: string, loadResource?: LoadResource) {
-  return withAnonymousPortfolioPage(browser, origin, origin + path, async (page: Page) => {
-    const links = await page.evaluate(limit => {
+async function inspectCandidate(browser: Browser, origin: string, path: string, loadResource?: LoadResource): Promise<Inspection> {
+  return withAnonymousPortfolioPage(browser, origin, origin + path, async (page: Page): Promise<Inspection> => {
+    const details = await page.evaluate(limit => {
       const flags = Array.from(document.querySelectorAll('meta[name="robots" i],meta[name="googlebot" i]'))
         .map(meta => meta.getAttribute("content") ?? "").join(" ");
-      if (/\b(?:noindex|none)\b/iu.test(flags) || document.querySelector('[data-portfolio-access="protected"], input[type="password"]')) return null;
-      if (/\bnofollow\b/iu.test(flags)) return [];
       const links: string[] = [];
+      const language = document.documentElement.lang.toLowerCase().split("-")[0];
+      if (/\b(?:noindex|none)\b/iu.test(flags)) return { links, language, blocked: "noindex" } as const;
+      if (document.querySelector('[data-portfolio-access="protected"], input[type="password"]')) return { links, language, blocked: "protected" } as const;
+      if (/\bnofollow\b/iu.test(flags)) return { links, language };
       for (const link of document.querySelectorAll<HTMLAnchorElement>("a[href]")) {
         if (link.closest('[download],[rel~="nofollow" i],[hidden],[inert],[aria-hidden="true" i]') ||
             !link.getClientRects().length ||
             !link.checkVisibility({ opacityProperty: true, visibilityProperty: true, contentVisibilityAuto: true })) continue;
-        if (link.href) links.push(link.href);
-        if (links.length >= limit) break;
+        if (!link.href) continue;
+        if (links.length >= limit) return { links, language, limitReached: true };
+        links.push(link.href);
       }
-      return links;
+      return { links, language };
     }, maxPages * 4);
-    if (links === null) return { links: [], source: null };
+    const { links, limitReached } = details;
+    const result = { links, limitReached };
+    if (details.blocked) return { ...result, reason: skipReason[details.blocked] };
+    if (!knowledgeLanguage.safeParse(details.language).success) return { ...result, reason: skipReason.language };
     try {
-      const source = normalizeKnowledgeSource(await captureSitePage(page, path));
-      const candidate: Candidate | null = source.access === "public" ? { access: source.access, page: source.page } : null;
-      return { links, source: candidate };
-    } catch {
-      return { links, source: null };
+      const rendered = await captureSitePage(page, path);
+      if (rendered.access === "public" && rendered.format === "rendered" &&
+          Array.isArray(rendered.sections) && !rendered.sections.length) return { ...result, reason: skipReason.text };
+      const source = normalizeKnowledgeSource(rendered);
+      return source.access === "public"
+        ? { ...result, source: { access: source.access, page: source.page, sections: source.sections.length } }
+        : { ...result, reason: skipReason.protected };
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("Missing visible public main content")) return { ...result, reason: skipReason.text };
+      if (error instanceof Error && error.message === "Source URL language does not match metadata") return { ...result, reason: skipReason.languageMismatch };
+      return { ...result, reason: skipReason.metadata };
     }
   }, loadResource ? "hosted" : "local-preview", loadResource, {
     navigationTimeout: 8_000, contentTimeout: 3_500, allowEmpty: true, requireHtml: true,
   });
 }
 
-export async function discoverPortfolioPaths(browser: Browser, value: string, loadResource?: LoadResource): Promise<string[]> {
+function navigationReason(error: unknown): SkipReason {
+  // Keep output independent of browser errors that can contain site-supplied URLs.
+  if (error instanceof Error) {
+    if (error.name === "TimeoutError") return skipReason.timeout;
+    if (error.message === "Expected an HTML source") return skipReason.html;
+    if (error.message === "Source is not indexed (X-Robots-Tag)") return skipReason.noindex;
+  }
+  return skipReason.access;
+}
+
+export async function discoverPortfolioSources(browser: Browser, value: string, loadResource?: LoadResource): Promise<DiscoveryReport> {
   const origin = loadResource ? hostedPortfolioOrigin(value) : localPreviewOrigin(value);
-  const queued = ["/", ...Array.from(await sitemapPaths(browser, origin, loadResource)).filter(path => path !== "/")];
+  const queued = ["/"];
   const seen = new Set(queued);
-  const candidates: Candidate[] = [];
+  const accepted: Candidate[] = [];
+  const skipped: DiscoveryReport["skipped"] = [];
+  const rejectedLinks = new Set<string>();
+  let limitReached = false;
+
+  function offerLink(value: string) {
+    const candidate = pagePath(value, origin);
+    if (!candidate) return;
+    const { path, reason } = candidate;
+    if (reason) {
+      if (path.length > 240 || rejectedLinks.has(path)) return;
+      if (rejectedLinks.size >= maxPages) { limitReached = true; return; }
+      rejectedLinks.add(path);
+      skipped.push({ path, reason });
+      return;
+    }
+    if (seen.has(path)) return;
+    if (queued.length >= maxPages) { limitReached = true; return; }
+    seen.add(path);
+    queued.push(path);
+  }
+
+  const sitemapsLimited = await readSitemaps(browser, origin, offerLink, loadResource);
+  limitReached ||= sitemapsLimited;
 
   for (let index = 0; index < queued.length;) {
     const paths = queued.slice(index, index + batchSize);
     index += paths.length;
     const batch = await Promise.allSettled(paths.map(path => inspectCandidate(browser, origin, path, loadResource)));
-    for (const result of batch) {
-      if (result.status !== "fulfilled") continue;
-      const { source, links } = result.value;
-      if (source) {
+    for (const [batchIndex, result] of batch.entries()) {
+      const path = paths[batchIndex];
+      if (result.status !== "fulfilled") {
+        skipped.push({ path, reason: navigationReason(result.reason) });
+        continue;
+      }
+      const inspection = result.value;
+      limitReached ||= Boolean(inspection.limitReached);
+      if ("source" in inspection) {
         try {
-          validateSourcePlan([...candidates, source]);
-          candidates.push(source);
-        } catch { /* The plan supports one source per project and language. */ }
+          validateSourcePlan([...accepted, inspection.source]);
+          accepted.push(inspection.source);
+        } catch (error) {
+          const duplicateProject = error instanceof Error && error.message.startsWith("Duplicate case study for ");
+          skipped.push({ path, reason: duplicateProject ? skipReason.duplicate : skipReason.metadata });
+        }
+      } else {
+        skipped.push({ path, reason: inspection.reason });
       }
-      for (const link of links) {
-        if (queued.length >= maxPages) break;
-        const path = pagePath(link, origin);
-        if (!path || seen.has(path)) continue;
-        seen.add(path);
-        queued.push(path);
-      }
+      for (const link of inspection.links) offerLink(link);
     }
   }
-  return candidates.map(source => source.page.url).sort();
+  const candidates = accepted.map(({ page, sections }) => ({ path: page.url, title: page.title, language: page.language, sections }));
+  const comparePaths = (a: { path: string }, b: { path: string }) => a.path < b.path ? -1 : Number(a.path > b.path);
+  return { candidates: candidates.sort(comparePaths), skipped: skipped.sort(comparePaths), limitReached };
+}
+
+export async function discoverPortfolioPaths(browser: Browser, value: string, loadResource?: LoadResource): Promise<string[]> {
+  return (await discoverPortfolioSources(browser, value, loadResource)).candidates.map(candidate => candidate.path);
 }

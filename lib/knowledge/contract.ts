@@ -6,6 +6,8 @@ import remarkGfm from "remark-gfm";
 import { z } from "zod";
 import type { PortfolioCorpus, PortfolioChunk } from "../portfolio-knowledge";
 import { corpusContentHash } from "./corpus";
+import { isExcludedLink } from "./link-url";
+import { publicContactsSchema, publicLinksSchema, type PublicLink } from "./published-links";
 
 export const knowledgeLanguage = z.enum(["en", "zh", "ja"]);
 const projectId = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u).max(80);
@@ -16,6 +18,8 @@ export const pageMetadata = z.strictObject({
   language: knowledgeLanguage,
   kind: z.enum(["page", "blog", "case-study", "project-detail"]),
   projectId: projectId.nullable().default(null),
+  publicContacts: publicContactsSchema.optional(),
+  publicLinks: publicLinksSchema.optional(),
 });
 
 const section = z.strictObject({
@@ -64,15 +68,25 @@ function publishedPage(value: unknown): KnowledgePage {
   return page;
 }
 
-type SourceApproval = { access: "protected"; url: string } | { access: "public"; page: unknown };
+type SourceApproval =
+  | { access: "protected"; url: string }
+  | { access: "public"; page: unknown }
+  | { access: "public"; format: "rendered"; url: string };
 
 /** Validate declared access and identities before opening files or capturing pages. */
 export function validateSourcePlan(sources: readonly SourceApproval[]): string[] {
   const excluded = new Set<string>();
-  const published: KnowledgePage[] = [];
+  const published: Array<KnowledgePage | { url: string }> = [];
   for (const source of sources) {
     if (source.access === "protected") excluded.add(knowledgePath(source.url, true));
-    else if (source.access === "public") published.push(publishedPage(source.page));
+    else if (source.access === "public" && "page" in source) {
+      if ("url" in source) throw new Error("A public source must use either a URL or page metadata");
+      published.push(publishedPage(source.page));
+    }
+    else if (source.access === "public" && source.format === "rendered") {
+      knowledgePath(source.url);
+      published.push({ url: source.url });
+    }
     else throw new Error("A source must declare its publication state");
   }
   if (!published.length) throw new Error("No public knowledge sources are configured");
@@ -85,7 +99,7 @@ export function validateSourcePlan(sources: readonly SourceApproval[]): string[]
     }
     if (urls.has(page.url)) throw new Error("Duplicate source URL: " + page.url);
     urls.add(page.url);
-    if (page.kind !== "case-study") continue;
+    if (!("kind" in page) || page.kind !== "case-study") continue;
     const key = page.projectId + "|" + page.language;
     if (studies.has(key)) throw new Error("Duplicate case study for " + key);
     studies.add(key);
@@ -226,7 +240,7 @@ function contentPieces(title: string, text: string) {
   return output;
 }
 
-export type VerifyPublishedDocument = (document: Extract<KnowledgeDocument, { access: "public" }>) => Promise<void>;
+export type VerifyPublishedDocument = (document: Extract<KnowledgeDocument, { access: "public" }>) => Promise<PublicLink[] | void>;
 
 export async function buildKnowledgeCorpus(
   sources: readonly KnowledgeSource[],
@@ -266,8 +280,9 @@ export async function buildKnowledgeCorpus(
         });
       }
     }
-    await verifyPublished(document);
-    pages.push(page);
+    const publishedLinks = await verifyPublished(document);
+    const links = page.publicLinks ?? publishedLinks;
+    pages.push(links?.length ? { ...page, publicLinks: links.filter(link => !isExcludedLink(link.href, excluded)) } : page);
   }
   if (new Set(chunks.map(chunk => chunk.chunkId)).size !== chunks.length) throw new Error("Duplicate chunk ID");
   const report = { exclusions: excluded.map(pathname => ({ pathname, reason: "protected" as const })) };

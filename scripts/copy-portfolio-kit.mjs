@@ -15,11 +15,13 @@ const kitFiles = [
   "components/portfolio-chat/use-portfolio-selection.ts",
   "lib/knowledge/contract.ts",
   "lib/knowledge/corpus.ts",
+  "lib/knowledge/link-url.ts",
+  "lib/knowledge/published-links.ts",
   "lib/knowledge/rendered.ts",
   "lib/portfolio-knowledge.ts",
   "lib/portfolio-chat/embedding-model.mjs",
   ...["answer-engine", "answer-schema", "b2", "click-handler", "core", "embeddings", "engine-config", "followups", "generation", "grounding", "guardian", "handler", "language",
-    "local-access", "origin", "provider", "request-body", "request-limits", "retrieval", "selection", "session", "supabase", "timing"]
+    "link-reply", "local-access", "origin", "provider", "request-body", "request-limits", "retrieval", "selection", "session", "supabase", "timing"]
     .map(file => "lib/portfolio-chat/" + file + ".ts"),
   "scripts/portfolio-chat/dev-server.mjs",
   "scripts/portfolio-knowledge/anonymous-browser.mjs",

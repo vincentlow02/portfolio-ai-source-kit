@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 import { buildKnowledgeCorpus, type KnowledgeSource } from "../../lib/knowledge/contract";
 import { embeddingModelDirectory } from "../../lib/portfolio-chat/embedding-model.mjs";
 import { launchBrowser } from "../portfolio-knowledge/anonymous-browser.mjs";
-import { excerptReply } from "../../lib/portfolio-chat/source-reply";
+import { excerptReply, widgetResponse } from "../../lib/portfolio-chat/source-reply";
 
 const portfolioOrigin = "http://127.0.0.1:5173";
 const article = "The prototype used a recycled steel frame.";
@@ -66,7 +66,13 @@ async function startPreview(t: TestContext, model = false, origin = portfolioOri
 }
 
 test("local chat returns a source excerpt and links only to an approved portfolio page", async t => {
-  const { chatUrl, request } = await startPreview(t);
+  const { chatUrl, request } = await startPreview(t, false, portfolioOrigin, [{
+    access: "public", format: "rendered",
+    page: { url: "/", title: "Profile", language: "en", kind: "page", publicContacts: {
+      email: "hello@example.com", linkedIn: "https://www.linkedin.com/in/portfolio-fixture/",
+    } },
+    sections: [{ title: "Profile", text: "A designer who makes maps." }],
+  }]);
   const chatPage = await fetch(chatUrl);
   assert.equal(chatPage.status, 200);
   assert.ok(chatPage.headers.get("Content-Security-Policy")?.endsWith(`frame-ancestors ${portfolioOrigin}`));
@@ -89,6 +95,19 @@ test("local chat returns a source excerpt and links only to an approved portfoli
     answer: article, sources: [{ section: "Materials", href: `${portfolioOrigin}/projects#materials` }],
   });
   assert.equal((await request("Explain this quote", undefined, { ...quote, text: "unpublished notes" })).status, 400);
+  for (const [question, value] of [
+    ["can i know his linkedin", "https://www.linkedin.com/in/portfolio-fixture/"],
+    ["what his email", "hello@example.com"],
+  ]) {
+    const contact = await request(question);
+    assert.equal(contact.status, 200);
+    const result = await contact.json();
+    assert.ok(result.answer.includes(value));
+    assert.deepEqual(result.sources, [{ section: "Profile", href: portfolioOrigin + "/" }]);
+  }
+  const ownEmail = await (await request("what your email")).json();
+  assert.equal(ownEmail.answer, "hello@example.com");
+  assert.deepEqual(ownEmail.answerParts, [{ text: "hello@example.com", href: "mailto:hello@example.com" }]);
   assert.equal((await request("recycled steel", portfolioOrigin)).status, 403);
   assert.equal((await fetch(new URL(".portfolio-knowledge/local-preview.json", chatUrl))).status, 404);
 });
@@ -101,6 +120,17 @@ test("keyword-only preview works without model files and declines unsupported de
   const unsupported = await request("What was the budget for the recycled steel prototype?");
   assert.equal(unsupported.status, 200);
   assert.deepEqual((await unsupported.json()).sources, []);
+});
+
+test("the widget renders visible web and email links without unsafe destinations", () => {
+  const text = "Open [the guide](</files/guide.pdf>), https://docs.example.org/guide, or email hello@example.com. [Invalid](javascript:void(0))";
+  const reply = widgetResponse({ answer: text, sources: [] }, portfolioOrigin);
+  assert.deepEqual(reply.answerParts?.filter(part => typeof part !== "string"), [
+    { text: "the guide", href: `${portfolioOrigin}/files/guide.pdf` },
+    { text: "https://docs.example.org/guide", href: "https://docs.example.org/guide" },
+    { text: "hello@example.com", href: "mailto:hello@example.com" },
+  ]);
+  assert.equal(reply.answer, `Open the guide (${portfolioOrigin}/files/guide.pdf), https://docs.example.org/guide, or email hello@example.com. [Invalid](javascript:void(0))`);
 });
 
 test("the embedded widget sends one question with its portfolio quote or current approved page", async t => {
@@ -121,7 +151,8 @@ test("the embedded widget sends one question with its portfolio quote or current
   const origin = `http://127.0.0.1:${address.port}`;
   const { chatUrl } = await startPreview(t, false, origin, [{
     access: "public", format: "rendered",
-    page: { url: "/projects/lantern", title: "Lantern", language: "en", kind: "case-study", projectId: "lantern" },
+    page: { url: "/projects/lantern", title: "Lantern", language: "en", kind: "case-study", projectId: "lantern",
+      publicLinks: [{ label: "Lantern demo", href: "/prototype.pdf" }] },
     sections: [{ title: "Research", anchor: "research", text: research }],
   }]);
   embedUrl = new URL("embed.js", chatUrl).href;
@@ -187,6 +218,12 @@ test("the embedded widget sends one question with its portfolio quote or current
   });
   await panel.waitForSelector("#asked-quote", { hidden: true });
   assert.equal(await panel.$eval(".sources a", link => link.getAttribute("href")), `${origin}/projects/lantern#research`);
+  await ask("Open the demo link");
+  const answerLink = "#output p a";
+  assert.equal(await panel.$eval(answerLink, link => link.getAttribute("href")), `${origin}/prototype.pdf`);
+  const opened = browser.waitForTarget(target => target.type() === "page" && target.url() === `${origin}/prototype.pdf`);
+  await panel.click(answerLink);
+  await (await (await opened).page())?.close();
   await page.evaluate(() => history.pushState(null, "", "/projects"));
   const second = await ask("recycled steel");
   assert.deepEqual(second, {

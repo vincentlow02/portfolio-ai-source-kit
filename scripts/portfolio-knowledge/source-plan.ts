@@ -8,6 +8,7 @@ type RenderedSource = Extract<KnowledgeSource, { format: "rendered" }>;
 export type DeclaredSource =
   | Extract<KnowledgeSource, { access: "protected" }>
   | Pick<RenderedSource, "access" | "format" | "page">
+  | { access: "public"; format: "rendered"; url: string }
   | (Omit<MarkdownSource, "text"> & { file: string })
   | (Omit<Extract<KnowledgeSource, { format: "json" }>, "data"> & { file: string });
 
@@ -15,6 +16,7 @@ export async function loadKnowledgeSources(
   sources: readonly DeclaredSource[],
   root: string,
   capture: (page: RenderedSource["page"]) => Promise<KnowledgeSource>,
+  captureUrl?: (url: string) => Promise<KnowledgeSource>,
 ): Promise<KnowledgeSource[]> {
   if (!Array.isArray(sources) || !sources.length) throw new Error("Missing knowledge source configuration");
   validateSourcePlan(sources);
@@ -26,7 +28,12 @@ export async function loadKnowledgeSources(
       continue;
     }
     if (source.format === "rendered") {
-      result.push(await capture(source.page));
+      if ("page" in source) {
+        result.push(await capture(source.page));
+      } else {
+        if (!captureUrl) throw new Error("URL-only rendered sources require an automatic capture handler.");
+        result.push(await captureUrl(source.url));
+      }
       continue;
     }
     if (isAbsolute(source.file)) throw new Error("Knowledge source files must be within the host directory");

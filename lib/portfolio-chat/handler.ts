@@ -11,6 +11,7 @@ import { analyticsSession, validPublicOrigin } from "./session";
 import { recordEvent, reserveQuota, type AnalyticsEvent } from "./supabase";
 import { resolveResponseLanguage } from "./language";
 import { resolveGuardianReply } from "./guardian";
+import { resolvePublishedLinkReply } from "./link-reply";
 import { verifySelection } from "./selection";
 import { b2PublicCorpus, parsePageContext } from "./b2";
 import { excerptFromPack, generateAnswer, prepareAnswer, SelectionUnavailable } from "./answer-engine";
@@ -74,7 +75,7 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig) {
   }
   const latestUserMessage = [...messages].reverse().find(message => message.role === "user");
   const guardianReply = latestUserMessage ? resolveGuardianReply(latestUserMessage.content, config.supportedLanguages?.[0], { ...config, languageTerms }) : null;
-  if (guardianReply) return Response.json({ answer: guardianReply.answer, language: guardianReply.language, sources: [], recommendations: [], claims: [], insufficient: true, followUpQuestions: [] }, { headers });
+  if (guardianReply) return Response.json({ answer: guardianReply.answer, language: guardianReply.language, sources: [], recommendations: [], claims: [], insufficient: guardianReply.insufficient ?? true, followUpQuestions: [] }, { headers });
   const started = performance.now();
   let providerModel: string | null = null;
   let recordedUsage: { inputTokens?: number; outputTokens?: number } | undefined;
@@ -95,6 +96,12 @@ export function createPortfolioChatHandler(config: PortfolioChatConfig) {
       const language = config.supportedLanguages?.length && !config.supportedLanguages.includes(detected) ? (page?.lang ?? config.supportedLanguages[0]) : detected;
       let selection: ReturnType<typeof verifySelection> | undefined;
       try { if (selectionContext !== undefined) selection = verifySelection(selectionContext, safeCorpus, page); } catch { return Response.json({ error: "Invalid selection" }, { status: 400, headers }); }
+      const link = !selection && resolvePublishedLinkReply(safeCorpus, messages.at(-1)!.content, language, { config, page });
+      if (link) {
+        category = link.sources.some(source => source.projectId) ? "project" : "about";
+        await log("answered");
+        return Response.json(link, { headers });
+      }
       const input = { corpus: safeCorpus, messages, page, language, selection, config, previousSuggestions, timing: timingEnabled ? timing : undefined };
       const { pack, answer } = await prepareAnswer(input);
       safeProject = pack.projects.length === 1 ? pack.projects[0] : null;
