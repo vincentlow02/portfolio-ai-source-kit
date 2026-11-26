@@ -39,11 +39,11 @@ export function usePortfolioSelection(
   const dismiss = useCallback(() => setAction(null), []);
 
   useEffect(() => {
-    const precisePointer = window.matchMedia("(any-pointer: fine)");
+    const selectionInput = window.matchMedia("(any-pointer: fine), (any-pointer: none)");
 
     function update() {
       if (document.activeElement === actionRef.current) return;
-      const scope = precisePointer.matches && scopeSelector
+      const scope = selectionInput.matches && scopeSelector
         ? portfolioRef.current?.querySelector(scopeSelector)
         : null;
       const privatePage = document.querySelector('[data-portfolio-access="protected"], input[type="password"]');
@@ -61,13 +61,13 @@ export function usePortfolioSelection(
     document.addEventListener("keydown", onKeyDown);
     window.addEventListener("scroll", dismiss, true);
     window.addEventListener("resize", dismiss);
-    precisePointer.addEventListener("change", dismiss);
+    selectionInput.addEventListener("change", dismiss);
     return () => {
       document.removeEventListener("selectionchange", update);
       document.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("scroll", dismiss, true);
       window.removeEventListener("resize", dismiss);
-      precisePointer.removeEventListener("change", dismiss);
+      selectionInput.removeEventListener("change", dismiss);
     };
   }, [dismiss, pathname, portfolioRef, scopeSelector]);
 
