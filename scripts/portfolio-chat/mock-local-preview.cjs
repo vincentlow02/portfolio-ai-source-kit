@@ -22,10 +22,12 @@ globalThis.fetch = async (input, init) => {
   const answerable = inChinese || /(?:frame made from|material did the team choose)/u.test(question);
   const invalid = question.includes("imaginary laboratory");
   const malformed = question.startsWith("Simulate an answer with unexpected fields.");
+  const tooManyRecommendations = question.startsWith("Simulate too many recommendations.");
   const output = malformed ? { text: "synthetic invalid answer" } : {
     language: inChinese ? "zh" : "en", insufficient: !answerable && !invalid,
     claims: answerable ? [{ text: inChinese ? "这个原型使用了再生钢框架。" : "The frame was made from recycled steel.", evidenceKeys: [passage.key] }]
       : invalid ? [{ text: "The laboratory is located in Berlin.", evidenceKeys: ["E99"] }] : [],
+    ...(tooManyRecommendations && { recommendedProjectIds: ["first", "second", "third"] }),
   };
   return Response.json({
     id: "local-preview-fixture", object: "chat.completion", created: 1700000000, model: "qwen3.7-flash",

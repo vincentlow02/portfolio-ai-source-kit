@@ -79,9 +79,15 @@ function viewSources(sources) {
   return metadata;
 }
 
-function showAnswer(answer, sources = [], questions = [], parts = [answer]) {
+function showAnswer(answer, sources = [], questions = [], parts = [answer], excerptFallback = false) {
   const reply = document.createElement("div");
   reply.className = "assistant";
+  if (excerptFallback) {
+    const notice = document.createElement("p");
+    notice.className = "excerptNotice";
+    notice.textContent = "Showing a portfolio excerpt because the model reply could not be used.";
+    reply.append(notice);
+  }
   const text = document.createElement("p");
   text.className = "answer";
   for (const part of parts) {
@@ -156,7 +162,7 @@ async function ask(value) {
       return;
     }
     if (typeof result.answer !== "string" || !result.answer.trim()) throw new Error("Invalid reply");
-    showAnswer(result.answer, result.sources, result.followUpQuestions, result.answerParts);
+    showAnswer(result.answer, result.sources, result.followUpQuestions, result.answerParts, result.excerptFallback);
   } catch {
     if (pending === request) showAnswer("The assistant is temporarily unavailable.");
   } finally {

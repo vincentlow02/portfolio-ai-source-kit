@@ -15,6 +15,11 @@ import { excerptReply, widgetResponse } from "../../lib/portfolio-chat/source-re
 
 const portfolioOrigin = "http://127.0.0.1:5173";
 const article = "The prototype used a recycled steel frame.";
+const project: KnowledgeSource = {
+  access: "public", format: "rendered",
+  page: { url: "/work/lantern", title: "Lantern", projectId: "lantern", language: "en", kind: "case-study" },
+  sections: [{ title: "Lantern", text: "Seasonal tide tables organize volunteer walks." }],
+};
 
 async function startPreview(t: TestContext, model = false, origin = portfolioOrigin, extraSources: KnowledgeSource[] = [],
   retrievalMode = "hybrid") {
@@ -113,13 +118,16 @@ test("local chat returns a source excerpt and links only to an approved portfoli
 });
 
 test("keyword-only preview works without model files and declines unsupported details", async t => {
-  const { request } = await startPreview(t, false, portfolioOrigin, [], "keyword");
+  const { request } = await startPreview(t, false, portfolioOrigin, [project], "keyword");
   const supported = await request("steel recycled frame");
   assert.equal(supported.status, 200);
   assert.equal((await supported.json()).answer, article);
   const unsupported = await request("What was the budget for the recycled steel prototype?");
   assert.equal(unsupported.status, 200);
   assert.deepEqual((await unsupported.json()).sources, []);
+  const start = await (await request("Which project should I explore first?")).json();
+  assert.match(start.answer, /Start with Lantern/);
+  assert.equal(start.sources[0].href, `${portfolioOrigin}/work/lantern`);
 });
 
 test("the widget renders visible web and email links without unsafe destinations", () => {
@@ -275,9 +283,13 @@ test("local model preview sends differently worded questions with evidence and r
   const message = (await authFailure.json()).error;
   assert.match(message, /HTTP 401/);
   assert.doesNotMatch(message, /synthetic private provider details/);
-  const invalidResponse = await request("Simulate an answer with unexpected fields. What was the recycled steel frame made from?");
-  assert.equal(invalidResponse.status, 502);
-  const invalidMessage = (await invalidResponse.json()).error;
-  assert.match(invalidMessage, /unexpected answer fields/);
-  assert.doesNotMatch(invalidMessage, /synthetic invalid answer/);
+  for (const issue of ["Simulate an answer with unexpected fields.", "Simulate too many recommendations."]) {
+    const invalidResponse = await request(`${issue} What was the recycled steel frame made from?`);
+    assert.equal(invalidResponse.status, 200);
+    assert.deepEqual(await invalidResponse.json(), {
+      answer: article,
+      excerptFallback: true,
+      sources: [{ section: "Materials", href: `${portfolioOrigin}/projects#materials` }],
+    });
+  }
 });
