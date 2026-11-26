@@ -11,7 +11,7 @@ import { captureLocalPreviewSource, capturePublishedSource, captureSiteSource, v
 import { hostedPortfolioOrigin } from "../../lib/knowledge/hosted-origin";
 import { excerptReply } from "../../lib/portfolio-chat/source-reply";
 import { launchBrowser, localPreviewOrigin } from "./anonymous-browser.mjs";
-import { discoverPortfolioPaths } from "./discover-sources.mts";
+import { discoverPortfolioSources } from "./discover-sources.mts";
 import { loadKnowledgeSources } from "./source-plan";
 
 test("anonymous publication validation rejects hidden DOM, protected markers and indexing exclusions", async () => {
@@ -210,7 +210,8 @@ test("a new portfolio answers from the site and can curate its own knowledge sou
   t.after(() => browser.close());
   const verify = verifyInBrowser(browser, origin, "local-preview");
   const captureUrl = (path: string) => captureLocalPreviewSource(browser, origin, path);
-  const paths = await discoverPortfolioPaths(browser, origin);
+  const { candidates } = await discoverPortfolioSources(browser, origin);
+  const paths = candidates.map(candidate => candidate.path);
   assert.deepEqual(paths, [...pages.keys()].sort());
   const corpus = await buildKnowledgeCorpus(await Promise.all(paths.map(captureUrl)), "local-preview", verify);
   assert.deepEqual(corpus.caseStudies.map(project => project.title), ["Quiet Lab", "Trail Map"]);

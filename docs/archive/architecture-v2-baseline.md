@@ -2,7 +2,7 @@
 
 Baseline source: `4fcfcf39f2fdd6cc812e94a5454d0993aa592f04`. Clean worktree before branching. Node 24.19.0, npm 12.2.0, Windows, local Chrome, fixed CPU model assets verified by the downloader. All generation-facing suites use fixtures. No real model or database was called.
 
-`node node_modules/tsx/dist/cli.mjs scripts/portfolio-chat/architecture-evaluation.mts` evaluates 100 fictional questions split by project group. It records retrieval top-five scores against authored source labels and observes the actual B2 pack. Comparisons accept both projects' passages. Source labels are a narrow relevance proxy. The dataset is not an LLM judge or production benchmark.
+`node node_modules/tsx/dist/cli.mjs scripts/evaluation/architecture-evaluation.mts` evaluates 100 fictional questions split by project group. It records retrieval top-five scores against authored source labels and observes the actual B2 pack. Comparisons accept both projects' passages. Source labels are a narrow relevance proxy. The dataset is not an LLM judge or production benchmark.
 
 | Split | Cases | Recall@5 | Precision@5 | MRR@5 | Evidence coverage | Irrelevant evidence | Unsupported had empty pack |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

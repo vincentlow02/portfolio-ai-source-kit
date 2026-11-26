@@ -167,7 +167,7 @@ test("the embedded widget sends one question with its portfolio quote or current
   const browser = await launchBrowser();
   t.after(() => browser.close());
   const page = await browser.newPage();
-  await page.setViewport({ width: 1280, height: 800 });
+  await page.setViewport({ width: 900, height: 800 });
   const pageErrors: string[] = [];
   page.on("pageerror", error => pageErrors.push(String(error)));
   await page.goto(`${origin}/projects/lantern?tracking=example#research`);
@@ -190,6 +190,7 @@ test("the embedded widget sends one question with its portfolio quote or current
   await panel.waitForSelector("#quote", { visible: true });
   assert.equal(await panel.$eval("#quote-text", quote => quote.textContent), research);
   assert.equal(await panel.$eval("#question", input => input === document.activeElement), true);
+  await page.setViewport({ width: 1280, height: 800 });
   const send = async () => {
     const sent = page.waitForRequest(request => new URL(request.url()).pathname === "/api/preview" && request.method() === "POST");
     await panel.click('form button[type="submit"]');

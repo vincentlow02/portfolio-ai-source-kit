@@ -6,7 +6,7 @@ Add a chat box to an existing portfolio. The Kit reads the public pages you appr
 
 For an existing public website, deploy the Kit on Vercel and paste one script into your site.
 
-1. In your Kit checkout, run discovery with the public HTTPS address of your portfolio.
+1. With Node.js 24, open your Kit checkout and run discovery with the public HTTPS address of your portfolio.
 
    ```sh
    npm ci
@@ -58,8 +58,10 @@ Review the file targets before installing. The command adds Kit source and `.por
 ## Local development
 
 - [Preview the widget in a local Vite portfolio](docs/integration.md#vite-local-preview)
+- [Try Qwen in the local preview](docs/integration.md#preview-qwen-locally)
 - [Build the Atlas example and run tests](docs/integration.md#example-and-tests)
 - [Architecture](docs/architecture.md) and [troubleshooting](docs/evaluation.md)
+- [Historical release and audit reports](docs/archive/README.md)
 
 ## License
 

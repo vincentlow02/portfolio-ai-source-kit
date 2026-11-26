@@ -46,17 +46,22 @@ export class WidgetQuotaError extends Error {
   constructor(readonly status: 429 | 503) { super("Widget quota reservation failed"); }
 }
 
-export function createModelReply(corpus: PortfolioCorpus, env: NodeJS.ProcessEnv = process.env) {
+function directWidgetReply(corpus: PortfolioCorpus, question: string, language: ResponseLanguage,
+  quote?: VerifiedQuote, page?: PageContext) {
+  const guardian = resolveGuardianReply(question, language);
+  if (guardian) return { answer: guardian.answer, sources: [], recommendations: [] };
+  if (quote) return null;
+  return resolvePublishedLinkReply(corpus, question, language, { page }) ?? startingProjectReply(corpus, question, language);
+}
+
+export function createModelReply(corpus: PortfolioCorpus, env: Record<string, string | undefined> = process.env) {
   const provider = configureModel(env);
   if (!provider) throw new Error("Configure a supported model provider before enabling model replies");
   const objectMode = env.QWEN_JSON_MODE?.trim() === "object";
 
   return async (messages: ChatMessage[], language: ResponseLanguage, quote?: VerifiedQuote,
     options: { page?: PageContext; signal?: AbortSignal; reserve?: () => Promise<boolean>; fallbackToExcerpt?: boolean; timing?: RequestTiming } = {}) => {
-    const question = messages.at(-1)!.content;
-    const guardian = resolveGuardianReply(question, language);
-    if (guardian) return { answer: guardian.answer, sources: [] };
-    const direct = !quote && (resolvePublishedLinkReply(corpus, question, language, { page: options.page }) ?? startingProjectReply(corpus, question, language));
+    const direct = directWidgetReply(corpus, messages.at(-1)!.content, language, quote, options.page);
     if (direct) return direct;
     const input = { corpus, messages, language, page: options.page, selection: quote, allowUnstructuredCatalog: true, timing: options.timing };
     const { pack, answer } = await prepareAnswer(input);
@@ -83,10 +88,7 @@ export function createModelReply(corpus: PortfolioCorpus, env: NodeJS.ProcessEnv
 
 export async function excerptReply(corpus: PortfolioCorpus, messages: ChatMessage[], language: ResponseLanguage,
   quote?: VerifiedQuote, page?: PageContext, timing?: RequestTiming) {
-  const question = messages.at(-1)!.content;
-  const guardian = resolveGuardianReply(question, language);
-  if (guardian) return { answer: guardian.answer, sources: [], recommendations: [] };
-  const direct = !quote && (resolvePublishedLinkReply(corpus, question, language, { page }) ?? startingProjectReply(corpus, question, language));
+  const direct = directWidgetReply(corpus, messages.at(-1)!.content, language, quote, page);
   if (direct) return direct;
   const pack = await buildB2Pack(corpus, messages, page ?? null, language, quote?.chunk, timing?.record.bind(timing), undefined, true);
   return excerptFromPack({ corpus, messages, language, page, selection: quote }, pack);

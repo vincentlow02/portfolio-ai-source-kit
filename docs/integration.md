@@ -2,12 +2,12 @@
 
 ## Install into an existing host
 
-1. Obtain this source kit and run `node scripts/copy-portfolio-kit.mjs /absolute/path/to/your-app`. The host must already have `package.json`; the installer refuses to overwrite any listed path. Keep the installed `PORTFOLIO_AI_LICENSE` notice.
+1. From the Kit checkout, run `node scripts/copy-portfolio-kit.mjs /absolute/path/to/your-app`. The host must already have `package.json`. The installer adds the same files as the registry, including `.portfolio-ai/SETUP.md`, and refuses to overwrite existing files. Keep the installed `PORTFOLIO_AI_LICENSE` notice.
 2. Merge the dependencies and scripts from [`examples/atlas-portfolio/package.json`](../examples/atlas-portfolio/package.json) into your host. This example uses Node 24, Next 16 and React 19; verify compatibility if your stack differs. Do not replace your existing layout or lockfile. Run your package manager to update the lockfile.
 3. Adapt the Atlas [server configuration](../examples/atlas-portfolio/portfolio-assistant.server.ts), [chat route](../examples/atlas-portfolio/app/api/studio-assistant/route.ts) and [click route](../examples/atlas-portfolio/app/api/studio-assistant/click/route.ts). Use the Node runtime and allow enough time for the 45-second provider deadline. Set `chatRoutes` and output tracing as in [Atlas's Next configuration](../examples/atlas-portfolio/next.config.ts).
 4. Import `PortfolioChatPanel` from your installed `components/portfolio-chat/portfolio-chat-panel` in your root layout as in [Atlas](../examples/atlas-portfolio/app/layout.tsx). Set your own owner name, paths, endpoint, languages and suggestions. The panel takes only browser-safe options; keep database and model credentials on the server.
-5. Create `portfolio-knowledge.config.ts` based on the [Atlas manifest](../examples/atlas-portfolio/portfolio-knowledge.config.ts). Run `tsx scripts/portfolio-knowledge/publish.mts` as the build command so the Next build, corpus and file tracing stay synchronized. Update `publishedPaths` in the panel when published routes change.
-6. Copy the environment template to your host's `.env.local`. Start local browser chat with `node scripts/portfolio-chat/dev-server.mjs` and `PORTFOLIO_AI_LOCAL_DEV=1`. The script binds to loopback, and the chat returns excerpts when no model is configured. For generation, add your provider key and quota settings and review the migration for a dedicated Supabase project. [Environment template](../examples/atlas-portfolio/.env.example) · [Security and deployment](security.md)
+5. Create `portfolio-knowledge.config.ts` based on the [Atlas manifest](../examples/atlas-portfolio/portfolio-knowledge.config.ts). Use `tsx scripts/portfolio-knowledge/publish.mts` as the build command so the Next build, corpus and file tracing stay synchronized. Run `npm run build` from your host directory before starting local chat, and rebuild when the approved sources change. Update `publishedPaths` in the panel when published routes change.
+6. Copy the environment template to your host's `.env.local` and set `PORTFOLIO_AI_LOCAL_DEV=1`. Run `node scripts/portfolio-chat/dev-server.mjs` and open the `127.0.0.1` URL it prints. The chat returns excerpts when no model is configured. For generation, add your provider key and quota settings and review the migration for a dedicated Supabase project. [Environment template](../examples/atlas-portfolio/.env.example) · [Security and deployment](security.md)
 
 ## Knowledge sources
 
@@ -38,7 +38,7 @@ For reconstruction of normalized section text, join ordinary word-boundary chunk
 
 ## Customize your knowledge base
 
-For a bio, project, or contact update, edit the portfolio page and publish it. Then rebuild the assistant so its answers use the updated text. Add or remove paths in `PORTFOLIO_SOURCE_PATHS` for Hosted. In local preview, run `preview:local` again to reuse the approved list, or pass `--discover` to review it.
+For a bio, project, or contact update, edit the portfolio page and publish it. Then rebuild the assistant so its answers use the updated text. Add or remove paths in `PORTFOLIO_SOURCE_PATHS` for Hosted. In local preview, rerun your `preview:local` command and restart chat. For a path-based preview, pass `--discover` to review the list again.
 
 For a more specific introduction, add your name and a short bio to the published homepage, or choose a public excerpt from that page in your manifest. A Markdown excerpt can use the published name as its heading and the bio as its body. Set `page.url` to `/` and use the same name for `page.title`. The Kit still reads visible links from the approved page when you use a curated excerpt.
 
@@ -93,7 +93,7 @@ Test the hook by publishing a change to one approved page. After the assistant r
 
 The default Hybrid build downloads about 135 MB of local model files and stores passage vectors in the private snapshot. Normal requests encode only the question. On a Linux CPU host with a custom install command, set `ONNXRUNTIME_NODE_INSTALL_CUDA=skip` before installing dependencies. The Hosted Vercel install command already sets this. [Retrieval architecture](architecture.md#retrieval-modes)
 
-Vercel Hobby can host an eligible personal, non-commercial assistant within the plan's allowances. Deploys, refreshes and chat requests use the hosting allowance. Within that allowance and the applicable Firewall limits, excerpts have zero API charges and optional Qwen adds its provider usage charges. [Vercel Hobby](https://vercel.com/docs/plans/hobby) · [Function usage](https://vercel.com/docs/functions/usage-and-pricing) · [Firewall limits](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting#limits) · [Model Studio pricing](https://www.alibabacloud.com/help/en/model-studio/model-pricing)
+Vercel Hobby can host an eligible personal, non-commercial assistant within the plan's allowances. Deploys, refreshes and chat requests use the hosting allowance. Within that allowance and the applicable Firewall limits, excerpts have zero model API charges. Generated replies use the selected provider's pricing. [Vercel Hobby](https://vercel.com/docs/plans/hobby) · [Plan terms](https://vercel.com/legal/terms) · [Function usage](https://vercel.com/docs/functions/usage-and-pricing) · [Firewall limits](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting#limits) · [Model Studio pricing](https://www.alibabacloud.com/help/en/model-studio/model-pricing)
 
 If your Node.js host has tighter resource limits, set `PORTFOLIO_RETRIEVAL_MODE=keyword` for build and runtime and redeploy. Keyword search keeps cited excerpts and optional generation while skipping model files and embedding inference. It needs closer wording matches than Hybrid search.
 
@@ -101,23 +101,28 @@ If your Node.js host has tighter resource limits, set `PORTFOLIO_RETRIEVAL_MODE=
 
 You'll need an existing Vite portfolio, Node.js 24, npm and Chromium. On Windows PowerShell, use `npm.cmd` if the `npm` script is blocked.
 
-1. In the portfolio directory, install its dependencies and start its dev server. Open `http://127.0.0.1:5173/` to check that it displays.
+1. In the portfolio directory, install its dependencies with its package manager and start its dev server. Open `http://127.0.0.1:5173/` to check that it displays.
 
    ```sh
    npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
    ```
 
-2. Keep the Vite terminal running. In a second terminal in the Kit checkout, run discovery and start the chat service after capture. Use the same port as your portfolio.
+2. Keep the Vite terminal running. In a second terminal in the Kit checkout, install the Kit and capture pages. Set `--origin` to the address of your portfolio.
 
    ```sh
    npm ci
    npm run preview:local -- --origin http://127.0.0.1:5173
-   npm run preview:chat
    ```
 
    When `preview:local` runs discovery, it shows the candidate details and reasons for skipping paths. Enter `all` or the numbers of specific pages separated by commas. Press Enter on an empty line to cancel. The Kit reuses the approved paths on later runs for the same origin. Add `--discover` when you want to review the list again. For scripted setup, repeat `--path` for each approved page or pass `--manifest` to supply the sources directly.
 
-3. Add this loader before `</body>` in the portfolio's `index.html`. Open the portfolio at `http://127.0.0.1:5173` and ask about an approved page. Use **Sources** to check the excerpt.
+3. After capture completes, start the chat service in the Kit terminal. Open `http://127.0.0.1:4174/` to test on its own page, or continue to embed it in the portfolio.
+
+   ```sh
+   npm run preview:chat
+   ```
+
+4. Add this loader before `</body>` in the portfolio's `index.html`. Open the portfolio at `http://127.0.0.1:5173/` and ask about an approved page. Use **Sources** to check the excerpt.
 
    ```html
    <script type="module">
@@ -129,11 +134,15 @@ You'll need an existing Vite portfolio, Node.js 24, npm and Chromium. On Windows
    </script>
    ```
 
-The capture writes `.portfolio-knowledge/local-preview.json`, which Git ignores. Rebuild it and restart chat after changing approved pages or the portfolio port. If you start chat with `--port`, use that port in the loader. The embedded widget submits one question at a time. It uses the current route when asking about an approved project page. On desktop, select a passage on the page and click **Ask AI Kit** to add it to your question.
+The capture writes `.portfolio-knowledge/local-preview.json`, which Git ignores. Chat loads that snapshot at startup. Run `preview:local` again and restart chat after editing the portfolio content, changing the approved pages, or moving the portfolio to a different port.
+
+If port 4174 is in use, run `npm run preview:chat -- --port 4175` and use `4175` in the standalone chat URL and the loader. Keep `--origin` pointed to your Vite address.
+
+The embedded widget submits one question at a time. It uses the current route when asking about an approved project page. With a mouse or trackpad, select a passage on an approved portfolio page and click **Ask AI Kit** to add it to your question.
 
 ### Preview Qwen locally
 
-Set the following in the Kit's Git-ignored `.env.local`, then restart chat with `npm run preview:chat -- --model`. Use a key and base URL from the same Model Studio region. [API keys](https://www.alibabacloud.com/help/en/model-studio/get-api-key) · [Base URLs](https://www.alibabacloud.com/help/en/model-studio/base-url)
+Set the following in the Kit's Git-ignored `.env.local`, then restart chat with `npm run preview:chat -- --model`. If your loader uses port 4175, run `npm run preview:chat -- --port 4175 --model`. Use a key and base URL from the same Model Studio region. [API keys](https://www.alibabacloud.com/help/en/model-studio/get-api-key) · [Base URLs](https://www.alibabacloud.com/help/en/model-studio/base-url)
 
 ```dotenv
 PORTFOLIO_AI_PROVIDER=qwen
@@ -144,7 +153,7 @@ QWEN_JSON_MODE=object
 QWEN_ENABLE_THINKING=false
 ```
 
-Model preview binds to loopback and can incur provider charges. Ask about an approved page and verify that the linked evidence supports the answer.
+Model preview binds to loopback and can incur provider charges. Ask about an approved page and verify that the linked evidence supports the answer. If the reply displays a notice about a portfolio excerpt, the model output could not be used and the Kit returned cited evidence directly. To try another provider, use its server environment variables from the [environment template](../.env.example) and restart chat with `--model`.
 
 ## Example and tests
 

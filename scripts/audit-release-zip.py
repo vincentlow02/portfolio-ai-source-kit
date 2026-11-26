@@ -50,7 +50,7 @@ if not required <= expected.keys():
     fail("Required license or documentation is absent from the Git tree")
 
 excluded = re.compile(r"(?:^|/)(?:\.env(?!\.example$)|node_modules|\.next|\.portfolio-knowledge|\.vercel|private)(?:/|$)|\.(?:png|jpe?g|webp|gif|svg|mp[34]|mov|woff2?|ttf|pdf|docx?)$", re.I)
-widget_icon = re.compile(r"scripts/portfolio-chat/local-preview/icons/(sparkles|reset|close|suggestion|send|followup|quote|remove|select)\.svg")
+widget_icon = re.compile(r"(?:components/portfolio-chat/widget|scripts/portfolio-chat/local-preview)/icons/(sparkles|reset|close|suggestion|send|followup|quote|remove|select)\.svg")
 portfolio = re.compile(r"(?<![a-z0-9])(?:" + "into" + "day|go" + "event|weave" + r" ai|cur" + r"io)(?![a-z0-9])|vincent" + r"low\.work", re.I)
 secrets = re.compile(r"(?:sk-[A-Za-z0-9_-]{30,}|sb_secret_[A-Za-z0-9_-]{30,}|gh[pousr]_[A-Za-z0-9_]{30,}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)")
 

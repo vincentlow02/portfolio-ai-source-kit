@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 // Audit every tracked file. Do not print matching contents or potential secrets.
 const files = execFileSync("git", ["ls-files", "-z"], {encoding:"utf8"}).split("\0").filter(Boolean);
 const forbidden = ["into" + "day", "go" + "event", "weave" + " ai", "cur" + "io", "vincent" + "low.work"];
-const widgetIcon = /^scripts\/portfolio-chat\/local-preview\/icons\/(sparkles|reset|close|suggestion|send|followup|quote|remove|select)\.svg$/u;
+const widgetIcon = /^components\/portfolio-chat\/widget\/icons\/(sparkles|reset|close|suggestion|send|followup|quote|remove|select)\.svg$/u;
 for (const file of files) {
   if (/(?:^|\/)(?:\.env(?!\.example$)|node_modules|\.next|\.portfolio-knowledge|\.vercel|private)(?:\/|$)/iu.test(file) ||
       (!widgetIcon.test(file) && /\.(?:png|jpe?g|webp|gif|svg|mp[34]|mov|woff2?|ttf|pdf|docx?)$/iu.test(file))) throw new Error(`Excluded file category: ${file}`);

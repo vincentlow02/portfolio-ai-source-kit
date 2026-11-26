@@ -59,4 +59,4 @@ Local Windows, Node 24, CPU MiniLM, 12 fictional chunks. The table uses the firs
 
 The cold stage dominates. The cache shares one in-flight batch across concurrent requests, and the regression verifies recovery after a rejected batch. Deterministic catalog requests skip retrieval when there is no selection. Keep embedding artifacts and external indexes out of this version. Their deployment costs need a representative larger corpus and repeat measurements before adoption.
 
-Run `node --import tsx scripts/portfolio-chat/architecture-evaluation.mts` or add `--profiles` for the development-only threshold sweep.
+Run `node --import tsx scripts/evaluation/architecture-evaluation.mts` or add `--profiles` for the development-only threshold sweep.

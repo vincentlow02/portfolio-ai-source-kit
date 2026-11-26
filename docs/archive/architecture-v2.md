@@ -1,6 +1,6 @@
 # Portfolio AI internal architecture V2
 
-For the current build-time index, retrieval modes and integration flows, see [Architecture and data flow](architecture.md).
+For the current build-time index, retrieval modes and integration flows, see [Architecture and data flow](../architecture.md).
 
 > V2.1 update: the shared answer engine remains in place. Bare unresolved references clarify without generation or model quota; a verified selection or unambiguous project context may supply the subject. Empty named-project searches may retry without duplicated labels, using the same qualification thresholds. Grounding adds conservative number, named-project and negative-claim consistency checks; these do not establish factual entailment. See `V2_1_REMEDIATION_REPORT.md` and `V2_1_REMAINING_VERIFICATION_GATES.md` for results and limits. The rest of this document retains the V2 baseline description.
 
@@ -46,7 +46,7 @@ Next hosts declare public pages and protected paths in `portfolio-knowledge.conf
 
 Run the appropriate publisher after a text change, removal or access change. The publisher generates stable IDs per source/section, a schema-v1 digest over the canonical knowledge fields, and a snapshot-specific build version. Next checks the current `.next/BUILD_ID`, rejects a mismatched snapshot and tests the completed artifact against its private HTTP path in a loopback preview. A failed validation keeps the previous artifact where one exists. A rebuilt Next application will still reject a previous snapshot whose build ID differs. Hosted and Vite replace their capture files with a completed JSON artifact. The next process loads the new publication. Replace deployed instances that still hold the old snapshot to enforce revocation. Restart the Vite chat process after rebuilding its local corpus.
 
-See the [integration guide](integration.md) for installing the kit in another portfolio and [V2 evaluation](architecture-v2-evaluation.md) for measured thresholds and limitations.
+See the [integration guide](../integration.md) for installing the kit in another portfolio and [V2 evaluation](architecture-v2-evaluation.md) for measured thresholds and limitations.
 
 ### V2.1 scoped-search update
 
@@ -60,4 +60,4 @@ Carried multi-project comparisons fail closed before retrieval above 18 projects
 
 When a carried Japanese verification comparison lacks an eligible result for one or more projects, the pack can perform one additional scoped retrieval. A complete generic affirmative testing question can use an English equivalent when the missing sides have English-only eligible passages. Other verification questions retain their qualifiers and use the existing synonym or participant hint. English evidence for the generic form requires a recognized direct completed test. All candidates must still qualify under the existing score thresholds and original topic checks. Occasional recall misses and incorrect semantic associations remain possible.
 
-An explicit generic participant comparison requires direct public study evidence for every named project, with bounded checks for negative and hypothetical statements. Explicit Hosted comparisons apply the shared pack and return per-project excerpts only when the required projects have relevant evidence. These policies leave the adapter request, response and quota contracts intact. The [V2.1 remediation report](../V2_1_REMEDIATION_REPORT.md) records the tested snapshot and external gates.
+An explicit generic participant comparison requires direct public study evidence for every named project, with bounded checks for negative and hypothetical statements. Explicit Hosted comparisons apply the shared pack and return per-project excerpts only when the required projects have relevant evidence. These policies leave the adapter request, response and quota contracts intact. The [V2.1 remediation report](V2_1_REMEDIATION_REPORT.md) records the tested snapshot and external gates.

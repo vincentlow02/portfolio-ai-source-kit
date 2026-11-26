@@ -260,7 +260,3 @@ export async function discoverPortfolioSources(browser: Browser, value: string, 
   const comparePaths = (a: { path: string }, b: { path: string }) => a.path < b.path ? -1 : Number(a.path > b.path);
   return { candidates: candidates.sort(comparePaths), skipped: skipped.sort(comparePaths), limitReached };
 }
-
-export async function discoverPortfolioPaths(browser: Browser, value: string, loadResource?: LoadResource): Promise<string[]> {
-  return (await discoverPortfolioSources(browser, value, loadResource)).candidates.map(candidate => candidate.path);
-}

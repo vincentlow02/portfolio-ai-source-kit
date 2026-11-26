@@ -17,7 +17,9 @@ Before a real-model test, obtain explicit authorization for the call count and s
 | Build rejects content | Verify the declared source is visible anonymously, indexed, has the declared language and a unique anchor; dynamic MDX should use the rendered adapter. |
 | Chat returns 401 or 403 | Check local loopback mode, evaluation bearer authorization, public origin settings and upstream Preview protection. |
 | Chat returns 429 or 503 | Check process throttles, shared quota configuration and ledger, Supabase connectivity, and the provider configuration. |
-| Chat returns 502 | Rebuild the Next app and corpus together, check output tracing and build ID, and verify that the provider supports the configured structured-output mode. |
+| Next.js chat returns 502 | Rebuild the app and corpus together and check output tracing and the build ID. For generated replies, verify that the provider supports the configured structured-output mode. |
+| Local preview shows that the assistant is temporarily unavailable | Check the terminal running `preview:chat`. If you started it with `--model`, the terminal prints a brief description of provider errors. After changing `.env.local`, restart the service. |
+| Local model preview displays an excerpt notice | The preview retrieved published evidence and used it when the model reply failed validation. Check the configured model and its structured-output settings. |
 | Response has a valid citation but unsupported details | Inspect the cited passage and improve content, retrieval or validation; do not infer factual support from URL validity. |
 
 For troubleshooting, do not paste secrets or private corpus data into issue reports. See [security](security.md) and [architecture](architecture.md).

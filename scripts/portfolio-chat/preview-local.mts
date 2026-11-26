@@ -134,11 +134,8 @@ function describeModelFailure(error: unknown): string {
     if (typeof status === "number") return `Model service returned HTTP ${status}. Check the provider status and configuration.`;
     return "The model service could not be reached. Check the base URL and connection from the machine running the kit.";
   }
-  if (error instanceof GenerationError) {
-    if (error.kind === "json") return "The model response could not be read as JSON. Check the selected model and JSON mode.";
-    if (error.kind === "empty") return "The model returned no answer text.";
-    if (error.kind === "schema") return "The model returned JSON with unexpected answer fields. Check the model’s support for JSON output.";
-    if (error.kind === "timeout" || error.kind === "cancelled") return "The model request timed out or was cancelled.";
+  if (error instanceof GenerationError && (error.kind === "timeout" || error.kind === "cancelled")) {
+    return "The model request timed out or was cancelled.";
   }
   return "The preview could not process the model response. Check the kit and model configuration.";
 }

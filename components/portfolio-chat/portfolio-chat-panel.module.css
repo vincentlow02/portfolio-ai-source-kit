@@ -10,10 +10,9 @@
     to { opacity: 1; transform: translateY(0); }
   }
 }
-.selectionAction { display: none; }
+.selectionAction { display: inline-flex; position: fixed; z-index: 500; align-items: center; gap: 7px; padding: 8px 10px; border: 0; border-radius: 2px; background: #252a28; color: #fff; font: inherit; font-size: 12px; cursor: pointer; }
+.selectionAction:focus-visible { outline: 2px solid #252a28; outline-offset: 3px; }
 @media (min-width: 1024px) {
-  .selectionAction { display: inline-flex; position: fixed; z-index: 500; align-items: center; gap: 7px; padding: 8px 10px; border: 0; border-radius: 2px; background: #252a28; color: #fff; font: inherit; font-size: 12px; cursor: pointer; }
-  .selectionAction:focus-visible { outline: 2px solid #252a28; outline-offset: 3px; }
   .shell[data-portfolio-chat-open="true"] .portfolio { width: calc(100% - 350px); overflow-x: clip; }
   .panel { inset: 0 0 0 auto; width: 350px; border-left: 1px solid var(--portfolio-chat-border, var(--border, #deded9)); }
 }

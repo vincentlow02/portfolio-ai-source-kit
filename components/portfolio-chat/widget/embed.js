@@ -7,6 +7,7 @@
   const host = document.createElement("portfolio-ai-preview");
   const shadow = host.attachShadow({ mode: "open" });
   const mobile = window.matchMedia("(max-width: 1023px)");
+  const precisePointer = window.matchMedia("(any-pointer: fine)");
   const viewport = window.visualViewport;
   let ready = false;
   let selected = null;
@@ -101,7 +102,7 @@
   }
 
   function showSelection() {
-    if (mobile.matches) return hideSelection();
+    if (!precisePointer.matches) return hideSelection();
     if (shadow.activeElement === selectionAction) return;
     const page = currentPage();
     const selection = window.getSelection();
@@ -141,6 +142,7 @@
   });
   window.addEventListener("scroll", hideSelection, true);
   window.addEventListener("resize", hideSelection);
+  precisePointer.addEventListener("change", hideSelection);
   mobile.addEventListener("change", () => { hideSelection(); resize(); sendLayout(false); });
   viewport?.addEventListener("resize", resize);
   viewport?.addEventListener("scroll", resize);

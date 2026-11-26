@@ -16,6 +16,6 @@ The source kit relies on separately installed third-party packages. No dependenc
 
 Browser binaries and their bundled components can have additional terms. Check the exact versions and licenses in the host's installed dependency tree. This list is an inventory, not a substitute for the original license texts or a complete transitive audit.
 
-The embedded chat serves Geist from the installed Next.js package under the SIL Open Font License 1.1. [Geist license](scripts/portfolio-chat/local-preview/geist-OFL.txt)
+The embedded chat serves Geist from the installed Next.js package under the SIL Open Font License 1.1. [Geist license](components/portfolio-chat/widget/geist-OFL.txt)
 
 Hybrid retrieval uses an ONNX conversion of the Apache-2.0 multilingual MiniLM model. The Kit downloads the model files at build or preview startup. [Original model](https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2) · [ONNX conversion](https://huggingface.co/Xenova/paraphrase-multilingual-MiniLM-L12-v2)

@@ -63,4 +63,4 @@ The shipped Vercel install command skips ONNX's optional CUDA download. Hybrid b
 - Source citations and heuristic consistency checks improve traceability. They cannot guarantee factual entailment or catch every unsupported claim and injection attempt.
 - Reader URLs must satisfy the source contract and render their content using allowed resources. The in-memory search index is designed for small site corpora. Hosted excerpt limits are per process, and local inference uses host CPU and memory.
 
-See [the V2 architecture record](architecture-v2.md) for the previous implementation and [evaluation](evaluation.md) for regression and troubleshooting workflows.
+See [the V2 architecture record](archive/architecture-v2.md) for the previous implementation and [evaluation](evaluation.md) for regression and troubleshooting workflows.

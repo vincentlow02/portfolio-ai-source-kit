@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const base = "scripts/portfolio-chat/local-preview";
+const base = "components/portfolio-chat/widget";
 const font = "node_modules/next/dist/next-devtools/server/font/geist-latin.woff2";
 const styles = "components/portfolio-chat/portfolio-chat-panel.module.css";
 const icons = ["sparkles", "reset", "close", "suggestion", "send", "followup", "quote", "remove", "select"];

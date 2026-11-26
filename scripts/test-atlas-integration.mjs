@@ -197,7 +197,7 @@ try {
   try {
     browser = await launchBrowser();
     const page = await browser.newPage();
-    await page.setViewport({ width: 1440, height: 950 });
+    await page.setViewport({ width: 900, height: 950 });
     await page.goto(development.origin + "/work/lantern", { waitUntil: "networkidle0", timeout: 60_000 });
     await page.waitForSelector('button[aria-label="Open Morgan Reed AI"]', { visible: true, timeout: 30_000 });
     await page.evaluate(() => {

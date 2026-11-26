@@ -4,7 +4,7 @@ The repair branch starts at V2 `f370bebfb158f9a92d26502f6946d6a89ed76b44`. The e
 
 `57e976b`, `456e2b5` and `757c534` require affirmative direct English study evidence for the generic participant comparison. They reject known negative, conditional or merely reported interviews before generation. `bd2294e` consolidates the Japanese retry and admits an English equivalent only when the entire carried question matches a generic completed-testing form and the missing projects have English-only eligible candidates. Original topic eligibility, approved public source rules, score thresholds, pack caps and the all-project requirement still apply. An English passage must contain a recognized direct completed test for these generic Japanese forms.
 
-The accompanying regression checks exercise the actual Hosted HTTP route, cross-language citations, unsupported qualifiers and zero reservation where evidence is absent. The local Registry fixture continues to exercise both independent hosts. The retrieval and grounding changes remain bounded by the documented limits on wording and relationships. See the [current architecture](docs/architecture-v2.md) and [file change register](V2_1_FILE_CHANGE_REGISTER.md).
+The accompanying regression checks exercise the actual Hosted HTTP route, cross-language citations, unsupported qualifiers and zero reservation where evidence is absent. The local Registry fixture continues to exercise both independent hosts. The retrieval and grounding changes remain bounded by the documented limits on wording and relationships. See the [current architecture](architecture-v2.md) and [file change register](V2_1_FILE_CHANGE_REGISTER.md).
 
 ## Earlier changes
 
