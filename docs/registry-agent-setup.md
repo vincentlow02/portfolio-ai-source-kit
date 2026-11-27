@@ -2,6 +2,8 @@
 
 This item provides source and examples; it does not automatically integrate into an existing application. Read `.portfolio-ai/security.md` before deployment. Do not use Figma or call a paid model to perform setup.
 
+To restyle the installed chat, open the [UI customization guide](../components/portfolio-chat/UI_CUSTOMIZATION.md) for the file list, reusable prompt, and verification steps.
+
 1. Inspect the host's Next.js App Router, package scripts, paths, layout and existing security controls. Do not overwrite existing code or configuration. Check the installed files and dependency versions for conflicts. Preserve the host's design and functionality.
 2. Inspect only material the owner has authorized you to inspect. Propose specific anonymously accessible same-origin URLs and their corresponding content files as potential sources, and separately identify protected paths. Ask the owner to approve the exact list before adding any content to the manifest, publishing a corpus, or accessing private material. Approval of public sources does not authorize private sources. Never add private material to the corpus. If approval is pending, do not run the corpus publisher; continue independent setup.
 3. Use `.portfolio-ai/templates/portfolio-knowledge.config.ts` as a structural example to write a host-specific manifest. Use rendered sources for dynamic pages, static MDX only where supported, and protect private paths and descendants. Do not leave fictional Atlas records or names in the host. Configure `portfolio-assistant.server.ts` with the host owner's name, aliases, languages, project identifiers, and protected paths.

@@ -21,11 +21,12 @@ export function widgetFramePolicy(origin: string) {
   return `default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors ${origin}`;
 }
 
-export async function readWidgetAsset(root: string, path: string, config: { origin: string; paths: string[] }) {
+export async function readWidgetAsset(root: string, path: string, config: { origin: string; paths: string[]; questionLogEnabled?: boolean }) {
   const asset = widgetAssets.get(path);
   if (!asset) return undefined;
   const body = await readFile(join(root, asset.file));
-  if (path === "/") return body.toString("utf8").replace("{{portfolio-origin}}", config.origin);
+  if (path === "/") return body.toString("utf8").replace("{{portfolio-origin}}", config.origin)
+    .replace("{{question-log-notice}}", config.questionLogEnabled ? "" : "hidden");
   if (path === "/embed.js") return body.toString("utf8").replace("/* widget-config */ null", () => JSON.stringify({ origin: config.origin, paths: config.paths }));
   if (path === "/preview.css") return await readFile(join(root, styles), "utf8") + "\n" + body.toString("utf8");
   return body;

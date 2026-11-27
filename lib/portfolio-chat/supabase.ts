@@ -23,7 +23,7 @@ function config(env: Environment) {
   return { url, headers };
 }
 
-async function supabasePost(env: Environment, endpoint: string, body: object): Promise<Response> {
+export async function supabasePost(env: Environment, endpoint: string, body: object): Promise<Response> {
   const { url, headers } = config(env);
   return fetch(new URL(endpoint, url), { method: "POST", headers, body: JSON.stringify(body), cache: "no-store", redirect: "error", signal: AbortSignal.timeout(3000) });
 }

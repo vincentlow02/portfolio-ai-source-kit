@@ -154,13 +154,14 @@ async function ask(value) {
       method: "POST", headers: { "Content-Type": "application/json" }, signal: request.signal,
       body: JSON.stringify({ messages: [{ role: "user", content }], selectionContext, pageContext }),
     });
-    const result = await response.json();
     if (pending !== request) return;
     if (!response.ok) {
       showAnswer(response.status === 400 && selectionContext ? "This selection could not be verified. Select a shorter passage on the current page." :
         response.status === 429 ? "Too many requests. Please try again later." : "The assistant is temporarily unavailable.");
       return;
     }
+    const result = await response.json();
+    if (pending !== request) return;
     if (typeof result.answer !== "string" || !result.answer.trim()) throw new Error("Invalid reply");
     showAnswer(result.answer, result.sources, result.followUpQuestions, result.answerParts, result.excerptFallback);
   } catch {

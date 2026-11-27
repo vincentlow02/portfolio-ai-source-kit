@@ -242,6 +242,16 @@ test("the embedded widget sends one question with its portfolio quote or current
   await page.evaluate(() => history.pushState(null, "", "/unapproved"));
   assert.deepEqual(await ask("How was it tested?"), { messages: first.messages });
   assert.match(await panel.$eval("#output p", reply => reply.textContent ?? ""), /which project do you mean/iu);
+
+  await page.setRequestInterception(true);
+  page.on("request", async request => {
+    if (new URL(request.url()).pathname === "/api/preview" && request.method() === "POST") {
+      await request.respond({ status: 429, contentType: "text/plain", body: "Too Many Requests" });
+    } else await request.continue();
+  });
+  await ask("What projects are featured?");
+  assert.equal(await panel.$eval("#output p", reply => reply.textContent), "Too many requests. Please try again later.");
+
   await panel.click("#reset");
   assert.ok(await panel.waitForSelector("#welcome", { visible: true }));
 });

@@ -61,6 +61,11 @@
           "target": "~/components/portfolio-chat/use-portfolio-selection.ts"
         },
         {
+          "path": "components/portfolio-chat/UI_CUSTOMIZATION.md",
+          "type": "registry:file",
+          "target": "~/components/portfolio-chat/UI_CUSTOMIZATION.md"
+        },
+        {
           "path": "lib/knowledge/contract.ts",
           "type": "registry:file",
           "target": "~/lib/knowledge/contract.ts"

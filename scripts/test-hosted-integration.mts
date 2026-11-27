@@ -4,6 +4,7 @@ import { once } from "node:events";
 import { cp, mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import { buildKnowledgeCorpus } from "../lib/knowledge/contract";
 import { embeddingModelDirectory } from "../lib/portfolio-chat/embedding-model.mjs";
@@ -30,6 +31,8 @@ const env = {
   NODE_OPTIONS: '--require="' + preload + '"',
 };
 const article = "The Lantern team tested tactile signs at six libraries.";
+const questionLogNotice = /<p\b[^>]*\bid="question-log-notice"[^>]*>/u;
+const questionLogPrefix = "question-log ";
 
 async function buildHosted(retrieval: "hybrid" | "keyword") {
   const build = spawn(process.execPath, [next, "build", "--webpack"], {
@@ -49,6 +52,7 @@ async function withHosted(mode: {
   firewall?: "ready" | "missing" | "unavailable";
   providerUnavailable?: boolean;
   withoutCredentials?: boolean;
+  questionLog?: "enabled" | "preview";
 }, run: (base: string, calls: () => Promise<string[]>) => Promise<void>) {
   const traffic = join(fixture, "calls.txt");
   await writeFile(traffic, "");
@@ -66,6 +70,15 @@ async function withHosted(mode: {
     processEnv.VERCEL_ENV = "production";
     processEnv.VERCEL_PROJECT_PRODUCTION_URL = "assistant-fixture.vercel.app";
     processEnv.TEST_ATLAS_FIREWALL_MODE = mode.firewall;
+  }
+  if (mode.questionLog) {
+    processEnv.PORTFOLIO_HOSTED_QUESTION_LOG = "1";
+    processEnv.PORTFOLIO_HOSTED_QUESTION_LOG_SUPABASE_URL = "https://question-log-fixture.supabase.co";
+    processEnv.PORTFOLIO_HOSTED_QUESTION_LOG_SUPABASE_SECRET_KEY = "sb_secret_question_log_fixture";
+    if (mode.questionLog === "preview") {
+      processEnv.VERCEL = "1";
+      processEnv.VERCEL_ENV = "preview";
+    }
   }
   const child = spawn(process.execPath, [next, "start", "--hostname", "127.0.0.1", "--port", "0"], {
     cwd: fixture, env: processEnv, stdio: ["ignore", "pipe", "inherit"], windowsHide: true,
@@ -105,6 +118,15 @@ function askConversation(base: string, messages: Array<{role: "user"|"assistant"
   });
 }
 
+async function waitForQuestionLogs(calls: () => Promise<string[]>, expected: number) {
+  for (let attempt = 0; attempt < 50; attempt++) {
+    const traffic = await calls();
+    if (traffic.filter(call => call.startsWith(questionLogPrefix)).length >= expected) return traffic;
+    await delay(50);
+  }
+  assert.fail(`Expected ${expected} hosted question log writes`);
+}
+
 try {
   for (const path of ["app", "components", "lib", "scripts/portfolio-chat", "next.config.ts", "package.json", "tsconfig.json"]) {
     await cp(join(root, path), join(fixture, path), { recursive: true });
@@ -132,6 +154,7 @@ try {
     const asset = await fetch(base);
     assert.equal(asset.status, 200);
     assert.match(asset.headers.get("Content-Security-Policy") ?? "", /frame-ancestors https:\/\/portfolio.fixture.example/u);
+    assert.match((await asset.text()).match(questionLogNotice)?.[0] ?? "", /\bhidden\b/u);
     assert.equal((await fetch(base + "/.portfolio-knowledge/hosted.json")).status, 404);
     assert.equal((await ask(base, "tactile signs", "https://unrelated.fixture.example")).status, 403);
     const result = await ask(base, "tactile signs");
@@ -227,6 +250,48 @@ try {
     assert.deepEqual(await calls(), ["firewall", "qwen", "firewall"]);
   });
 
+  await withHosted({ model: "1", firewall: "ready", questionLog: "enabled" }, async (base, calls) => {
+    const notice = (await (await fetch(base)).text()).match(questionLogNotice)?.[0];
+    assert.ok(notice);
+    assert.doesNotMatch(notice, /\bhidden\b/u);
+
+    const messages = [
+      { role: "user", content: "Earlier visitor question" },
+      { role: "assistant", content: "Earlier assistant answer" },
+      { role: "user", content: "How did Lantern test tactile signs? (visitor@example.test, +1 (204) 555-0189)" },
+    ] as const;
+    assert.equal((await askConversation(base, [...messages], { pathname: "/private" })).status, 400);
+    const generated = await askConversation(base, [...messages], { pathname: "/work/lantern" });
+    assert.equal(generated.status, 200);
+    assert.deepEqual((await generated.json()).sources, [{ section: "Research", href: origin + "/work/lantern#research" }]);
+    await waitForQuestionLogs(calls, 1);
+
+    const fallback = await ask(base, "How did Lantern test tactile signs?");
+    assert.equal(fallback.status, 200);
+    assert.equal((await fallback.json()).excerptFallback, true);
+    const traffic = await waitForQuestionLogs(calls, 2);
+    assert.deepEqual(traffic.filter(call => !call.startsWith(questionLogPrefix)), ["firewall", "qwen", "firewall"]);
+    const logs = traffic.filter(call => call.startsWith(questionLogPrefix)).map(call => {
+      const { created_at, ...event } = JSON.parse(call.slice(questionLogPrefix.length));
+      assert.ok(typeof created_at === "string" && Number.isFinite(Date.parse(created_at)));
+      return event;
+    });
+    assert.deepEqual(logs, [
+      { question: "How did Lantern test tactile signs? ([redacted], [redacted])", page_path: "/work/lantern", answer_status: "answered" },
+      { question: "How did Lantern test tactile signs?", page_path: null, answer_status: "excerpt_fallback" },
+    ]);
+  });
+
+  await withHosted({ model: "0", questionLog: "preview" }, async (base, calls) => {
+    const html = await (await fetch(base)).text();
+    assert.match(html.match(questionLogNotice)?.[0] ?? "", /\bhidden\b/u);
+    const result = await ask(base, "tactile signs");
+    assert.equal(result.status, 200);
+    assert.equal((await result.json()).answer, article);
+    await delay(100);
+    assert.deepEqual(await calls(), []);
+  });
+
   for (const [mode, expectedCalls] of [
     [{ model: "1", firewall: "missing" }, ["firewall"]],
     [{ model: "1", firewall: "unavailable" }, ["firewall"]],
@@ -251,7 +316,7 @@ try {
     assert.equal((await fallback.json()).answer, article);
     assert.deepEqual(await calls(), ["firewall", "qwen", "firewall"]);
   });
-  console.log("Hosted builds, Hybrid, Keyword-only, Qwen, Vercel Firewall, Supabase and excerpt fallback passed.");
+  console.log("Hosted builds, Hybrid, Keyword-only, Qwen, Vercel Firewall, Supabase, excerpt fallback and opt-in question logging passed.");
 } finally {
   const target = await realpath(fixture);
   if (dirname(target) !== fixtureRoot || !basename(target).startsWith("portfolio-ai-hosted-")) throw new Error("Unexpected Hosted fixture path");

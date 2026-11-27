@@ -15,9 +15,16 @@ For Hosted and Vite preview, approved pages must open at their direct URLs and s
 
 Approve your homepage for questions about the owner. For example, try “Who is the portfolio owner?” to see the published profile text. The Kit reads visible web and email links in the approved content and site footer. Give icon-only links a descriptive `aria-label` or `title`, then ask using that label, such as “Where is the Codeberg link?” Replies open the published destination and cite the portfolio page that listed it.
 
+If you need help finding pages, use Node.js 24 to run discovery from your Kit checkout. Replace the example origin with your portfolio's public HTTPS origin.
+
+```sh
+npm ci
+npm run discover:portfolio -- --origin https://portfolio.example.com
+```
+
 Discovery checks up to 50 pages it finds through sitemaps and links on the same site. The report lists candidate URLs, titles, languages, and extracted text section counts before approval. It also gives reasons for skipping paths. Candidates must open anonymously and contain visible portfolio text. For Hosted, review and edit the printed paths before setting the environment variables. [Hosted setup](../README.md#hosted-assistant)
 
-Local preview and Hosted builds use the exact approved paths or the configured manifest. After a successful build, check the log for the indexed passage and link counts for each page and for any explicitly excluded paths. Ask “Who is the portfolio owner?” if you included the homepage, or ask about a detail on an approved project page. Expand **Sources** and open the cited page to check the answer.
+Local preview and Hosted builds use the exact approved paths or the configured manifest. After a successful build, check the log for the indexed passage and link counts for each page and for any explicitly excluded paths. Ask “Who is the portfolio owner?” if you included the homepage, or ask about a detail on an approved project page. Expand **Sources** and open the cited page to check the answer. On a desktop approved page, select some text and try **Ask AI Kit** to ask about the selected passage.
 
 An automatically captured entry specifies `access: "public"`, `format: "rendered"`, and a same-origin `url`. Capture reads the title and language (`en`, `zh`, or `ja`) from the page. For a curated Markdown, MDX, or JSON source, supply a `page` with its URL, title, language, and kind. Explicit case study and project detail metadata also needs a project ID. List each URL/locale once. A protected entry declares `access: "protected"` and a pathname. The path and its descendants stay outside the index.
 

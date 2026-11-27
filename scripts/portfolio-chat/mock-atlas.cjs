@@ -17,6 +17,13 @@ globalThis.fetch = async (input, init) => {
     const mode = process.env.TEST_ATLAS_FIREWALL_MODE;
     return new Response(null, { status: mode === "missing" ? 404 : mode === "unavailable" ? 503 : ++firewallChecks === 1 ? 204 : 429 });
   }
+  if (url.hostname === "question-log-fixture.supabase.co") {
+    assert.equal(url.pathname, "/rest/v1/portfolio_ai_question_log");
+    assert.equal(init.method, "POST");
+    assert.equal(new Headers(init.headers).get("apikey"), "sb_secret_question_log_fixture");
+    mark("question-log " + JSON.stringify(JSON.parse(init.body)));
+    return new Response(null, { status: 201 });
+  }
   if (url.hostname === "fixture.supabase.co") {
     mark("supabase");
     assert.equal(init.headers.apikey, "sb_secret_atlas_fixture");

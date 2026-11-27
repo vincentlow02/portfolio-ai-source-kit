@@ -1,6 +1,6 @@
 # Security, configuration and deployment
 
-Keep `.env.local`, Supabase server credentials, model API keys, generated corpora and build output out of Git and client bundles. The included example has placeholders only. The hosted widget does not persist questions or send analytics events.
+Keep `.env.local`, Supabase server credentials, model API keys, generated corpora and build output out of Git and client bundles. The included example has placeholders only. Hosted question logging is off by default.
 
 On Vercel production, the hosted assistant can check model quota with a published `portfolio-ai-qwen` Firewall rule. The rule uses one shared bucket per region. Use a provider-side budget for spending across regions and account for the delay before Model Studio stops calls. The hosted assistant uses excerpts from the selected evidence when the limit is reached or either service is unavailable. [Hosted model setup](../README.md#optional-model-replies) · [Vercel Firewall SDK](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting-sdk) · [Model Studio budget management](https://www.alibabacloud.com/help/en/model-studio/budget-management)
 
@@ -17,3 +17,19 @@ For Qwen, select a regional Model Studio pay-as-you-go endpoint matching your ke
 Local browser access requires the loopback-bound dev script and `PORTFOLIO_AI_LOCAL_DEV=1`. The server also supports an evaluation bearer token of at least 32 characters; never embed this token in a browser bundle. Public deployment is off unless `PORTFOLIO_AI_PUBLIC_ENABLED=1`, an exact HTTPS `PORTFOLIO_AI_PUBLIC_ORIGIN` is configured, and all other controls are satisfied. Origin checks are not user authentication and can be forged outside a browser. Review abuse controls and spending exposure before enabling public access.
 
 For Vercel Preview, use an isolated project and enable platform Deployment Protection before enabling `PORTFOLIO_AI_PROTECTED_PREVIEW=1`. Verify unauthenticated requests to the actual preview URL and aliases are denied, then verify the deployed build and corpus match, origin validation, quotas and citations. Production and preview must not share unreviewed credentials or settings. Atlas adds basic response headers in its Next config; adapt and verify them in the host.
+
+## Limit public chat requests
+
+Apply per-IP rate limits on the assistant deployment that receives chat requests. For the Hosted assistant on Vercel, open **Firewall → Configure → New Rule** and match **Request Path** `/api/preview`, **Method** `POST`, and **Environment** `Production`. Select **Rate Limit** with **IP** as the key and start with **5 requests per 60-second fixed window** and a **429** response. Publish the rule and review its matches in Firewall. On other hosts, configure the equivalent rule at your edge or reverse proxy for the route that receives questions. [Vercel rate limiting](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting)
+
+Vercel Hobby provides one rate-limit rule per project. Check whether it is already used by the `portfolio-ai-qwen` model quota rule before adding a new one. Keep that rule in place if it controls your model quota and apply per-IP limits at another edge you control if needed. [Vercel plan limits](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting#limits)
+
+## Optional Hosted question logging
+
+Enable this only on an assistant deployment you control. Each installation sends chat requests to its own assistant. A configured assistant writes accepted questions to the Supabase project it specifies.
+
+1. Apply the [question log migration](../supabase/migrations/202611260001_portfolio_ai_question_log.sql) in your project's Supabase SQL Editor. The table uses row-level security and the server role can insert rows.
+2. Set `PORTFOLIO_HOSTED_QUESTION_LOG=1`, `PORTFOLIO_HOSTED_QUESTION_LOG_SUPABASE_URL`, and `PORTFOLIO_HOSTED_QUESTION_LOG_SUPABASE_SECRET_KEY` in the assistant's server environment. Use the **Production** environment on Vercel. Logging requires a production runtime and is disabled in Vercel Preview. The logging credentials are separate from model quota configuration.
+3. Redeploy and submit a test question on the production site. In Supabase **Table Editor**, look for a row in `portfolio_ai_question_log`. Each row contains the submission time, approved page path when available, the current question with common contact details masked, and the answer status.
+
+Tell visitors what the deployment records and how long you will keep it. For a small demo, you can review the private table periodically and delete entries older than 14 days. Use synthetic questions in public examples and keep visitor records out of Git.

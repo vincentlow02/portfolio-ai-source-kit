@@ -32,6 +32,7 @@ body {
 .sources a:hover { color: #252a28; }
 .composer textarea { field-sizing: content; }
 .composer button:disabled { opacity: .72; }
+.questionLogNotice { margin: 0 20px 8px; color: #626a65; font-size: 12px; line-height: 1.4; }
 .thinking { padding-top: 0; }
 .assistant .excerptNotice { margin: 0 0 8px; color: #626a65; font-size: 12px; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

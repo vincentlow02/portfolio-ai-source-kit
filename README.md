@@ -4,32 +4,26 @@ Add a chat box to an existing portfolio. The Kit reads the public pages you appr
 
 ## Hosted assistant
 
-For an existing public website, deploy the Kit on Vercel and paste one script into your site.
+Deploy your own copy of the Kit on Vercel and add its script to your portfolio.
 
-1. With Node.js 24, open your Kit checkout and run discovery with the public HTTPS address of your portfolio.
-
-   ```sh
-   npm ci
-   npm run discover:portfolio -- --origin https://portfolio.example.com
-   ```
-
-2. Review the discovery report. It shows each candidate's URL, title, language, and extracted text section count. It also explains why checked paths were skipped. Include the homepage, case studies, and any public contact page you want the assistant to use. Copy the printed `PORTFOLIO_SITE_ORIGIN` and your approved `PORTFOLIO_SOURCE_PATHS` into your assistant project's Vercel environment variables, then deploy your fork. The build log shows how many passages and links were indexed on each page and lists any explicit exclusions. [Supported sources](docs/integration.md#knowledge-sources)
-
-3. Replace the example script URL with the assistant's deployment URL. Paste the script before `</body>` in your portfolio and publish your site.
+1. Fork the Kit and import the fork as a Vercel project. In that assistant project, set `PORTFOLIO_SITE_ORIGIN` to your portfolio's public HTTPS origin, such as `https://portfolio.example.com`. Set `PORTFOLIO_SOURCE_PATHS` to the public pages you want it to read, for example `/,/projects`. Deploy the assistant. [Discover and approve pages](docs/integration.md#knowledge-sources)
+2. Replace the example domain with your assistant's deployment domain. Add the script before `</body>` in your portfolio and publish the site.
 
    ```html
    <script src="https://your-assistant.example.com/embed.js" defer></script>
    ```
 
-4. Open your portfolio and click **Ask about this portfolio**. Try “Who is the portfolio owner?” or “What projects are featured here?” The assistant uses your published profile and project pages. Expand **Sources** to open the evidence.
+3. Open your portfolio and click **Ask about this portfolio**. Ask about a project from an approved page. Expand **Sources** and check that the link opens the right page on your portfolio.
 
-On desktop, select text on an approved portfolio page and click **Ask AI Kit** beside it. The selected passage appears above the question field. You can remove it or send it with your question.
+### Customize and optimize
 
-The Kit reads profile text, projects, and visible links from the approved pages. Visitors can open links such as GitHub, an email address, or a résumé directly from the reply. Descriptive link text or an accessible label makes even icon links findable. [Knowledge sources](docs/integration.md#knowledge-sources)
-
-### Maintain your knowledge base
-
-Edit the content on your portfolio, then redeploy the assistant to rebuild its knowledge. Run discovery again to find new pages and update your approved paths. For finer control, use a manifest to combine automatically captured pages with your own Markdown, MDX, or JSON excerpts from published pages. [Customize your knowledge base](docs/integration.md#customize-your-knowledge-base) · [Automatic refresh setup](docs/integration.md#automatic-knowledge-refresh)
+| If you want to… | Start here |
+| --- | --- |
+| Match the chat UI to your portfolio | Share `components/portfolio-chat/` and the [UI customization prompt](components/portfolio-chat/UI_CUSTOMIZATION.md) with your coding assistant. |
+| Fix missing, outdated, or incorrect sources | Edit the published pages or approved paths, rebuild the assistant, and check the citation for the same question. [Maintain your sources](docs/integration.md#customize-your-knowledge-base) · [Automatic refresh](docs/integration.md#automatic-knowledge-refresh) |
+| Add generated answers | Connect your own model account and configure its quota. Compare the same questions in excerpts and model mode. [Model setup](#optional-model-replies) |
+| Manage public chat traffic | [Configure per-IP limits](docs/security.md#limit-public-chat-requests) and review rule matches before tuning the threshold. |
+| Review what visitors ask | [Enable private question logging](docs/security.md#optional-hosted-question-logging) in your own Supabase project. |
 
 ### Optional model replies
 
@@ -43,7 +37,7 @@ Choose a provider in the assistant project's server environment and set `PORTFOL
 
 In Vercel Firewall, publish a custom rule with the `@vercel/firewall` condition and Rate Limit ID `portfolio-ai-qwen`. This is the shared rule ID for all providers. Set a request count and window, choose **Deny** at the limit, and enable Vercel's system environment variables before redeploying. Then ask a question with a known source and check usage in your provider dashboard. [Firewall SDK setup](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting-sdk) · [Security and quota](docs/security.md)
 
-Generated replies send the question and selected public passages to your provider and can incur token charges. The widget keeps the question text in the current interaction. The assistant returns cited excerpts when generation or quota is unavailable. Set `PORTFOLIO_HOSTED_MODEL=0` and redeploy to use excerpts for every question.
+Generated replies send the question and selected public passages to your provider and can incur token charges. The widget keeps the question text in the current interaction by default. The assistant returns cited excerpts when generation or quota is unavailable. Set `PORTFOLIO_HOSTED_MODEL=0` and redeploy to use excerpts for every question.
 
 ## Install into your Next.js portfolio
 
@@ -53,7 +47,7 @@ To use the React panel and server routes directly in a Next.js App Router portfo
 npx -y shadcn@4.23.0 add 'vincentlow02/portfolio-ai-source-kit/portfolio-ai#PUBLISHED_REF'
 ```
 
-Review the file targets before installing. The command adds Kit source and `.portfolio-ai/SETUP.md`. Use that guide to connect your own layout, approve your public sources and test with mocks. Node 24, Next 16 and React 19 are the tested baseline. [Registry file targets](registry.json) · [Manual setup and example](docs/integration.md#install-into-an-existing-host)
+Review the file targets before installing. Use `.portfolio-ai/SETUP.md` to connect your layout, approve public sources, and test with mocks. The same [UI customization guide](components/portfolio-chat/UI_CUSTOMIZATION.md) comes with the panel. Node 24, Next 16 and React 19 are the tested baseline. [Registry file targets](registry.json) · [Manual setup and example](docs/integration.md#install-into-an-existing-host)
 
 ## Local development
 
