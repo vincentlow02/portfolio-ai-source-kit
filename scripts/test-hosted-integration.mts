@@ -308,9 +308,11 @@ try {
   });
 
   await withHosted({ model: "1", firewall: "ready", questionLog: "enabled", timing: true }, async (base, calls, timings) => {
-    const notice = (await (await fetch(base)).text()).match(questionLogNotice)?.[0];
+    const html = await (await fetch(base)).text();
+    const notice = html.match(questionLogNotice)?.[0];
     assert.ok(notice);
     assert.doesNotMatch(notice, /\bhidden\b/u);
+    assert.match(html, /This chat records submitted questions to improve the assistant\./u);
 
     const messages = [
       { role: "user", content: "Earlier visitor question" },
