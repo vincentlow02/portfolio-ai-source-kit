@@ -28,7 +28,7 @@ Preserve these features in the selected integration:
 - Keep highlight-to-ask on approved pages, the selected-quote preview and removal, and the current page context after navigation. Continue to exclude protected or unapproved content from selection and page context.
 - Keep links in answers, expandable source citations, and follow-up questions accessible and usable. Preserve existing link validation, localized labels and their placeholders, and all loading, empty, error, and rate-limit states that the integration displays.
 
-For Hosted, preserve the Shadow DOM, iframe messaging and origin checks, existing DOM IDs, and template markers `/* widget-config */ null`, `{{portfolio-origin}}`, and `{{question-log-notice}}`. Keep `/api/preview` and its single-question request format. Keep the excerpt fallback and conditional question logging notices, and show the rate-limit message for a plain-text 429.
+For Hosted, preserve the Shadow DOM, iframe messaging and origin checks, existing DOM IDs, and template markers `/* widget-config */ null`, `{{portfolio-origin}}`, and `{{question-log-notice}}`. Keep `/api/preview` and its single-question request format. When a follow-up is clicked, send the passage ID paired with that button. Keep the excerpt fallback and conditional question logging notices, and show the rate-limit message for a plain-text 429.
 
 For Next.js, keep `<PortfolioChatPanel>` compatible with its existing props and host content. Preserve the host-configured endpoints, conversation history, selection hooks, safe Markdown rendering, and mobile dialog behavior.
 

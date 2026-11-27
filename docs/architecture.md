@@ -21,6 +21,8 @@ An exact URL list is sufficient for Hosted and Vite preview. A manifest can comb
 
 Versioned chunks keep their project, language, section and canonical URL. On Hybrid builds the publisher encodes passage text in batches and writes base64-encoded Float32 vectors alongside the corpus in the same private artifact. The vector index records its version, model ID, dimensions and content hash. Next.js also binds the corpus to its Next build ID. Keep the artifact out of public directories and Git.
 
+Hosted reads `.portfolio-knowledge/hosted.json` from the deployed server bundle. Next.js reads `.portfolio-knowledge/corpus.json`, and the local widget reads `.portfolio-knowledge/local-preview.json`. The discovery report lists candidate pages and exclusions. The snapshot contains the approved passages, their source links, and any passage vectors used for answering questions.
+
 Hosted publishes a fresh snapshot on each assistant build. A publishing hook can trigger that build after the portfolio reports a successful production deployment. The approved source list controls what a refresh reads. A failed build leaves the last successful deployment serving. Native Next.js refreshes alongside the host build. Vite preview needs an explicit capture and restart.
 
 ## 2. Retrieve and assemble evidence
@@ -48,13 +50,13 @@ The server accepts evidence keys only from the current pack and rebuilds citatio
 
 ## 4. Integrate and operate
 
-Use the existing Hosted script with a public site on a framework that can load the script and frame, or the Next.js Registry item for an in-app React panel and typed API routes. The Vite preview runs on loopback and uses the same widget assets and core. The widget submits one question and the current approved route at a time. The native panel can send a bounded conversation and display validated follow-up suggestions.
+Use the existing Hosted script with a public site on a framework that can load the script and frame, or the Next.js Registry item for an in-app React panel and typed API routes. The Vite preview runs on loopback and uses the same widget assets and core. The widget sends one question and the current approved route. A suggested follow-up carries a passage ID for a related section on the same cited page. The server verifies the ID and returns the cited excerpt without a model call. The native panel keeps recent turns in browser memory and sends only as many complete turns as fit the request limit. Neither flow needs a database for conversation history.
 
 Excerpt mode needs no model key or database. Hosted generation can use a Vercel Firewall limit or the existing Supabase quota, depending on deployment. Native generated mode uses the existing shared quota. Qwen is the default generation provider when enabled. OpenAI and AI Gateway are alternatives with host configuration and applicable access policies. [Integration](integration.md) · [Security and deployment](security.md)
 
 The shipped Vercel install command skips ONNX's optional CUDA download. Hybrid bundles include the pinned model and retain one lazy CPU session per instance. Inference uses at most two CPU threads, capped by the parallelism reported by Node.js. Builds and requests each consume the applicable hosting allowances. Vercel meters Function memory by provisioned capacity and time. [Vercel Function limits](https://vercel.com/docs/functions/limitations) · [Fluid compute usage](https://vercel.com/docs/functions/usage-and-pricing)
 
-`PORTFOLIO_AI_TIMING=1` emits numeric timings for knowledge, retrieval, evidence assembly and generation, plus provider token counts when available. These logs omit requests, passages and answers. Hosted does not persist questions or analytics events. Next.js can opt into metadata events with `PORTFOLIO_AI_ANALYTICS=1`. Provider requests include the current question and bounded evidence and are subject to that provider's terms.
+`PORTFOLIO_AI_TIMING=1` emits timings for knowledge, retrieval, evidence assembly and generation, plus provider token counts when available. Hosted includes the request status, answer mode, and a fallback reason when applicable. These diagnostic logs omit question, evidence, and answer text. Hosted question logging is off by default and can be enabled to write the current question to the deployment owner's Supabase project. Next.js can opt into metadata events with `PORTFOLIO_AI_ANALYTICS=1`. Provider requests include the current question and bounded evidence. Recent turns sent by the Next.js panel also count toward model input usage when generation is enabled. [Question logging setup](security.md#optional-hosted-question-logging)
 
 ## Compatibility and limits
 

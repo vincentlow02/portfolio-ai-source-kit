@@ -1,6 +1,13 @@
 import type { RetrievalPhase } from "./retrieval";
 
 type Phase = "knowledge" | "retrieval" | "assembly" | "model" | RetrievalPhase;
+type AnswerMode = "direct" | "excerpt" | "model";
+type FallbackReason = "quota_denied" | "quota_unavailable" | "model_provider" | "model_format" | "model_timeout";
+type HostedResult = {
+  httpStatus: number;
+  answerStatus?: "answered" | "excerpt_fallback" | "insufficient" | "error";
+  modelUnavailable?: boolean;
+};
 
 /** Opt-in server-side aggregate timings; never accepts request or evidence text. */
 export class RequestTiming {
@@ -11,6 +18,8 @@ export class RequestTiming {
   };
   private inputTokens: number | null = null;
   private outputTokens: number | null = null;
+  private answerMode: AnswerMode | null = null;
+  private fallbackReason: FallbackReason | null = null;
 
   constructor(private readonly enabled: boolean) {}
 
@@ -28,7 +37,11 @@ export class RequestTiming {
     if (this.enabled) { this.inputTokens = input ?? null; this.outputTokens = output ?? null; }
   }
 
-  finish() {
+  answer(mode: AnswerMode, fallbackReason: FallbackReason | null = null) {
+    if (this.enabled) { this.answerMode = mode; this.fallbackReason = fallbackReason; }
+  }
+
+  finish(hosted?: HostedResult) {
     if (!this.enabled) return;
     const total = performance.now() - this.started;
     const round = (n: number) => Math.round(n * 100) / 100;
@@ -39,6 +52,9 @@ export class RequestTiming {
       keywordMs: round(this.phases.keyword), indexLoadMs: round(this.phases.indexLoad), corpusEmbeddingMs: round(this.phases.corpusEmbedding),
       queryEmbeddingMs: round(this.phases.queryEmbedding), semanticMs: round(this.phases.semantic),
       rankFusionMs: round(this.phases.rankFusion),
-      modelMs: round(this.phases.model), inputTokens: this.inputTokens, outputTokens: this.outputTokens }));
+      modelMs: round(this.phases.model), inputTokens: this.inputTokens, outputTokens: this.outputTokens,
+      ...(hosted && { httpStatus: hosted.httpStatus, answerStatus: hosted.answerStatus ?? null, answerMode: this.answerMode,
+        fallbackReason: this.fallbackReason ?? (hosted.modelUnavailable && this.answerMode === "excerpt" ? "model_configuration" : null) }),
+    }));
   }
 }

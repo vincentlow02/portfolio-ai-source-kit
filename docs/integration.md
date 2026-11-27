@@ -9,6 +9,10 @@
 5. Create `portfolio-knowledge.config.ts` based on the [Atlas manifest](../examples/atlas-portfolio/portfolio-knowledge.config.ts). Use `tsx scripts/portfolio-knowledge/publish.mts` as the build command so the Next build, corpus and file tracing stay synchronized. Run `npm run build` from your host directory before starting local chat, and rebuild when the approved sources change. Update `publishedPaths` in the panel when published routes change.
 6. Copy the environment template to your host's `.env.local` and set `PORTFOLIO_AI_LOCAL_DEV=1`. Run `node scripts/portfolio-chat/dev-server.mjs` and open the `127.0.0.1` URL it prints. The chat returns excerpts when no model is configured. For generation, add your provider key and quota settings and review the migration for a dedicated Supabase project. [Environment template](../examples/atlas-portfolio/.env.example) · [Security and deployment](security.md)
 
+### Upgrade a customized installation
+
+Keep the Kit version or commit you installed. On a branch of your portfolio, compare a clean copy of that version with the new release, then apply the Kit changes while preserving your layout, theme, and copy. Review the release notes for changes to configuration or dependencies. Run your host's build and type check and repeat the [UI verification steps](../components/portfolio-chat/UI_CUSTOMIZATION.md#verify-your-changes) before deploying. For Hosted, use a preview deployment with the new Kit version and verify the embed against an approved page on your test portfolio.
+
 ## Knowledge sources
 
 For Hosted and Vite preview, approved pages must open at their direct URLs and show their content inside `<main>`. Capture allows same-origin scripts and styles and blocks page-initiated fetch and XHR. Use `/` or lowercase paths with letters, digits and hyphens. The reader treats `/projects/<slug>`, `/work/<slug>`, and `/case-studies/<slug>` as project pages. For a custom route, you can mark the main element with `<main data-portfolio-project="field-notes">`. Keep one case study per project ID and language. If a Vite SPA returns 404 at a direct URL, configure a host rewrite. [Vercel Vite rewrites](https://vercel.com/docs/frameworks/frontend/vite#using-vite-to-make-spas)
@@ -98,11 +102,28 @@ Test the hook by publishing a change to one approved page. After the assistant r
 
 ## Hosting limits and retrieval
 
-The default Hybrid build downloads about 135 MB of local model files and stores passage vectors in the private snapshot. Normal requests encode only the question. On a Linux CPU host with a custom install command, set `ONNXRUNTIME_NODE_INSTALL_CUDA=skip` before installing dependencies. The Hosted Vercel install command already sets this. [Retrieval architecture](architecture.md#retrieval-modes)
+With `PORTFOLIO_RETRIEVAL_MODE` unset or set to `hybrid`, the build downloads about 135 MB of local embedding model files and stores passage vectors in the private snapshot. Normal requests encode only the question. On a Linux CPU host with a custom install command, set `ONNXRUNTIME_NODE_INSTALL_CUDA=skip` before installing dependencies. The Hosted Vercel install command already sets this. [Retrieval architecture](architecture.md#retrieval-modes)
 
-Vercel Hobby can host an eligible personal, non-commercial assistant within the plan's allowances. Deploys, refreshes and chat requests use the hosting allowance. Within that allowance and the applicable Firewall limits, excerpts have zero model API charges. Generated replies use the selected provider's pricing. [Vercel Hobby](https://vercel.com/docs/plans/hobby) · [Plan terms](https://vercel.com/legal/terms) · [Function usage](https://vercel.com/docs/functions/usage-and-pricing) · [Firewall limits](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting#limits) · [Model Studio pricing](https://www.alibabacloud.com/help/en/model-studio/model-pricing)
+Set `PORTFOLIO_RETRIEVAL_MODE=keyword` for build and runtime to skip model files and embedding inference. Keyword search supports cited excerpts and optional generation. It needs closer wording matches than Hybrid search.
 
-If your Node.js host has tighter resource limits, set `PORTFOLIO_RETRIEVAL_MODE=keyword` for build and runtime and redeploy. Keyword search keeps cited excerpts and optional generation while skipping model files and embedding inference. It needs closer wording matches than Hybrid search.
+For a large portfolio, start with your homepage and selected case studies. Add public sections through the path list or a manifest. The Hosted build log prints the page count, passage count, and snapshot size. Check these alongside build time and cold-start latency before expanding further. Both retrieval modes use a private file snapshot and an in-process index. The optional Supabase setup is for model quota or question records. A separate searchable index would be a new integration for sites that outgrow the file snapshot.
+
+### Vercel Hobby setup
+
+For an eligible personal portfolio, fork the Kit into your own GitHub account and import that fork into your Vercel Hobby project. Set these variables on the assistant project and select a few approved public pages with `PORTFOLIO_SOURCE_PATHS`. [Git deployment rules](https://vercel.com/docs/git#using-hobby-teams)
+
+```dotenv
+PORTFOLIO_RETRIEVAL_MODE=keyword
+PORTFOLIO_HOSTED_MODEL=0
+```
+
+This setup has zero model API charges and needs no API key or database. Use the project's single WAF rate-limit rule to protect `POST /api/preview` per IP. Chat and refreshes still consume hosting resources. Switch to Hybrid when the site needs stronger cross-language or paraphrase matching. [Hobby eligibility](https://vercel.com/legal/terms) · [Chat rate-limit setup](security.md#limit-public-chat-requests)
+
+As of November 2026, Hobby with Fluid compute includes 4 active CPU-hours, 360 GB-hours of provisioned memory, and 1 million Function invocations per month. Track all three in Vercel Usage. A standard Node.js Function has a 250 MB uncompressed bundle limit including runtime layers. The Kit's Hosted integration test prints the Next.js trace size as a local estimate. For the deployed bundle, set `VERCEL_ANALYZE_BUILD_OUTPUT=1` on a test build to see the actual size and largest files. Exceeding the plan's usage limits can pause the deployment. [Function usage](https://vercel.com/docs/functions/usage-and-pricing) · [Function bundle limits](https://vercel.com/docs/functions/limitations#bundle-size-limits)
+
+Hobby allows one concurrent build and up to 45 minutes per build. For automatic knowledge refreshes, trigger a build after an approved page changes. [Vercel build limits](https://vercel.com/docs/limits) · [Automatic knowledge refresh](#automatic-knowledge-refresh)
+
+If you enable generation later, configure a model quota backend and review the provider's own budget or credit settings. Vercel AI Gateway's free tier has its own monthly credit, eligible models, and per-model rate limits. Those are separate from the Hobby hosting allowance. If you use it, set `PORTFOLIO_AI_MODEL` explicitly to an eligible model. [Model setup](../README.md#optional-model-replies) · [AI Gateway pricing](https://vercel.com/docs/ai-gateway/pricing)
 
 ## Vite local preview
 

@@ -42,14 +42,16 @@ try {
   const corpus = await indexPortfolioCorpus(verified);
   const directory = join(process.cwd(), ".portfolio-knowledge");
   const temporary = join(directory, `hosted.${randomUUID()}.tmp`);
+  const snapshot = JSON.stringify({ origin, corpus }) + "\n";
   await mkdir(directory, { recursive: true });
   try {
-    await writeFile(temporary, JSON.stringify({ origin, corpus }) + "\n", { flag: "wx" });
+    await writeFile(temporary, snapshot, { flag: "wx" });
     await rename(temporary, join(directory, "hosted.json"));
   } finally {
     await unlink(temporary).catch(error => { if (error.code !== "ENOENT") throw error; });
   }
-  console.log(`Hosted knowledge built from ${corpus.pages.length} approved pages and ${corpus.chunks.length} passages.`);
+  const sizeKiB = (Buffer.byteLength(snapshot) / 1024).toFixed(1);
+  console.log(`Hosted knowledge built from ${corpus.pages.length} approved pages and ${corpus.chunks.length} passages (${sizeKiB} KiB).`);
   printIndexedSources(corpus, origin);
 } finally {
   await browser.close();

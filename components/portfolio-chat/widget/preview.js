@@ -79,7 +79,7 @@ function viewSources(sources) {
   return metadata;
 }
 
-function showAnswer(answer, sources = [], questions = [], parts = [answer], excerptFallback = false) {
+function showAnswer(answer, sources = [], questions = [], parts = [answer], excerptFallback = false, followUpSourceIds = []) {
   const reply = document.createElement("div");
   reply.className = "assistant";
   if (excerptFallback) {
@@ -111,7 +111,7 @@ function showAnswer(answer, sources = [], questions = [], parts = [answer], exce
     const followups = document.createElement("div");
     followups.className = "followups";
     followups.setAttribute("aria-label", "Suggested follow-up questions");
-    for (const question of questions.slice(0, 2)) {
+    for (const [index, question] of questions.slice(0, 2).entries()) {
       if (typeof question !== "string" || !question.trim()) continue;
       const button = document.createElement("button");
       button.type = "button";
@@ -122,7 +122,8 @@ function showAnswer(answer, sources = [], questions = [], parts = [answer], exce
       const label = document.createElement("span");
       label.textContent = question;
       button.append(icon, label);
-      button.addEventListener("click", () => void ask(question));
+      const sourceId = followUpSourceIds[index];
+      button.addEventListener("click", () => void ask(question, sourceId));
       followups.append(button);
     }
     if (followups.children.length) reply.append(followups);
@@ -130,12 +131,12 @@ function showAnswer(answer, sources = [], questions = [], parts = [answer], exce
   output.replaceChildren(reply);
 }
 
-async function ask(value) {
+async function ask(value, followUpSourceId) {
   const content = value.trim();
   if (!content || pending) return;
   const request = new AbortController();
   pending = request;
-  const selectionContext = quote ?? undefined;
+  const selectionContext = followUpSourceId ? undefined : quote ?? undefined;
   setQuote(null);
   input.value = "";
   updateSend();
@@ -152,18 +153,19 @@ async function ask(value) {
     if (pending !== request) return;
     const response = await fetch("/api/preview", {
       method: "POST", headers: { "Content-Type": "application/json" }, signal: request.signal,
-      body: JSON.stringify({ messages: [{ role: "user", content }], selectionContext, pageContext }),
+      body: JSON.stringify({ messages: [{ role: "user", content }], selectionContext, pageContext, followUpSourceId }),
     });
     if (pending !== request) return;
     if (!response.ok) {
-      showAnswer(response.status === 400 && selectionContext ? "This selection could not be verified. Select a shorter passage on the current page." :
+      showAnswer(response.status === 400 && followUpSourceId ? "This follow-up is no longer available. Try entering a new question." :
+        response.status === 400 && selectionContext ? "This selection could not be verified. Select a shorter passage on the current page." :
         response.status === 429 ? "Too many requests. Please try again later." : "The assistant is temporarily unavailable.");
       return;
     }
     const result = await response.json();
     if (pending !== request) return;
     if (typeof result.answer !== "string" || !result.answer.trim()) throw new Error("Invalid reply");
-    showAnswer(result.answer, result.sources, result.followUpQuestions, result.answerParts, result.excerptFallback);
+    showAnswer(result.answer, result.sources, result.followUpQuestions, result.answerParts, result.excerptFallback, result.followUpSourceIds);
   } catch {
     if (pending === request) showAnswer("The assistant is temporarily unavailable.");
   } finally {

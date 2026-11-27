@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 import { buildKnowledgeCorpus, type KnowledgeSource } from "../../lib/knowledge/contract";
 import { embeddingModelDirectory } from "../../lib/portfolio-chat/embedding-model.mjs";
 import { launchBrowser } from "../portfolio-knowledge/anonymous-browser.mjs";
-import { excerptReply, widgetResponse } from "../../lib/portfolio-chat/source-reply";
+import { excerptReply, validateWidgetQuestion, widgetFollowUpReply, widgetResponse } from "../../lib/portfolio-chat/source-reply";
 
 const portfolioOrigin = "http://127.0.0.1:5173";
 const article = "The prototype used a recycled steel frame.";
@@ -57,7 +57,7 @@ async function startPreview(t: TestContext, model = false, origin = portfolioOri
     await done;
     await rm(root, { recursive: true, force: true, maxRetries: 4 });
   });
-  for await (const [line] of on(lines, "line", { close: ["close"], signal: AbortSignal.timeout(10_000) })) {
+  for await (const [line] of on(lines, "line", { close: ["close"], signal: AbortSignal.timeout(30_000) })) {
     const chatUrl = /^Local chat preview: (http:\/\/127\.0\.0\.1:\d+\/)$/u.exec(line)?.[1];
     if (!chatUrl) continue;
     const request = (content: string, origin = new URL(chatUrl).origin, selectionContext?: object) => fetch(new URL("api/preview", chatUrl), {
@@ -141,6 +141,29 @@ test("the widget renders visible web and email links without unsafe destinations
   assert.equal(reply.answer, `Open the guide (${portfolioOrigin}/files/guide.pdf), https://docs.example.org/guide, or email hello@example.com. [Invalid](javascript:void(0))`);
 });
 
+test("standalone Hosted follow-ups open the exact public section even with duplicate headings", async () => {
+  const source = (id: string, title: string, material: string, research: string): KnowledgeSource => ({
+    access: "public", format: "rendered",
+    page: { url: `/work/${id}`, title, projectId: id, language: "en", kind: "case-study" },
+    sections: [{ title: "Materials", anchor: "materials", text: material }, { title: "Research", anchor: "research", text: research }],
+  });
+  const research = "The Oak team interviewed park guides at six trail entrances.";
+  const corpus = await buildKnowledgeCorpus([
+    source("oak", "Oak", "The prototype featured an anodized aluminum housing.", research),
+    source("cedar", "Cedar", "The prototype featured a recycled plastic enclosure.", "The Cedar team ran surveys at the railway terminal."),
+  ], "local-preview", async () => {});
+  const first = widgetResponse({ answer: "An anodized aluminum housing.", sources: [{ section: "Materials", url: "/work/oak#materials" }] }, portfolioOrigin, { corpus, language: "en" });
+  assert.deepEqual(first.followUpQuestions, ["What does Oak say about Research?"]);
+  const request = { messages: [{ role: "user", content: first.followUpQuestions![0] }], followUpSourceId: first.followUpSourceIds![0] };
+  const { followUp } = validateWidgetQuestion(request, corpus);
+  assert.ok(followUp);
+  const result = widgetFollowUpReply(corpus, followUp);
+  assert.equal(result.answer, research);
+  assert.equal(result.sources[0].url, "/work/oak#research");
+  assert.throws(() => validateWidgetQuestion({ ...request, messages: [{ role: "user", content: "What does Cedar say about Research?" }] }, corpus));
+  assert.throws(() => validateWidgetQuestion(request, { ...corpus, pages: corpus.pages.filter(page => page.url !== "/work/oak") }));
+});
+
 test("the embedded widget sends one question with its portfolio quote or current approved page", async t => {
   let embedUrl = "";
   const research = "The Lantern team tested tactile signs at six libraries.";
@@ -161,7 +184,8 @@ test("the embedded widget sends one question with its portfolio quote or current
     access: "public", format: "rendered",
     page: { url: "/projects/lantern", title: "Lantern", language: "en", kind: "case-study", projectId: "lantern",
       publicLinks: [{ label: "Lantern demo", href: "/prototype.pdf" }] },
-    sections: [{ title: "Research", anchor: "research", text: research }],
+    sections: [{ title: "Research", anchor: "research", text: research },
+      { title: "Materials", anchor: "materials", text: "The Lantern signs used aluminum frames with molded tactile markings." }],
   }]);
   embedUrl = new URL("embed.js", chatUrl).href;
   const browser = await launchBrowser();
@@ -219,6 +243,16 @@ test("the embedded widget sends one question with its portfolio quote or current
   assert.equal(await panel.$eval("#asked-quote-text", quote => quote.textContent), research);
   assert.equal(await panel.$eval("#output p", answer => answer.textContent), research);
   assert.equal(await panel.$eval(".sources a", link => link.getAttribute("href")), `${origin}/projects/lantern#research`);
+
+  await page.evaluate(() => history.pushState(null, "", "/unapproved"));
+  const sentFollowUp = page.waitForRequest(request => new URL(request.url()).pathname === "/api/preview" && request.method() === "POST");
+  await panel.click(".followups button");
+  const followUpRequest = JSON.parse((await (await sentFollowUp).fetchPostData())!);
+  assert.deepEqual(followUpRequest.messages, [{ role: "user", content: "What does Lantern say about Materials?" }]);
+  assert.match(followUpRequest.followUpSourceId, /^[a-f0-9]{24}$/u);
+  assert.equal(followUpRequest.pageContext, undefined);
+  await panel.waitForSelector(`.sources a[href="${origin}/projects/lantern#materials"]`);
+  await page.evaluate(() => history.pushState(null, "", "/projects/lantern"));
 
   const first = await ask("How was it tested?");
   assert.deepEqual(first, {

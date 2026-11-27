@@ -11,7 +11,7 @@ import { b2PublicCorpus } from "../../lib/portfolio-chat/b2";
 import { prepareEmbeddingModel } from "../../lib/portfolio-chat/embedding-model.mjs";
 import { resolveResponseLanguage } from "../../lib/portfolio-chat/language";
 import { readPortfolioRequest } from "../../lib/portfolio-chat/request-body";
-import { createModelReply, excerptReply, validateWidgetQuestion, widgetResponse } from "../../lib/portfolio-chat/source-reply";
+import { createModelReply, excerptReply, validateWidgetQuestion, widgetFollowUpReply, widgetResponse } from "../../lib/portfolio-chat/source-reply";
 import { readWidgetAsset, widgetAssets, widgetFramePolicy } from "../../lib/portfolio-chat/widget-assets";
 import { RequestTiming } from "../../lib/portfolio-chat/timing";
 import { localPreviewOrigin } from "../portfolio-knowledge/anonymous-browser.mjs";
@@ -98,14 +98,14 @@ async function servePreview(port: number, useModel: boolean) {
       return;
     }
     try {
-      const { messages, page, quote } = question;
+      const { messages, page, quote, followUp } = question;
       const language = resolveResponseLanguage(messages, corpus.pages[0]?.language);
       const controller = new AbortController();
       response.once("close", () => controller.abort());
-      const result = modelReply
+      const result = followUp ? widgetFollowUpReply(corpus, followUp) : modelReply
         ? await modelReply(messages, language, quote, { page, signal: controller.signal, timing })
         : await excerptReply(corpus, messages, language, quote, page, timing);
-      sendJson(response, 200, widgetResponse(result, portfolioOrigin));
+      sendJson(response, 200, widgetResponse(result, portfolioOrigin, { corpus, language }));
     } catch (error) {
       const message = modelReply ? describeModelFailure(error) : "The preview could not look up that question.";
       if (modelReply) console.warn(`Model preview: ${message}`);
