@@ -26,7 +26,7 @@ Vercel Hobby provides one WAF rate-limit rule per project. In excerpt mode, use 
 
 ## Optional Hosted question logging
 
-Enable this only on an assistant deployment you control. Each installation sends chat requests to its own assistant. A configured assistant writes accepted questions to the Supabase project it specifies.
+Question logging is off by default. To enable it, connect your Hosted assistant to a Supabase project you control. Each installation writes accepted questions only to its configured project. A dedicated chat project lets you manage log access and retention separately from your portfolio data. You can also use an existing project you control.
 
 1. Apply the [question log migration](../supabase/migrations/202611260001_portfolio_ai_question_log.sql) in your project's Supabase SQL Editor. The table uses row-level security and the server role can insert rows.
 2. Set `PORTFOLIO_HOSTED_QUESTION_LOG=1`, `PORTFOLIO_HOSTED_QUESTION_LOG_SUPABASE_URL`, and `PORTFOLIO_HOSTED_QUESTION_LOG_SUPABASE_SECRET_KEY` in the assistant's server environment. Use the **Production** environment on Vercel. Logging requires a production runtime and is disabled in Vercel Preview. The logging credentials are separate from model quota configuration.
