@@ -121,7 +121,7 @@ export async function answerHostedQuestion(request: Request) {
     const { messages, page, quote, followUp } = question;
     if (hostedQuestionLogEnabled()) {
       const question = redactHostedQuestion(messages.at(-1)!.content);
-      if (question) questionLog = { created_at: new Date().toISOString(), question, page_path: page?.path ?? null, answer_status: "error" };
+      if (question) questionLog = { created_at: new Date().toISOString(), question, answer: null, page_path: page?.path ?? null, answer_status: "error" };
     }
     const language = resolveResponseLanguage(messages, corpus.pages[0]?.language);
     request.signal.throwIfAborted();
@@ -130,10 +130,14 @@ export async function answerHostedQuestion(request: Request) {
     const result = followUp ? widgetFollowUpReply(corpus, followUp) : model
       ? await model(messages, language, quote, { page, signal: request.signal, reserve: reserveHostedModelQuota, fallbackToExcerpt: true, timing })
       : await excerptReply(corpus, messages, language, quote, page, timing);
-    const response = Response.json(widgetResponse(result, origin, { corpus, language }), { headers });
+    const payload = widgetResponse(result, origin, { corpus, language });
+    const response = Response.json(payload, { headers });
     answerStatus = "excerptFallback" in result && result.excerptFallback ? "excerpt_fallback" :
       "insufficient" in result && result.insufficient ? "insufficient" : "answered";
-    if (questionLog) questionLog.answer_status = answerStatus;
+    if (questionLog) {
+      questionLog.answer_status = answerStatus;
+      questionLog.answer = payload.answerParts?.map(part => typeof part === "string" ? part : part.text).join("") ?? payload.answer;
+    }
     httpStatus = response.status;
     return response;
   } catch {

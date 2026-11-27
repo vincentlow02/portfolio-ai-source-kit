@@ -21,7 +21,12 @@ globalThis.fetch = async (input, init) => {
     assert.equal(url.pathname, "/rest/v1/portfolio_ai_question_log");
     assert.equal(init.method, "POST");
     assert.equal(new Headers(init.headers).get("apikey"), "sb_secret_question_log_fixture");
-    mark("question-log " + JSON.stringify(JSON.parse(init.body)));
+    const event = JSON.parse(init.body);
+    if (process.env.TEST_ATLAS_QUESTION_LOG_SCHEMA === "legacy" && "answer" in event) {
+      mark("question-log rejected answer column");
+      return Response.json({ code: "PGRST204", message: "Could not find the 'answer' column of 'portfolio_ai_question_log' in the schema cache" }, { status: 400 });
+    }
+    mark("question-log " + JSON.stringify(event));
     return new Response(null, { status: 201 });
   }
   if (url.hostname === "fixture.supabase.co") {

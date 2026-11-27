@@ -20,8 +20,13 @@ begin
 end $$;
 
 begin;
+insert into public.portfolio_ai_question_log (created_at, question, answer_status)
+values (now() - interval '15 days', 'Expired fixture question', 'insufficient');
+\ir ../../supabase/migrations/202611260002_portfolio_ai_question_log_answer.sql
+
 set local role service_role;
-insert into public.portfolio_ai_question_log (question, answer_status) values ('Recent fixture question', 'answered');
+insert into public.portfolio_ai_question_log (question, answer, answer_status)
+values ('Recent fixture question', 'The answer returned by the widget.', 'answered');
 
 do $$
 declare
@@ -51,14 +56,19 @@ do $$
 begin
   if not exists (
     select 1 from public.portfolio_ai_question_log
-    where question = 'Recent fixture question' and id is not null and created_at = now() and page_path is null
+    where question = 'Recent fixture question' and answer = 'The answer returned by the widget.'
+      and id is not null and created_at = now() and page_path is null
   ) then
     raise exception 'Question log insert did not apply the expected defaults';
   end if;
+  if not exists (
+    select 1 from public.portfolio_ai_question_log
+    where question = 'Expired fixture question' and answer is null and answer_status = 'insufficient'
+  ) then
+    raise exception 'The answer migration changed a historical row';
+  end if;
 end $$;
 
-insert into public.portfolio_ai_question_log (created_at, question, answer_status)
-values (now() - interval '15 days', 'Expired fixture question', 'insufficient');
 \ir ../../supabase/question-log-retention.sql
 
 do $$

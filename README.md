@@ -24,7 +24,7 @@ Deploy your own copy of the Kit on Vercel and add its script to your portfolio.
 | Keep a large portfolio practical to deploy | Start with your key pages and expand after checking build time and indexed passage count. Keyword mode is available for hosts with tighter resource limits. [Hosting limits and retrieval](docs/integration.md#hosting-limits-and-retrieval) |
 | Add generated answers | Connect your own model account and configure its quota. Compare the same questions in excerpts and model mode. [Model setup](#optional-model-replies) |
 | Manage public chat traffic | [Configure per-IP limits](docs/security.md#limit-public-chat-requests) and review rule matches before tuning the threshold. |
-| Review what visitors ask | [Enable private question logging](docs/security.md#optional-hosted-question-logging) in your own Supabase project. |
+| Review visitor questions and replies | [Enable private question logging](docs/security.md#optional-hosted-question-logging) in your own Supabase project. |
 
 ### Optional model replies
 
