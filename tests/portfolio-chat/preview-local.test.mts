@@ -10,7 +10,7 @@ import test, { type TestContext } from "node:test";
 import { fileURLToPath } from "node:url";
 import { buildKnowledgeCorpus, type KnowledgeSource } from "../../lib/knowledge/contract";
 import { embeddingModelDirectory } from "../../lib/portfolio-chat/embedding-model.mjs";
-import { launchBrowser } from "../portfolio-knowledge/anonymous-browser.mjs";
+import { launchBrowser } from "../../scripts/portfolio-knowledge/anonymous-browser.mjs";
 import { excerptReply, validateWidgetQuestion, widgetFollowUpReply, widgetResponse } from "../../lib/portfolio-chat/source-reply";
 
 const portfolioOrigin = "http://127.0.0.1:5173";
@@ -35,8 +35,8 @@ async function startPreview(t: TestContext, model = false, origin = portfolioOri
   await writeFile(file, JSON.stringify({ origin, corpus }));
   if (retrievalMode === "hybrid") await cp(embeddingModelDirectory, join(root, embeddingModelDirectory), { recursive: true });
   const dependencies = new URL("../../node_modules/tsx/dist/loader.mjs", import.meta.url).href;
-  const script = fileURLToPath(new URL("./preview-local.mts", import.meta.url));
-  const fixture = fileURLToPath(new URL("./mock-local-preview.cjs", import.meta.url));
+  const script = fileURLToPath(new URL("../../scripts/portfolio-chat/preview-local.mts", import.meta.url));
+  const fixture = fileURLToPath(new URL("../fixtures/mock-local-preview.cjs", import.meta.url));
   const prefix = model ? ["--require", fixture] : [];
   const args = model ? ["--model"] : [];
   const child = spawn(process.execPath, [...prefix, "--import", dependencies, script, "--port", "0", ...args], {

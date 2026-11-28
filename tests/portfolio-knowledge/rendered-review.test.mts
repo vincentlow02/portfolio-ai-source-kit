@@ -10,9 +10,9 @@ import { parsePortfolioCorpus } from "../../lib/knowledge/corpus";
 import { captureLocalPreviewSource, capturePublishedSource, captureSiteSource, verifyInBrowser } from "../../lib/knowledge/rendered";
 import { hostedPortfolioOrigin } from "../../lib/knowledge/hosted-origin";
 import { excerptReply } from "../../lib/portfolio-chat/source-reply";
-import { launchBrowser, localPreviewOrigin } from "./anonymous-browser.mjs";
-import { discoverPortfolioSources } from "./discover-sources.mts";
-import { loadKnowledgeSources } from "./source-plan";
+import { launchBrowser, localPreviewOrigin } from "../../scripts/portfolio-knowledge/anonymous-browser.mjs";
+import { discoverPortfolioSources } from "../../scripts/portfolio-knowledge/discover-sources.mts";
+import { loadKnowledgeSources } from "../../scripts/portfolio-knowledge/source-plan";
 
 test("anonymous publication validation rejects hidden DOM, protected markers and indexing exclusions", async () => {
   const publicText = "Public paragraph with <strong>visible words</strong>.";

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { createServer } from "node:http";
-import { copyFile, cp, lstat, mkdtemp, readFile, rm } from "node:fs/promises";
+import { copyFile, cp, lstat, mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -44,9 +44,9 @@ try {
     await once(registry, "listening");
     sourceUrl = `http://127.0.0.1:${registry.address().port}/portfolio-ai.json`;
   }
-  for (const [name, source, test] of [
-    ["atlas", "examples/atlas-portfolio", "scripts/test-atlas-integration.mjs"],
-    ["second", "tests/second-portfolio", "scripts/test-second-integration.mjs"],
+  for (const [name, source, test, mock] of [
+    ["atlas", "examples/atlas-portfolio", "scripts/test-atlas-integration.mjs", "tests/fixtures/mock-atlas.cjs"],
+    ["second", "tests/fixtures/second-portfolio", "scripts/test-second-integration.mjs", "tests/fixtures/mock-second.cjs"],
   ]) {
     const host = join(fixture, name);
     await cp(join(root, source), host, { recursive: true, filter: async path => {
@@ -59,8 +59,10 @@ try {
     await run("npx", ["-y", "shadcn@4.23.0", "add", sourceUrl, "--yes"], host);
     await run("npm", ["run", "build"], host);
     await run("npm", ["run", "typecheck"], host);
-    for (const path of [test, "scripts/copy-portfolio-kit.mjs", "scripts/portfolio-chat/mock-atlas.cjs", "scripts/portfolio-chat/mock-second.cjs"]) {
-      await copyFile(join(root, path), join(host, path));
+    for (const path of [test, "scripts/copy-portfolio-kit.mjs", mock]) {
+      const destination = join(host, path);
+      await mkdir(dirname(destination), { recursive: true });
+      await copyFile(join(root, path), destination);
     }
     await run(process.execPath, [join(host, test), host], host);
   }

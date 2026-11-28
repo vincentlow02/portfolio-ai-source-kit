@@ -3,7 +3,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { parsePageSelection, readApprovedPreviewPaths } from "./local-source-selection";
+import { parsePageSelection, readApprovedPreviewPaths } from "../../scripts/portfolio-knowledge/local-source-selection";
 
 test("the local prompt accepts all, selected numbers, or cancellation", () => {
   const paths = ["/", "/projects", "/projects/studio?lang=ja"];

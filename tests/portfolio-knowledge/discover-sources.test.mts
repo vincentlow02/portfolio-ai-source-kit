@@ -9,8 +9,8 @@ import type { ResponseForRequest } from "puppeteer";
 import { buildKnowledgeCorpus } from "../../lib/knowledge/contract";
 import { captureLocalPreviewSource, captureSiteSource, verifyInBrowser } from "../../lib/knowledge/rendered";
 import { excerptReply, widgetResponse } from "../../lib/portfolio-chat/source-reply";
-import { launchBrowser } from "./anonymous-browser.mjs";
-import { discoverPortfolioSources } from "./discover-sources.mts";
+import { launchBrowser } from "../../scripts/portfolio-knowledge/anonymous-browser.mjs";
+import { discoverPortfolioSources } from "../../scripts/portfolio-knowledge/discover-sources.mts";
 
 const html = (body: string, language = "en") =>
   '<!doctype html><html lang="' + language + '"><title>Portfolio example</title><main>' + body + '</main></html>';
@@ -138,7 +138,7 @@ test("single-page onboarding keeps fragment links inside one page and reports wh
       '<section id="glazes"><h2>Glazing notes</h2><p>Wood ash glaze gives the cups a matte finish.</p></section>' +
       '<a href="/signin">Sign in</a>'));
   });
-  const script = fileURLToPath(new URL("./discover-portfolio.mts", import.meta.url));
+  const script = fileURLToPath(new URL("../../scripts/portfolio-knowledge/discover-portfolio.mts", import.meta.url));
   const { stdout } = await promisify(execFile)(process.execPath, ["--import", "tsx", script, "--origin", origin], {
     cwd: fileURLToPath(new URL("../../", import.meta.url)), timeout: 25_000, windowsHide: true,
   });

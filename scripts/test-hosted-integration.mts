@@ -18,7 +18,7 @@ const fixtureRoot = await realpath(process.platform === "win32" ? dirname(root) 
 const fixture = await mkdtemp(join(fixtureRoot, "portfolio-ai-hosted-"));
 const origin = "https://portfolio.fixture.example";
 const next = "node_modules/next/dist/bin/next";
-const preload = join(root, "scripts/portfolio-chat/mock-atlas.cjs").replaceAll("\\", "/");
+const preload = join(root, "tests/fixtures/mock-atlas.cjs").replaceAll("\\", "/");
 const inherited = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
   !/^(?:PORTFOLIO_|QWEN_|SUPABASE_|OPENAI_|AI_GATEWAY_|VERCEL(?:_|$)|NEXT_PUBLIC_|POSTHOG_|NODE_OPTIONS$|NODE_ENV$|TEST_ATLAS_)/iu.test(key)));
 const env = {
@@ -160,7 +160,7 @@ async function hostedOutcomes(timings: () => TimingEvent[], expected: number) {
 }
 
 try {
-  for (const path of ["app", "components", "lib", "scripts/portfolio-chat", "next.config.ts", "package.json", "tsconfig.json"]) {
+  for (const path of ["app", "components", "lib", "next.config.ts", "package.json", "tsconfig.json"]) {
     await cp(join(root, path), join(fixture, path), { recursive: true });
   }
   await symlink(join(root, "node_modules"), join(fixture, "node_modules"), process.platform === "win32" ? "junction" : "dir");

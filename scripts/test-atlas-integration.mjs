@@ -10,7 +10,7 @@ import { copyPortfolioKit } from "./copy-portfolio-kit.mjs";
 import { launchBrowser } from "./portfolio-knowledge/anonymous-browser.mjs";
 
 const sample = new URL("../examples/atlas-portfolio/", import.meta.url);
-const mockPath = fileURLToPath(new URL("./portfolio-chat/mock-atlas.cjs", import.meta.url)).replaceAll("\\", "/");
+const mockPath = fileURLToPath(new URL("../tests/fixtures/mock-atlas.cjs", import.meta.url)).replaceAll("\\", "/");
 const fixtureEnv = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
   !/^(?:PORTFOLIO_|QWEN_|SUPABASE_|OPENAI_|AI_GATEWAY_|VERCEL(?:_|$)|NEXT_PUBLIC_|POSTHOG_|NODE_OPTIONS$)/iu.test(key)));
 const env = {

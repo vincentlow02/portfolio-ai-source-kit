@@ -2,6 +2,17 @@
 
 Portfolio AI builds a private search index from approved public sources. A shared Node.js engine serves the Next.js React panel, the Hosted widget and the Vite local preview. The engine takes a corpus, a question and configuration. Each integration supplies its own HTTP access controls and UI.
 
+## Repository layout
+
+| To work on | Start here |
+| --- | --- |
+| Hosted HTTP requests, corpus loading, or question logs | [Next.js route](../app/) and [Hosted server modules](../lib/hosted/). The route delegates to the handler, which loads the runtime and records question events. |
+| Chat UI or embed | [Chat components](../components/portfolio-chat/) contains the native React panel and the Hosted widget's HTML, CSS, JavaScript, and icons. |
+| Knowledge capture, retrieval, or answers | [Knowledge code](../lib/knowledge/) and [chat engine](../lib/portfolio-chat/). [Publishing scripts](../scripts/portfolio-knowledge/) handle discovery, local preview, and corpus builds. |
+| Local chat tooling, installation checks, or manual evaluation | [Scripts](../scripts/) contains the command entry points. [Tests](../tests/) contains chat, knowledge, and PostgreSQL specs and the fixture hosts and mocks. |
+| Database setup or cleanup | [Supabase](../supabase/) contains ordered migrations and the optional retention query. |
+| Integration examples or older evaluations | [Examples](../examples/) contains sample integrations. [Archived reports](archive/README.md) contains historical results. |
+
 ```mermaid
 flowchart LR
   A[Approved URLs and source files] --> B[Extract, verify and chunk]
@@ -56,7 +67,7 @@ Excerpt mode needs no model key or database. Hosted generation can use a Vercel 
 
 The shipped Vercel install command skips ONNX's optional CUDA download. Hybrid bundles include the pinned model and retain one lazy CPU session per instance. Inference uses at most two CPU threads, capped by the parallelism reported by Node.js. Builds and requests each consume the applicable hosting allowances. Vercel meters Function memory by provisioned capacity and time. [Vercel Function limits](https://vercel.com/docs/functions/limitations) · [Fluid compute usage](https://vercel.com/docs/functions/usage-and-pricing)
 
-`PORTFOLIO_AI_TIMING=1` emits timings for knowledge, retrieval, evidence assembly and generation, plus provider token counts when available. Hosted includes the request status, answer mode, and a fallback reason when applicable. These diagnostic logs omit question, evidence, and answer text. Hosted question logging is off by default and can be enabled to write the current question to the deployment owner's Supabase project. Next.js can opt into metadata events with `PORTFOLIO_AI_ANALYTICS=1`. Provider requests include the current question and bounded evidence. Recent turns sent by the Next.js panel also count toward model input usage when generation is enabled. [Question logging setup](security.md#optional-hosted-question-logging)
+`PORTFOLIO_AI_TIMING=1` emits timings for knowledge, retrieval, evidence assembly and generation, plus provider token counts when available. Hosted includes the request status, answer mode, and a fallback reason when applicable. These diagnostic logs omit question, evidence, and answer text. Hosted question logging is off by default and can be enabled to write the current question and reply to the deployment owner's Supabase project. Next.js can opt into metadata events with `PORTFOLIO_AI_ANALYTICS=1`. Provider requests include the current question and bounded evidence. Recent turns sent by the Next.js panel also count toward model input usage when generation is enabled. [Question logging setup](security.md#optional-hosted-question-logging)
 
 ## Compatibility and limits
 

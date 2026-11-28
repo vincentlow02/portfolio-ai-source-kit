@@ -8,7 +8,7 @@ import { launchBrowser } from "./portfolio-knowledge/anonymous-browser.mjs";
 
 const host = resolve(process.argv[2] ?? "");
 if (!process.argv[2]) throw new Error("Provide the installed second portfolio directory");
-const mock = fileURLToPath(new URL("./portfolio-chat/mock-second.cjs", import.meta.url)).replaceAll("\\", "/");
+const mock = fileURLToPath(new URL("../tests/fixtures/mock-second.cjs", import.meta.url)).replaceAll("\\", "/");
 const fixtureEnv = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
   !/^(?:PORTFOLIO_|QWEN_|SUPABASE_|OPENAI_|AI_GATEWAY_|VERCEL(?:_|$)|NEXT_PUBLIC_|POSTHOG_|NODE_OPTIONS$)/iu.test(key)));
 const env = { ...fixtureEnv, PORTFOLIO_AI_PUBLIC_ENABLED: "0", PORTFOLIO_AI_LOCAL_DEV: "1", PORTFOLIO_AI_LOOPBACK_BOUND: "1",

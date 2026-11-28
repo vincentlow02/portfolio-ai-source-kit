@@ -1,4 +1,4 @@
-import { answerHostedQuestion, serveHostedAsset } from "../../lib/hosted-assistant";
+import { answerHostedQuestion, serveHostedAsset } from "../../lib/hosted/handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

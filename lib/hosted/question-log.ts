@@ -1,6 +1,6 @@
 import "server-only";
 
-import { supabasePost } from "./portfolio-chat/supabase";
+import { supabasePost } from "../portfolio-chat/supabase";
 
 export type HostedQuestionLog = {
   created_at: string;
@@ -10,16 +10,23 @@ export type HostedQuestionLog = {
   answer_status: "answered" | "excerpt_fallback" | "insufficient" | "error";
 };
 
+function questionLogConnection() {
+  return {
+    SUPABASE_URL: process.env.PORTFOLIO_HOSTED_QUESTION_LOG_SUPABASE_URL?.trim(),
+    SUPABASE_SECRET_KEY: process.env.PORTFOLIO_HOSTED_QUESTION_LOG_SUPABASE_SECRET_KEY?.trim(),
+  };
+}
+
 export function hostedQuestionLogEnabled() {
   const env = process.env;
   const onVercel = env.VERCEL === "1" || env.VERCEL_ENV !== undefined;
   const production = onVercel ? env.VERCEL_ENV === "production" : env.NODE_ENV === "production";
-  return production &&
-    env.PORTFOLIO_HOSTED_QUESTION_LOG === "1" &&
-    Boolean(env.PORTFOLIO_HOSTED_QUESTION_LOG_SUPABASE_URL?.trim() && env.PORTFOLIO_HOSTED_QUESTION_LOG_SUPABASE_SECRET_KEY?.trim());
+  if (!production || env.PORTFOLIO_HOSTED_QUESTION_LOG !== "1") return false;
+  const { SUPABASE_URL, SUPABASE_SECRET_KEY } = questionLogConnection();
+  return Boolean(SUPABASE_URL && SUPABASE_SECRET_KEY);
 }
 
-export function redactHostedQuestion(question: string) {
+function redactHostedQuestion(question: string) {
   return question.normalize("NFKC")
     .replace(/[\u0000\u200b-\u200d\u2060\ufeff]/gu, "")
     .replace(/[\p{L}\p{N}.!#$%&'*+/=?^_`{|}~-]{1,64}@[\p{L}\p{N}-]+(?:\.[\p{L}\p{N}-]+)+/gu, "[redacted]")
@@ -28,11 +35,21 @@ export function redactHostedQuestion(question: string) {
     .trim().slice(0, 2000).toWellFormed();
 }
 
-export async function writeHostedQuestionLog(event: HostedQuestionLog) {
-  const env = {
-    SUPABASE_URL: process.env.PORTFOLIO_HOSTED_QUESTION_LOG_SUPABASE_URL?.trim(),
-    SUPABASE_SECRET_KEY: process.env.PORTFOLIO_HOSTED_QUESTION_LOG_SUPABASE_SECRET_KEY,
+export function prepareHostedQuestionLog(input: string, pagePath: string | null): HostedQuestionLog | undefined {
+  if (!hostedQuestionLogEnabled()) return undefined;
+  const question = redactHostedQuestion(input);
+  if (!question) return undefined;
+  return {
+    created_at: new Date().toISOString(),
+    question,
+    answer: null,
+    page_path: pagePath,
+    answer_status: "error",
   };
+}
+
+export async function writeHostedQuestionLog(event: HostedQuestionLog) {
+  const env = questionLogConnection();
   try {
     const endpoint = "/rest/v1/portfolio_ai_question_log";
     const response = await supabasePost(env, endpoint, event);

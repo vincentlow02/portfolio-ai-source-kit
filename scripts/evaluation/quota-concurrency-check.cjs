@@ -5,7 +5,7 @@ const path = require("node:path");
 const { Client } = require(process.env.PORTFOLIO_AUDIT_PG_MODULE || "pg");
 if (process.env.PORTFOLIO_AUDIT_DISPOSABLE !== "1") throw new Error("Use only a fresh disposable PostgreSQL instance; set PORTFOLIO_AUDIT_DISPOSABLE=1");
 const options = { host: "127.0.0.1", port: Number(process.argv[2]), user: "postgres", database: "postgres" };
-const sql = path.resolve("scripts/portfolio-chat/quota-postgres.test.sql");
+const sql = path.resolve("tests/postgres/quota-postgres.test.sql");
 const script = fs.readFileSync(sql, "utf8").replaceAll("\r\n", "\n");
 const header = /\\set ON_ERROR_STOP on\n([\s\S]+)\n\\ir ([^\n]+)\n\n/u.exec(script);
 assert.ok(header);

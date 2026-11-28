@@ -37,8 +37,8 @@ jobs:
         env:
           PGPASSWORD: fixture-only-password
         run: |
-          psql -X -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -f scripts/portfolio-chat/quota-postgres.test.sql
-          psql -X -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -f scripts/portfolio-chat/question-log-postgres.test.sql
+          psql -X -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -f tests/postgres/quota-postgres.test.sql
+          psql -X -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -f tests/postgres/question-log-postgres.test.sql
           pids=()
           for i in $(seq 1 12); do
             psql -X -qAt -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -c 'set role service_role; select public.vincent_ai_reserve_quota(100,5,1,0.01)' > "$RUNNER_TEMP/quota-$i.txt" &

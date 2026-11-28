@@ -55,7 +55,7 @@ Review the file targets before installing. Use `.portfolio-ai/SETUP.md` to conne
 - [Preview the widget in a local Vite portfolio](docs/integration.md#vite-local-preview)
 - [Try Qwen in the local preview](docs/integration.md#preview-qwen-locally)
 - [Build the Atlas example and run tests](docs/integration.md#example-and-tests)
-- [Architecture](docs/architecture.md) and [troubleshooting](docs/evaluation.md)
+- [Code layout and architecture](docs/architecture.md#repository-layout) and [troubleshooting](docs/evaluation.md)
 - [Historical release and audit reports](docs/archive/README.md)
 
 ## License
